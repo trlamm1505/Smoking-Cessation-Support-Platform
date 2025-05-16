@@ -286,20 +286,20 @@ className="md:hidden items-center p-2 w-16 h-16 justify-center text-sm text-gray
 
         {/* <!-- Buttons --> */}
         <div id="navbar-multi-level" className="hidden md:flex space-x-5 mt-5 md:mt-0">
-          <button type="button"
-          className="hover:border-[#FE330A] opacity-0 animate__animated fadeIn  relative overflow-hidden font-bold mt-3 text-black bg-blue-700 hover:bg-white focus:ring-4 focus:outline-none focus:ring-blue-300 border-1 border-black rounded-full text-base px-6 py-3 dark:bg-white dark:focus:ring-blue-800 group">
+        <button type="button"
+          className="relative overflow-hidden font-bold mt-3 text-white bg-blue-700 hover:bg-whitefocus:ring-4 focus:outline-none focus:ring-blue-300 rounded-full text-base px-7 py-3 dark:bg-[#5FB8B3]  dark:focus:ring-blue-800 group">
           {/* <!-- Overlay for red color effect --> */}
           <span
-            className=" opacity-0 animate__animated fadeIn  absolute top-0 left-0 w-full h-0 bg-[#FE330A] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
+            className=" absolute top-0 left-0 w-full h-0 bg-[#85BB47] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
           {/* <!-- Text content above the overlay --> */}
-          <span className="relative z-10 group-hover:text-white ">Login</span>
+          <span className="relative z-10">Login</span>
         </button>
         
           <button type="button"
-          className="relative overflow-hidden font-bold mt-3 text-white bg-blue-700 hover:bg-whitefocus:ring-4 focus:outline-none focus:ring-blue-300 rounded-full text-base px-7 py-3 dark:bg-black  dark:focus:ring-blue-800 group">
+          className="relative overflow-hidden font-bold mt-3 text-white bg-blue-700 hover:bg-whitefocus:ring-4 focus:outline-none focus:ring-blue-300 rounded-full text-base px-7 py-3 dark:bg-[#5FB8B3]  dark:focus:ring-blue-800 group">
           {/* <!-- Overlay for red color effect --> */}
           <span
-            className=" absolute top-0 left-0 w-full h-0 bg-[#FE330A] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
+            className=" absolute top-0 left-0 w-full h-0 bg-[#85BB47] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
           {/* <!-- Text content above the overlay --> */}
           <span className="relative z-10">Sign up free</span>
         </button>
