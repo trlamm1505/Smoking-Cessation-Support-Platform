@@ -5,6 +5,7 @@ import './App.css'
 import Header from './assets/Components/Header'
 import Hero from './assets/Components/Hero'
 import Footer from './assets/Components/Footer/Footer'
+import NewsSection from './assets/Components/BlogNews/NewsSection'
 
 function App() {
  
@@ -13,6 +14,7 @@ function App() {
     <>
      <Header/>
      <Hero/>
+     <NewsSection/>
      <Footer/>
     </>
   )
