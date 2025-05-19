@@ -16,7 +16,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-[#2c7a87] text-white py-12 mt-20">
+    <footer  className="bg-[#2c7a87] text-white py-12 mt-20 zoom-in">
       <div className="max-w-screen-xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Logo & Slogan */}
