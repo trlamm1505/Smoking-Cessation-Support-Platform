@@ -9,7 +9,8 @@ import NewsSection from './assets/Components/BlogNews/NewsSection'
 import FeedBack from './assets/Components/FeedBack/FeedBack'
 import Section from './assets/Components/Section'
 import TeamSection from './assets/Components/TeamSection'
-
+import FAQWithImage from './assets/Components/WhyChoose/FAQWithImage '
+import { FaSquare } from 'react-icons/fa'
 function App() {
  
 
@@ -19,6 +20,7 @@ function App() {
      <Hero/>
      <Section/>
     <TeamSection/>
+      <FAQWithImage/>
       <FeedBack/>
      <NewsSection/>
      <Footer/>
