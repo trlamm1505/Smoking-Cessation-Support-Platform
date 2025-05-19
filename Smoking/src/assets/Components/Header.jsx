@@ -50,7 +50,7 @@ const Header = () => {
           <img
   src="/Images/logo.jpg"
   alt="Logo"
-  className="w-20 h-20 mt-4 rounded-full object-cover"
+  className="w-25 h-25 mt-4 rounded-full object-cover"
 />
           </a>
 
@@ -68,7 +68,9 @@ const Header = () => {
 
           {/* Mobile Overlay Menu */}
           {isMobile && isOverlayOpen && (
-            <div className="fixed inset-y-0 left-0 w-2/3 sm:w-1/2 bg-white z-50 p-10 transition-transform duration-300 ease-in-out transform translate-x-0">
+            <div className="fixed top-0 left-0 w-1/2 h-screen bg-white z-50 p-10 transition-transform duration-300 ease-in-out transform translate-x-0 overflow-y-auto shadow-lg">
+
+
               <button
                 onClick={() => setIsOverlayOpen(false)}
                 className="absolute top-5 right-5 text-4xl font-bold text-black"
