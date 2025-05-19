@@ -3,6 +3,25 @@ import React, { useState, useEffect } from 'react';
 const Header = () => {
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showHeader, setShowHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+  
+      if (currentScrollY > lastScrollY) {
+        setShowHeader(false); // Cuộn xuống -> Ẩn
+      } else {
+        setShowHeader(true); // Cuộn lên -> Hiện
+      }
+  
+      setLastScrollY(currentScrollY);
+    };
+  
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -21,7 +40,9 @@ const Header = () => {
   }, []);
 
   return (
-    <header>
+    <header className={`fixed top-0 left-0 w-full z-50 bg-white shadow transition-transform duration-300 ${
+      showHeader ? 'translate-y-0' : '-translate-y-full'
+    }`}>
       <nav className="bg-white border-gray-200">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
           {/* Logo */}
