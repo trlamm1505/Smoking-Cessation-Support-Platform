@@ -2,7 +2,7 @@ import React from 'react'
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden bg-[#FDEBE7] pt-6 pb-12 px-6 md:px-20 zoom-in">
+    <section className="mt-35 relative overflow-hidden bg-[#FDEBE7] pt-6 pb-12 px-6 md:px-20 zoom-in">
 
       {/* Vòng tròn trang trí bên trái */}
       <img
