@@ -26,7 +26,11 @@ const Header = () => {
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
           {/* Logo */}
           <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse">
-            <img src="/public/Images/logo.jpg" className="w-24 mt-4" alt="Logo" />
+          <img
+  src="/Images/logo.jpg"
+  alt="Logo"
+  className="w-20 h-20 mt-4 rounded-full object-cover"
+/>
           </a>
 
           {/* Hamburger Button */}

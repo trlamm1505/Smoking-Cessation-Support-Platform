@@ -7,6 +7,7 @@ import Hero from './assets/Components/Hero'
 import Footer from './assets/Components/Footer/Footer'
 import NewsSection from './assets/Components/BlogNews/NewsSection'
 import FeedBack from './assets/Components/FeedBack/FeedBack'
+import Section from './assets/Components/Section'
 
 function App() {
  
@@ -15,6 +16,7 @@ function App() {
     <>
      <Header/>
      <Hero/>
+     <Section/>
       <FeedBack/>
      <NewsSection/>
      <Footer/>
