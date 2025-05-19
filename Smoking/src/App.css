@@ -37,3 +37,12 @@
   .zoom-in {
     animation: zoomIn 1.2s ease-out forwards;
   }
+  .group:hover .rounded-toggle-corners {
+    border-top-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-right-radius: 1.5rem !important;
+    border-bottom-left-radius: 1.5rem !important;
+    transition: border-radius 0.3s ease;
+  }
+  
+  
