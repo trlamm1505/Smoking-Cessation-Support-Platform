@@ -30,7 +30,7 @@ const FAQWithImage = () => {
     <section className="animate__animated animate__backInLeft  max-w-7xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center gap-12">
       {/* Left Image */}
       <div className="w-full md:w-1/2 flex justify-center">
-        <div className="bg-gray-100 w-[500px] h-[350px] md:w-[400px] md:h-[400px] overflow-hidden flex items-center justify-center rounded-lg shadow-lg">
+        <div className="bg-gray-100 max-w-[800px] h-[500px] md:h-[400px] overflow-hidden flex items-center justify-center rounded-lg shadow-lg">
           <img
             src="/Images/Why1.jpg"
             alt="Smoking Cessation Support"
