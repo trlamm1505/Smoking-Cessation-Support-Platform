@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router';
 
 const Header = () => {
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
@@ -104,17 +105,18 @@ const Header = () => {
 
                 <a href="#" className="font-bold text-gray-900">About</a>
                 <a href="#" className="font-bold text-gray-900">Contact</a>
+                {["Login"].map((text, idx) => (
+  <Link
+    key={idx}
+    to="/login"
+    className="relative overflow-hidden font-bold text-white rounded-full text-base px-5 py-2 w-full bg-[#5FB8B3] group flex justify-center items-center text-center"
+  >
+    <span className="absolute top-0 left-0 w-full h-0 bg-[#85BB47] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
+    <span className="relative z-10">{text}</span>
+  </Link>
+))}
 
-                {["Login", "Sign up free"].map((text, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className="relative overflow-hidden font-bold text-white rounded-full text-base px-5 py-2 w-full bg-[#5FB8B3] group"
-                  >
-                    <span className="absolute top-0 left-0 w-full h-0 bg-[#85BB47] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
-                    <span className="relative z-10">{text}</span>
-                  </button>
-                ))}
+
               </div>
             </div>
           )}
@@ -152,16 +154,18 @@ const Header = () => {
               </div>
 
               <div className="hidden md:flex space-x-5 mt-5 md:mt-0">
-                {["Login", "Sign up free"].map((text, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className="relative overflow-hidden font-bold mt-3 text-white rounded-full text-base px-7 py-3 bg-[#5FB8B3] group"
-                  >
-                    <span className="absolute top-0 left-0 w-full h-0 bg-[#85BB47] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
-                    <span className="relative z-10">{text}</span>
-                  </button>
-                ))}
+              {["Login"].map((text, idx) => (
+  <Link
+    key={idx}
+    to="/login"
+    className="relative overflow-hidden font-bold mt-3 text-white rounded-full text-2xl px-10 py-3 bg-[#5FB8B3] group flex justify-center items-center"
+  >
+    <span className="absolute top-0 left-0 w-full h-0 bg-[#85BB47] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
+    <span className="relative z-10">{text}</span>
+  </Link>
+))}
+
+
               </div>
             </>
           )}
