@@ -23,7 +23,7 @@ const Footer = () => {
   };
 
   return (
-    <footer
+    <footer id="contact"
       ref={ref}
       className={`bg-[#2c7a87] text-white py-12 mt-20 transition-all duration-700 ${
         inView ? 'animate__animated animate__zoomIn' : 'opacity-0'

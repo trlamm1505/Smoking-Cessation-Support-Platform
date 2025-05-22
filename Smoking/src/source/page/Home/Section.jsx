@@ -43,7 +43,7 @@ const Section = () => {
   return (
     <>
       {/* Section Intro + Stats */}
-      <section className="mt-10 px-6 md:px-16 py-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
+      <section className=" mt-10 px-6 md:px-16 py-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
         <div
           ref={refTop}
           className={`flex flex-col justify-center transition-all duration-700 ease-in-out ${
@@ -108,26 +108,30 @@ const Section = () => {
             />
           </div>
 
-          <div
-            className={`flex flex-col justify-center max-w-xl transition-all duration-700 ${
-              inViewCards ? 'animate__animated animate__fadeInRight' : 'opacity-0'
-            }`}
-          >
-            <p className="text-cyan-600 font-semibold text-base md:text-lg lg:text-xl">
-              The health benefits of quitting smoking
-            </p>
-            <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold mt-2 leading-tight">
-              Quit smoking today – breathe better, live longer.
-            </h3>
-            <p className="mt-4 text-gray-600 text-sm md:text-base lg:text-lg leading-relaxed">
-              Quitting smoking boosts lung and heart function, reduces the risk of cancer, and allows your body to start healing immediately...
-            </p>
-          </div>
+         <div id="about"
+  className={`flex flex-col justify-center max-w-xl transition-all duration-700 ${
+    inViewCards ? 'animate__animated animate__fadeInRight' : 'opacity-0'
+  }`}
+>
+  <p className="text-cyan-600 font-semibold text-base md:text-lg lg:text-xl">
+    About Us
+  </p>
+  <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold mt-2 leading-tight">
+    Empowering You to Break Free from Smoking and Reclaim Your Health
+  </h3>
+  <p className="mt-4 text-gray-700 text-sm md:text-base lg:text-lg leading-relaxed">
+    At our core, we are passionate about transforming lives by supporting smokers on their journey to quit. 
+    We combine cutting-edge research, expert advice, and a vibrant community to provide personalized plans tailored 
+    to your unique needs. Every small step counts — from reducing cravings to celebrating smoke-free milestones. 
+    Join us to embrace a healthier lifestyle, breathe easier, and build a future where smoking no longer holds power over you.
+  </p>
+</div>
+
         </div>
       </section>
 
       {/* Feature Cards */}
-      <section
+      <section id="services"
         ref={refFeatures}
         className={`bg-white py-35 relative overflow-hidden transition-all duration-700 ${
           inViewFeatures ? 'animate__animated animate__fadeInUp' : 'opacity-0'

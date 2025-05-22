@@ -33,7 +33,7 @@ const FAQWithImage = () => {
   };
 
   return (
-    <section
+    <section 
       ref={ref}
       className={`max-w-7xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center gap-12 transition-all duration-700 ${
         inView ? "animate__animated animate__backInLeft" : "opacity-0"

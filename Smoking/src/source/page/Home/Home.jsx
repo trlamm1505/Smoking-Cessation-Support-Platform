@@ -7,6 +7,7 @@ import FAQWithImage from './FAQWithImage'
 import FeedBack from './FeedBack'
 import NewsSection from './NewsSection'
 import Footer from './Footer'
+import UpgradePackages from './UpgradePackages'
 
 const Home = () => {
   return (
@@ -16,6 +17,7 @@ const Home = () => {
       <Section />
       <TeamSection />
       <FAQWithImage />
+      <UpgradePackages/>
       <FeedBack />
       <NewsSection />
       <Footer />
