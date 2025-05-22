@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { useInView } from "react-intersection-observer";
 
 const FAQWithImage = () => {
   const [activeIndex, setActiveIndex] = useState(null);
+
+  const { ref, inView } = useInView({
+    threshold: 0.2,
+    triggerOnce: true,
+  });
 
   const faqs = [
     {
@@ -27,7 +33,12 @@ const FAQWithImage = () => {
   };
 
   return (
-    <section className="animate__animated animate__backInLeft  max-w-7xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center gap-12">
+    <section
+      ref={ref}
+      className={`max-w-7xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center gap-12 transition-all duration-700 ${
+        inView ? "animate__animated animate__backInLeft" : "opacity-0"
+      }`}
+    >
       {/* Left Image */}
       <div className="w-full md:w-1/2 flex justify-center">
         <div className="bg-gray-100 max-w-[800px] h-[500px] md:h-[400px] overflow-hidden flex items-center justify-center rounded-lg shadow-lg">
@@ -46,7 +57,9 @@ const FAQWithImage = () => {
 
       {/* Right FAQ Section */}
       <div className="w-full md:w-1/2">
-        <p className="text-teal-500 font-semibold mb-2">Frequently Asked Questions</p>
+        <p className="text-teal-500 font-semibold mb-2">
+          Frequently Asked Questions
+        </p>
         <h2 className="text-3xl font-extrabold mb-8 leading-snug">
           Your Journey to Quit Smoking <br /> Starts with the Right Support
         </h2>

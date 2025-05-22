@@ -1,6 +1,7 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
+import { useInView } from 'react-intersection-observer';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
@@ -38,8 +39,18 @@ const testimonials = [
 ];
 
 const SmokingCessationTestimonials = () => {
+  const { ref, inView } = useInView({
+    threshold: 0.2,
+    triggerOnce: true,
+  });
+
   return (
-    <section className="py-16 bg-white">
+    <section
+      ref={ref}
+      className={`py-16 bg-white transition-all duration-700 ${
+        inView ? 'animate__animated animate__backInRight' : 'opacity-0'
+      }`}
+    >
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-12">
           <span className="inline-block px-5 py-2 text-sm font-medium text-white bg-[#4da8a8] rounded-full mb-4 shadow-md transform hover:scale-105 transition-transform">
@@ -64,7 +75,7 @@ const SmokingCessationTestimonials = () => {
           {testimonials.map((item) => (
             <SwiperSlide key={item.id}>
               <div className="bg-white rounded-xl shadow-xl overflow-hidden transition-all duration-500 hover:shadow-2xl md:flex">
-                {/* Left: Avatar */}
+                {/* Avatar */}
                 <div className="md:w-2/5 bg-gray-50 p-8 flex flex-col items-center justify-center relative">
                   <img
                     src={item.avatar}
@@ -87,7 +98,7 @@ const SmokingCessationTestimonials = () => {
                   </div>
                 </div>
 
-                {/* Right: Quote */}
+                {/* Quote */}
                 <div className="md:w-3/5 p-8 flex flex-col justify-between">
                   <blockquote className="text-gray-700 text-xl leading-relaxed mb-6">
                     “{item.quote}”
