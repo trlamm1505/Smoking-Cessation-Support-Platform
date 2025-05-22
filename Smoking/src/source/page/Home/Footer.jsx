@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useInView } from 'react-intersection-observer';
 
 const Footer = () => {
   const [showButton, setShowButton] = useState(false);
+
+  // Quan sát vị trí hiển thị của Footer
+  const { ref, inView } = useInView({
+    threshold: 0.2,
+    triggerOnce: true,
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,9 +23,12 @@ const Footer = () => {
   };
 
   return (
-
-    <footer className="bg-[#2c7a87] text-white py-12 mt-20 zoom-in">
- 
+    <footer
+      ref={ref}
+      className={`bg-[#2c7a87] text-white py-12 mt-20 transition-all duration-700 ${
+        inView ? 'animate__animated animate__zoomIn' : 'opacity-0'
+      }`}
+    >
       <div className="max-w-screen-xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Logo & Slogan */}
@@ -63,8 +73,8 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-3 border-b border-orange-300 inline-block">Newsletter</h3>
             <p className="text-sm mb-3">Stay smoke-free with our weekly tips and motivation.</p>
             <div className="flex flex-col sm:flex-row gap-2">
-              <input 
-                type="email" 
+              <input
+                type="email"
                 placeholder="Enter your email"
                 className="px-4 py-2 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-400 w-full"
               />

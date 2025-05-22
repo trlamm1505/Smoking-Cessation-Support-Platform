@@ -1,9 +1,17 @@
 import React from 'react'
-
+import { useInView } from 'react-intersection-observer'
 const Hero = () => {
+  const { ref, inView } = useInView({
+    threshold: 0.2, // phần tử hiện 20% là bắt đầu
+    triggerOnce: true, // chỉ thực hiện 1 lần
+  })
   return (
-    <section className="mt-35 relative overflow-hidden bg-[#FDEBE7] pt-6 pb-12 px-6 md:px-20 zoom-in ">
-
+    <section
+      ref={ref}
+      className={`mt-35 relative overflow-hidden bg-[#B7DDDF] pt-6 pb-12 px-6 md:px-20 transition-all duration-700 ease-in-out ${
+        inView ? 'zoom-in' : 'opacity-0 scale-90'
+      }`}
+    >
       {/* Vòng tròn trang trí bên trái */}
       <img
         src="/Images/left-circle-1.png"
