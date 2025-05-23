@@ -9,14 +9,7 @@ USE SWP_Smoking;
 GO
 
 
--- BẢNG THÀNH TÍCH (ACHIEVEMENT)
-CREATE TABLE ACHIEVEMENT (
-    achievement_id INT IDENTITY(1,1) PRIMARY KEY,   -- Khóa chính, tự tăng
-    name NVARCHAR(100) NOT NULL,                    -- Tên thành tích
-    description NVARCHAR(255),                      -- Mô tả
-    criteria NVARCHAR(255),                         -- Tiêu chí đạt được
-    badge_image VARCHAR(255)                        -- Đường dẫn ảnh huy hiệu
-);
+
 
 -- BẢNG CHUYÊN GIA (SPECIALIST)
 CREATE TABLE SPECIALIST (
@@ -91,7 +84,7 @@ CREATE TABLE FEEDBACK (
     feedback_id INT IDENTITY(1,1) PRIMARY KEY,      -- Khóa chính, tự tăng
     user_id INT NOT NULL,                           -- ID người phản hồi (FK)
     rating INT,                                     -- Đánh giá (số sao)
-    comment TEXT,                                   -- Bình luận
+    comment NVARCHAR(MAX),                                   -- Bình luận
     submitted_at DATETIME DEFAULT (GETDATE()),      -- Thời điểm gửi phản hồi
     feedback_type NVARCHAR(100),                    -- Loại phản hồi
     related_id INT,                                 -- ID liên kết (có thể là blog_post, achievement,...)
@@ -134,7 +127,14 @@ CREATE TABLE USER_ACHIEVEMENT (
     FOREIGN KEY (user_id) REFERENCES [USER](user_id),
     FOREIGN KEY (achievement_id) REFERENCES ACHIEVEMENT(achievement_id)
 );
-
+-- BẢNG THÀNH TÍCH (ACHIEVEMENT)
+CREATE TABLE ACHIEVEMENT (
+    achievement_id INT IDENTITY(1,1) PRIMARY KEY,   -- Khóa chính, tự tăng
+    name NVARCHAR(100) NOT NULL,                    -- Tên thành tích
+    description NVARCHAR(255),                      -- Mô tả
+    criteria NVARCHAR(255),                         -- Tiêu chí đạt được
+    badge_image VARCHAR(255)                        -- Đường dẫn ảnh huy hiệu
+);
 -- BẢNG THAM GIA GÓI THÀNH VIÊN (USER_SUBSCRIPTION)
 CREATE TABLE USER_SUBSCRIPTION (
     subscription_id INT IDENTITY(1,1) PRIMARY KEY,  -- Khóa chính, tự tăng
