@@ -1,149 +1,191 @@
---Bảng lệnh rút gọn
--- Tạo Database
-USE master
-
+-- Tạo Database mới
 CREATE DATABASE SWP_Smoking;
 GO
 
 USE SWP_Smoking;
 GO
 
+------------------------------
+-- 1. Bảng USER: Quản lý người dùng, phân quyền qua user_role
+------------------------------
+CREATE TABLE [dbo].[USER](
+    [user_id] INT IDENTITY(1,1) PRIMARY KEY,          -- Khóa chính
+    [user_role] NVARCHAR(10) NULL,                    -- Phân quyền: 'user', 'admin', 'specialist'
+    [username] VARCHAR(100) NOT NULL,                 -- Tên đăng nhập (unique)
+    [password] NVARCHAR(255) NULL,                    -- Mật khẩu
+    [email] VARCHAR(150) NOT NULL,                    -- Email (unique)
+    [full_name] NVARCHAR(150) NULL,                   -- Họ tên
+    [registration_date] DATE NOT NULL DEFAULT GETDATE(), -- Ngày đăng ký
+    [profile_image] NVARCHAR(255) NULL,               -- Ảnh đại diện
+    [is_active] BIT NOT NULL DEFAULT 1                -- Trạng thái hoạt động
+);
+-- Đảm bảo duy nhất username, email
+ALTER TABLE [dbo].[USER] ADD CONSTRAINT UQ_USER_EMAIL UNIQUE ([email]);
+ALTER TABLE [dbo].[USER] ADD CONSTRAINT UQ_USER_USERNAME UNIQUE ([username]);
 
-
-
--- BẢNG CHUYÊN GIA (SPECIALIST)
-CREATE TABLE SPECIALIST (
-    specialist_id INT IDENTITY(1,1) PRIMARY KEY,    -- Khóa chính, tự tăng
-    name NVARCHAR(100) NOT NULL,                    -- Tên chuyên gia
-    qualification NVARCHAR(150),                    -- Bằng cấp, chứng chỉ
-    specialty NVARCHAR(100),                        -- Chuyên môn
-    contact_info NVARCHAR(150),                     -- Thông tin liên hệ
-    availability NVARCHAR(100)                      -- Thời gian làm việc
+------------------------------
+-- 2. Bảng ACHIEVEMENT: Thành tích, tiêu chí do admin tạo/duyệt
+------------------------------
+CREATE TABLE [dbo].[ACHIEVEMENT](
+    [achievement_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [name] NVARCHAR(100) NOT NULL,
+    [description] NVARCHAR(255) NULL,
+    [criteria] NVARCHAR(255) NULL,             -- Tiêu chí đạt thành tích (Admin chỉnh sửa)
+    [badge_image] NVARCHAR(255) NULL
 );
 
--- BẢNG NGƯỜI DÙNG (USER)
-CREATE TABLE [USER] (
-    user_id INT IDENTITY(1,1) PRIMARY KEY,          -- Khóa chính, tự tăng
-    user_role VARCHAR(10) NOT NULL,                 -- Vai trò (user, admin, specialist...)
-    username VARCHAR(100) NOT NULL UNIQUE,          -- Tên đăng nhập (duy nhất)
-    password VARCHAR(255) NOT NULL,                 -- Mật khẩu
-    email VARCHAR(150) NOT NULL UNIQUE,             -- Email (duy nhất)
-    full_name NVARCHAR(150),                        -- Họ tên đầy đủ
-    registration_date DATE NOT NULL DEFAULT (GETDATE()), -- Ngày đăng ký (mặc định ngày hiện tại)
-    profile_image VARCHAR(255),                     -- Ảnh đại diện
-    is_active BIT NOT NULL DEFAULT (1)              -- Trạng thái hoạt động (1: còn hoạt động)
+------------------------------
+-- 3. Bảng USER_ACHIEVEMENT: Thành tích người dùng đạt được
+------------------------------
+CREATE TABLE [dbo].[USER_ACHIEVEMENT](
+    [user_achievement_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT NOT NULL,
+    [achievement_id] INT NOT NULL,
+    [earned_date] DATE NULL,
+    [is_shared] BIT DEFAULT 0
 );
 
--- BẢNG GÓI THÀNH VIÊN (SUBSCRIPTION_PLAN)
-CREATE TABLE SUBSCRIPTION_PLAN (
-    plan_id INT IDENTITY(1,1) PRIMARY KEY,          -- Khóa chính, tự tăng
-    plan_name NVARCHAR(100) NOT NULL,               -- Tên gói thành viên
-    price FLOAT NOT NULL,                           -- Giá gói
-    description NVARCHAR(255),                      -- Mô tả
-    duration_days INT NOT NULL,                     -- Thời hạn (ngày)
-    features NVARCHAR(255)                          -- Các tính năng
+------------------------------
+-- 4. Bảng SUBSCRIPTION_PLAN: Các gói thành viên, do admin quản lý
+------------------------------
+CREATE TABLE [dbo].[SUBSCRIPTION_PLAN](
+    [plan_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [plan_name] NVARCHAR(100) NOT NULL,
+    [price] FLOAT NOT NULL,
+    [description] NVARCHAR(255) NULL,
+    [duration_days] INT NOT NULL,
+    [features] NVARCHAR(255) NULL
 );
 
--- BẢNG ĐẶT LỊCH HẸN (APPOINTMENT)
-CREATE TABLE APPOINTMENT (
-    appointment_id INT IDENTITY(1,1) PRIMARY KEY,   -- Khóa chính, tự tăng
-    user_id INT NOT NULL,                           -- ID người dùng (FK)
-    specialist_id INT NOT NULL,                     -- ID chuyên gia (FK)
-    appointment_time DATETIME NOT NULL,             -- Thời gian hẹn
-    status NVARCHAR(100),                           -- Trạng thái (đã xác nhận, đã hủy...)
-    notes NVARCHAR(255),                            -- Ghi chú
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id),
-    FOREIGN KEY (specialist_id) REFERENCES SPECIALIST(specialist_id)
+------------------------------
+-- 5. Bảng USER_SUBSCRIPTION: Đăng ký gói của người dùng
+------------------------------
+CREATE TABLE [dbo].[USER_SUBSCRIPTION](
+    [subscription_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT NOT NULL,
+    [plan_id] INT NOT NULL,
+    [start_date] DATE NOT NULL,
+    [end_date] DATE NULL,
+    [is_active] BIT DEFAULT 1,
+    [payment_status] NVARCHAR(50) NULL
 );
 
--- BẢNG BÀI VIẾT BLOG (BLOG_POST)
-CREATE TABLE BLOG_POST (
-    post_id INT IDENTITY(1,1) PRIMARY KEY,          -- Khóa chính, tự tăng
-    user_id INT NOT NULL,                           -- ID người đăng bài (FK)
-    title NVARCHAR(150),                            -- Tiêu đề
-    content TEXT,                                   -- Nội dung bài viết
-    published_date DATETIME DEFAULT (GETDATE()),    -- Ngày đăng (mặc định hiện tại)
-    is_active BIT DEFAULT (1),                      -- Đang hoạt động (1: có, 0: ẩn/xóa)
-    tags NVARCHAR(255),                             -- Thẻ (tags)
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id)
+------------------------------
+-- 6. Bảng BLOG_POST: Bài viết, duyệt trạng thái bởi admin
+------------------------------
+CREATE TABLE [dbo].[BLOG_POST](
+    [post_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT NOT NULL,                       -- Người tạo bài
+    [title] NVARCHAR(150) NULL,
+    [content] TEXT NULL,
+    [published_date] DATETIME DEFAULT GETDATE(),
+    [is_active] BIT DEFAULT 1,
+    [tags] NVARCHAR(255) NULL,
+    [status] NVARCHAR(50) DEFAULT 'pending',      -- Trạng thái: pending/approved/rejected
+    [approver_id] INT NULL                       -- Người duyệt bài (admin user_id)
 );
 
--- BẢNG THEO DÕI HÀNG NGÀY (DAILY_TRACKING)
-CREATE TABLE DAILY_TRACKING (
-    tracking_id INT IDENTITY(1,1) PRIMARY KEY,      -- Khóa chính, tự tăng
-    user_id INT NOT NULL,                           -- ID người dùng (FK)
-    record_date DATE NOT NULL,                      -- Ngày ghi nhận
-    cigarettes_avoided INT,                         -- Số điếu thuốc tránh được
-    money_saved FLOAT,                              -- Tiền tiết kiệm được
-    notes NVARCHAR(255),                            -- Ghi chú
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id)
+------------------------------
+-- 7. Bảng FEEDBACK: Phản hồi, duyệt trạng thái bởi admin
+------------------------------
+CREATE TABLE [dbo].[FEEDBACK](
+    [feedback_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT NOT NULL,
+    [rating] INT NULL,
+    [comment] NVARCHAR(MAX) NULL,
+    [submitted_at] DATETIME DEFAULT GETDATE(),
+    [feedback_type] NVARCHAR(100) NULL,
+    [related_id] INT NULL,
+    [related_type] NVARCHAR(100) NULL,
+    [status] NVARCHAR(50) DEFAULT 'pending',      -- Trạng thái: pending/approved/rejected
+    [approver_id] INT NULL                       -- Người duyệt (admin user_id)
 );
 
--- BẢNG PHẢN HỒI (FEEDBACK)
-CREATE TABLE FEEDBACK (
-    feedback_id INT IDENTITY(1,1) PRIMARY KEY,      -- Khóa chính, tự tăng
-    user_id INT NOT NULL,                           -- ID người phản hồi (FK)
-    rating INT,                                     -- Đánh giá (số sao)
-    comment NVARCHAR(MAX),                                   -- Bình luận
-    submitted_at DATETIME DEFAULT (GETDATE()),      -- Thời điểm gửi phản hồi
-    feedback_type NVARCHAR(100),                    -- Loại phản hồi
-    related_id INT,                                 -- ID liên kết (có thể là blog_post, achievement,...)
-    related_type NVARCHAR(100),                     -- Kiểu liên kết (blog_post, achievement,...)
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id)
+------------------------------
+-- 8. Bảng NOTIFICATION: Thông báo hệ thống
+------------------------------
+CREATE TABLE [dbo].[NOTIFICATION](
+    [notification_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT NOT NULL,
+    [message] NVARCHAR(255) NULL,
+    [created_at] DATETIME DEFAULT GETDATE(),
+    [is_read] BIT DEFAULT 0,
+    [notification_type] NVARCHAR(100) NULL,
+    [related_id] INT NULL,
+    [related_type] NVARCHAR(100) NULL
 );
 
--- BẢNG THÔNG BÁO (NOTIFICATION)
-CREATE TABLE NOTIFICATION (
-    notification_id INT IDENTITY(1,1) PRIMARY KEY,  -- Khóa chính, tự tăng
-    user_id INT NOT NULL,                           -- ID người nhận (FK)
-    message NVARCHAR(255),                          -- Nội dung thông báo
-    created_at DATETIME DEFAULT (GETDATE()),        -- Thời điểm tạo
-    is_read BIT DEFAULT (0),                        -- Đã đọc hay chưa (0: chưa đọc)
-    notification_type NVARCHAR(100),                -- Loại thông báo
-    related_id INT,                                 -- ID liên kết (bài viết, thành tích...)
-    related_type NVARCHAR(100),                     -- Kiểu liên kết
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id)
+------------------------------
+-- 9. Bảng DAILY_TRACKING: Theo dõi tiến trình cai thuốc của user
+------------------------------
+CREATE TABLE [dbo].[DAILY_TRACKING](
+    [tracking_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT NOT NULL,
+    [record_date] DATE NOT NULL,
+    [cigarettes_avoided] INT NULL,
+    [money_saved] FLOAT NULL,
+    [notes] NVARCHAR(255) NULL
 );
 
--- BẢNG KẾ HOẠCH CAI THUỐC (QUITTING_PLAN)
-CREATE TABLE QUITTING_PLAN (
-    plan_id INT IDENTITY(1,1) PRIMARY KEY,          -- Khóa chính, tự tăng
-    user_id INT NOT NULL,                           -- ID người dùng (FK)
-    start_date DATE NOT NULL,                       -- Ngày bắt đầu
-    target_quit_date DATE,                          -- Ngày dự kiến cai thành công
-    reason NVARCHAR(255),                           -- Lý do cai thuốc
-    stages NVARCHAR(255),                           -- Các giai đoạn cai
-    progress_status NVARCHAR(100),                  -- Trạng thái tiến trình
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id)
+------------------------------
+-- 10. Bảng QUITTING_PLAN: Kế hoạch cai thuốc của user
+------------------------------
+CREATE TABLE [dbo].[QUITTING_PLAN](
+    [plan_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT NOT NULL,
+    [start_date] DATE NOT NULL,
+    [target_quit_date] DATE NULL,
+    [reason] NVARCHAR(255) NULL,
+    [stages] NVARCHAR(255) NULL,
+    [progress_status] NVARCHAR(100) NULL
 );
 
--- BẢNG THÀNH TÍCH ĐÃ ĐẠT (USER_ACHIEVEMENT)
-CREATE TABLE USER_ACHIEVEMENT (
-    user_achievement_id INT IDENTITY(1,1) PRIMARY KEY, -- Khóa chính, tự tăng
-    user_id INT NOT NULL,                              -- ID người dùng (FK)
-    achievement_id INT NOT NULL,                       -- ID thành tích (FK)
-    earned_date DATE,                                  -- Ngày đạt thành tích
-    is_shared BIT DEFAULT (0),                         -- Đã chia sẻ lên cộng đồng chưa
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id),
-    FOREIGN KEY (achievement_id) REFERENCES ACHIEVEMENT(achievement_id)
+------------------------------
+-- 11. Bảng APPOINTMENT: Lịch hẹn với chuyên gia
+------------------------------
+CREATE TABLE [dbo].[APPOINTMENT](
+    [appointment_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT NOT NULL,
+    [specialist_id] INT NOT NULL,
+    [appointment_time] DATETIME NOT NULL,
+    [status] NVARCHAR(100) NULL,
+    [notes] NVARCHAR(255) NULL
 );
--- BẢNG THÀNH TÍCH (ACHIEVEMENT)
-CREATE TABLE ACHIEVEMENT (
-    achievement_id INT IDENTITY(1,1) PRIMARY KEY,   -- Khóa chính, tự tăng
-    name NVARCHAR(100) NOT NULL,                    -- Tên thành tích
-    description NVARCHAR(255),                      -- Mô tả
-    criteria NVARCHAR(255),                         -- Tiêu chí đạt được
-    badge_image VARCHAR(255)                        -- Đường dẫn ảnh huy hiệu
+
+------------------------------
+-- 12. Bảng SPECIALIST: Chuyên gia hỗ trợ
+------------------------------
+CREATE TABLE [dbo].[SPECIALIST](
+    [specialist_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [name] NVARCHAR(100) NOT NULL,
+    [qualification] NVARCHAR(150) NULL,
+    [specialty] NVARCHAR(100) NULL,
+    [contact_info] NVARCHAR(150) NULL,
+    [availability] NVARCHAR(100) NULL
 );
--- BẢNG THAM GIA GÓI THÀNH VIÊN (USER_SUBSCRIPTION)
-CREATE TABLE USER_SUBSCRIPTION (
-    subscription_id INT IDENTITY(1,1) PRIMARY KEY,  -- Khóa chính, tự tăng
-    user_id INT NOT NULL,                           -- ID người dùng (FK)
-    plan_id INT NOT NULL,                           -- ID gói thành viên (FK)
-    start_date DATE NOT NULL,                       -- Ngày bắt đầu gói
-    end_date DATE,                                  -- Ngày hết hạn gói
-    is_active BIT DEFAULT (1),                      -- Đang hoạt động hay không
-    payment_status NVARCHAR(50),                    -- Trạng thái thanh toán
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id),
-    FOREIGN KEY (plan_id) REFERENCES SUBSCRIPTION_PLAN(plan_id)
-);
+
+------------------------------
+-- Thiết lập khóa ngoại (FOREIGN KEY)
+------------------------------
+
+ALTER TABLE [dbo].[BLOG_POST] ADD CONSTRAINT FK_BLOGPOST_USER FOREIGN KEY ([user_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[BLOG_POST] ADD CONSTRAINT FK_BLOGPOST_APPROVER FOREIGN KEY ([approver_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[FEEDBACK] ADD CONSTRAINT FK_FEEDBACK_USER FOREIGN KEY ([user_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[FEEDBACK] ADD CONSTRAINT FK_FEEDBACK_APPROVER FOREIGN KEY ([approver_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[NOTIFICATION] ADD CONSTRAINT FK_NOTIFICATION_USER FOREIGN KEY ([user_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[DAILY_TRACKING] ADD CONSTRAINT FK_DAILYTRACKING_USER FOREIGN KEY ([user_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[QUITTING_PLAN] ADD CONSTRAINT FK_QUITTINGPLAN_USER FOREIGN KEY ([user_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[APPOINTMENT] ADD CONSTRAINT FK_APPOINTMENT_USER FOREIGN KEY ([user_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[APPOINTMENT] ADD CONSTRAINT FK_APPOINTMENT_SPECIALIST FOREIGN KEY ([specialist_id]) REFERENCES [dbo].[SPECIALIST]([specialist_id]);
+ALTER TABLE [dbo].[USER_ACHIEVEMENT] ADD CONSTRAINT FK_USERACHIEVEMENT_USER FOREIGN KEY ([user_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[USER_ACHIEVEMENT] ADD CONSTRAINT FK_USERACHIEVEMENT_ACHIEVEMENT FOREIGN KEY ([achievement_id]) REFERENCES [dbo].[ACHIEVEMENT]([achievement_id]);
+ALTER TABLE [dbo].[USER_SUBSCRIPTION] ADD CONSTRAINT FK_USERSUBSCRIPTION_USER FOREIGN KEY ([user_id]) REFERENCES [dbo].[USER]([user_id]);
+ALTER TABLE [dbo].[USER_SUBSCRIPTION] ADD CONSTRAINT FK_USERSUBSCRIPTION_PLAN FOREIGN KEY ([plan_id]) REFERENCES [dbo].[SUBSCRIPTION_PLAN]([plan_id]);
+
+------------------------------
+-- Các giá trị mặc định đã cài trực tiếp trong tạo bảng
+------------------------------
+
+------------------------------
+-- HẾT: Database đã đầy đủ cho chức năng admin
+------------------------------
