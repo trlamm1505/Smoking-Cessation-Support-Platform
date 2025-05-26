@@ -1,0 +1,126 @@
+1. Các ENTITY Chính (vai trò là entity riêng)
+1.1. Guest (Khách)
+Chức năng: Truy cập thông tin nền tảng, xem blog, bảng xếp hạng, đăng ký tài khoản.
+
+Thuộc tính: guest_id, device_info, ip_address, thời gian truy cập, referrer, v.v.
+
+1.2. Member (Thành viên)
+Chức năng: Đăng nhập, quản lý hồ sơ, ghi nhận hút thuốc, mục tiêu cai, theo dõi tiến trình, nhận thông báo, tương tác cộng đồng, đặt lịch tư vấn Coach, đánh giá feedback.
+
+Thuộc tính: member_id, họ tên, email, password, ngày sinh, giới tính, avatar, địa chỉ, nghề nghiệp, mô tả bản thân, trạng thái tài khoản, ngày đăng ký, các trường profile khác...
+
+1.3. Coach (Huấn luyện viên)
+Chức năng: Đăng nhập, quản lý hồ sơ Coach, lịch làm việc, xem danh sách thành viên được phân công, tư vấn online, theo dõi thành viên, gửi tin nhắn động viên, tạo blog/video, báo cáo.
+
+Thuộc tính: coach_id, họ tên, email, password, bằng cấp, lĩnh vực, mô tả chuyên môn, avatar, lịch làm việc, trạng thái hoạt động, v.v.
+
+1.4. Admin (Quản trị viên)
+Chức năng: Đăng nhập panel, quản lý hệ thống, kiểm duyệt user, coach, nội dung, phê duyệt đăng ký, xử lý khiếu nại, báo cáo tổng hợp, backup, bảo trì...
+
+Thuộc tính: admin_id, họ tên, email, password, quyền hạn, trạng thái, v.v.
+
+2. ENTITY Nội dung và hoạt động hệ thống
+2.1. BlogPost (Bài viết/blog)
+Chức năng: Viết blog, duyệt blog, đọc blog, bình luận, chia sẻ.
+
+Thuộc tính: post_id, tiêu đề, nội dung, ảnh, video, tác giả (Coach/Member), ngày đăng, trạng thái duyệt, v.v.
+
+2.2. Comment (Bình luận bài viết)
+Chức năng: Bình luận blog, bình luận nhật ký, phản hồi.
+
+Thuộc tính: comment_id, nội dung, user_type (Member/Coach), user_id, post_id, ngày tạo, trạng thái, v.v.
+
+2.3. Achievement (Thành tích/Huy hiệu)
+Chức năng: Ghi nhận thành tích cai thuốc, badge, milestone, cấp bậc.
+
+Thuộc tính: achievement_id, member_id, loại thành tích, mô tả, ngày nhận, điểm số, v.v.
+
+2.4. Ranking (Bảng xếp hạng)
+Chức năng: Xếp hạng thành viên, cập nhật điểm số, so sánh.
+
+Thuộc tính: ranking_id, member_id, điểm số, thời gian, hạng, loại xếp hạng (tuần/tháng/năm/thử thách), v.v.
+
+2.5. Notification (Thông báo)
+Chức năng: Thông báo định kỳ, động viên, cảnh báo, gửi email, push notification, SMS.
+
+Thuộc tính: notification_id, user_type (Member/Coach), user_id, tiêu đề, nội dung, loại, trạng thái (đã đọc/chưa), ngày gửi.
+
+2.6. Feedback (Đánh giá/Phản hồi)
+Chức năng: Đánh giá hệ thống, Coach, gửi góp ý, theo dõi xử lý.
+
+Thuộc tính: feedback_id, member_id, coach_id, nội dung, rating (số sao), loại feedback, trạng thái xử lý, ngày tạo.
+
+2.7. Schedule (Lịch tư vấn/lịch làm việc)
+Chức năng: Lịch tư vấn Member với Coach, lịch làm việc của Coach, đồng bộ Google Calendar.
+
+Thuộc tính: schedule_id, coach_id, member_id (nếu là buổi tư vấn), ngày giờ, loại lịch, trạng thái, ghi chú, v.v.
+
+2.8. SupportTicket (Phiếu hỗ trợ/whenếu nại)
+Chức năng: Khiếu nại, báo lỗi, xử lý Admin.
+
+Thuộc tính: ticket_id, user_type, user_id, nội dung, trạng thái, ngày tạo, người xử lý, v.v.
+
+3. ENTITY nhật ký và theo dõi quá trình cai thuốc
+3.1. SmokingLog (Nhật ký hút thuốc/ngày)
+Chức năng: Ghi nhận số điếu/ngày, chi phí, thời điểm, bối cảnh, trạng thái sức khỏe.
+
+Thuộc tính: log_id, member_id, ngày, số điếu, loại thuốc, chi phí, tần suất, địa điểm, cảm xúc, sức khỏe, v.v.
+
+3.2. QuitGoal (Mục tiêu cai thuốc)
+Chức năng: Đặt/chỉnh sửa mục tiêu cai thuốc, ngày bắt đầu, ngày mong muốn, số ngày không hút, phần thưởng cá nhân.
+
+Thuộc tính: goal_id, member_id, ngày bắt đầu, ngày kết thúc, mục tiêu số ngày, lý do, ghi chú cá nhân, trạng thái.
+
+3.3. QuitReason (Lý do cai thuốc)
+Chức năng: Thành viên tự nhập lý do, ghi chú cá nhân hóa.
+
+Thuộc tính: reason_id, member_id, nội dung lý do, ghi chú.
+
+3.4. HealthReport (Báo cáo sức khỏe)
+Chức năng: Thành viên nhập số liệu sức khỏe (mạch, huyết áp, cân nặng,...) để theo dõi tiến trình.
+
+Thuộc tính: report_id, member_id, ngày, loại số liệu, giá trị, ghi chú.
+
+4. ENTITY hệ thống tích hợp/phân tích
+4.1. AutoNotificationRule (Quy tắc thông báo tự động)
+Chức năng: Định nghĩa trigger thông báo milestone, gửi động viên, cảnh báo.
+
+Thuộc tính: rule_id, loại trigger, nội dung mẫu, kênh gửi, điều kiện, v.v.
+
+4.2. DataAnalysis (Phân tích dữ liệu)
+Chức năng: Lưu kết quả phân tích tiến độ, xu hướng, dự báo AI.
+
+Thuộc tính: analysis_id, member_id, loại phân tích, dữ liệu, kết quả, ngày, v.v.
+
+4.3. Report (Báo cáo tổng hợp)
+Chức năng: Báo cáo hệ thống, báo cáo tiến độ, hiệu quả coach, doanh thu.
+
+Thuộc tính: report_id, loại báo cáo, người tạo, dữ liệu, ngày tạo, đối tượng nhận, file đính kèm.
+
+5. ENTITY giao dịch, tài chính (nếu có)
+5.1. Subscription (Gói thành viên/Thanh toán)
+Chức năng: Lựa chọn, thanh toán gói thành viên, trạng thái thanh toán, lịch sử giao dịch.
+
+Thuộc tính: subscription_id, member_id, loại gói, ngày đăng ký, ngày hết hạn, trạng thái, amount, phương thức thanh toán.
+
+Tóm tắt quan trọng
+Guest, Member, Coach, Admin là các ENTITY riêng biệt.
+
+Không có entity chung là User.
+
+Các thực thể hoạt động, nội dung, log, feedback, giao dịch, phân tích, báo cáo… là các entity độc lập và liên kết nhiều-nhiều hoặc 1-nhiều với các entity vai trò.
+
+Các luồng nghiệp vụ sẽ map vào CRUD/quan hệ giữa các entity này.
+
+Gợi ý mô hình quan hệ cơ bản
+Member -< SmokingLog, QuitGoal, QuitReason, HealthReport, Feedback, Achievement, Ranking, Subscription
+
+Coach -< Schedule, Feedback, BlogPost, Achievement, Report
+
+Admin -< SupportTicket, Report
+
+BlogPost -< Comment
+
+Member <> Coach (qua Schedule và ConsultationSession nếu muốn tách buổi tư vấn riêng)
+
+Notification liên kết với Member/Coach/Admin tuỳ loại.
