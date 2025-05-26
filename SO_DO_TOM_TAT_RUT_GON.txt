@@ -46,6 +46,80 @@ LUỒNG 1 GUEST (KHÁCH)
     └─ Thống kê truy cập & tương tác khách vãng lai
 
 
+LUỒNG 2 MEMBER (THÀNH VIÊN)
+├─ 2.1 ĐĂNG NHẬP VÀ THIẾT LẬP HỒ SƠ
+│   ├─ Đăng nhập vào hệ thống
+│   │   ├─ Nhập tên đăng nhập, mật khẩu
+│   │   ├─ Xác thực 2 lớp/quên mật khẩu
+│   │   └─ Đăng nhập thành công vào dashboard
+│   ├─ Hoàn thiện hồ sơ cá nhân
+│   │   ├─ Họ tên, tuổi, giới tính, ảnh đại diện
+│   │   ├─ Địa chỉ, nghề nghiệp, mô tả bản thân
+│   │   └─ Lưu, chỉnh sửa hồ sơ bất cứ lúc nào
+│   ├─ Khai báo lịch sử hút thuốc
+│   │   ├─ Số năm hút, số điếu/ngày, loại thuốc lá
+│   │   ├─ Sức khỏe liên quan, thói quen đặc biệt
+│   │   └─ Lưu nhật ký khai báo
+│   ├─ Thiết lập mục tiêu cai thuốc
+│   │   ├─ Chọn/tự nhập ngày bắt đầu, ngày mong muốn cai
+│   │   ├─ Đặt mục tiêu số ngày không hút, phần thưởng cá nhân
+│   │   └─ Cam kết/thử thách riêng
+│   └─ Chọn lý do cai thuốc
+│       ├─ Sức khỏe, tiết kiệm tiền, gia đình, làm gương con cái...
+│       └─ Ghi chú cá nhân hóa lý do
+│
+├─ 2.2 GHI NHẬN THÔNG TIN HÚT THUỐC HÀNG NGÀY
+│   ├─ Truy cập "Theo dõi hút thuốc"
+│   ├─ Ghi nhận số điếu hút/ngày
+│   ├─ Nhập tần suất hút (thời gian, địa điểm, bối cảnh)
+│   ├─ Ghi nhận chi phí thuốc lá
+│   │   └─ Nhập giá, hệ thống tự tính tổng chi phí/tiết kiệm
+│   └─ Hệ thống tự động phân tích & khuyến nghị
+│       ├─ So sánh với mục tiêu, cảnh báo hoặc động viên
+│       └─ Gợi ý bài tập, mẹo giảm hút, nhắc nhở tự động
+│
+├─ 2.3 THEO DÕI TIẾN TRÌNH CAI THUỐC
+│   ├─ Xem dashboard cá nhân (tiến trình tổng hợp)
+│   ├─ Theo dõi số ngày không hút
+│   ├─ Xem biểu đồ tiến độ cai thuốc
+│   ├─ Kiểm tra cải thiện sức khỏe (nhập số liệu & xem so sánh)
+│   └─ So sánh với mục tiêu đã đặt, điều chỉnh mục tiêu nếu cần
+│
+├─ 2.4 NHẬN THÔNG BÁO VÀ ĐỘNG VIÊN
+│   ├─ Nhận thông báo định kỳ (ngày/tuần)
+│   ├─ Xem lại lý do cai thuốc để tạo động lực
+│   ├─ Nhận thông báo thành tích (badge, milestone, tiết kiệm)
+│   └─ Chia sẻ thành tích lên mạng xã hội (Facebook, Zalo...)
+│
+├─ 2.5 TƯƠNG TÁC VỚI CỘNG ĐỒNG
+│   ├─ Tham gia diễn đàn thảo luận
+│   ├─ Chia sẻ kinh nghiệm, nhật ký, cảm nghĩ
+│   ├─ Đọc & bình luận blog của thành viên khác
+│   ├─ Xem bảng xếp hạng & so sánh tiến độ
+│   └─ Kết bạn, nhắn tin, hỗ trợ lẫn nhau
+│
+├─ 2.6 TƯ VẤN VỚI COACH
+│   ├─ Đặt lịch tư vấn với Coach (xem lịch, chọn khung giờ)
+│   ├─ Tham gia buổi tư vấn video call/chat
+│   ├─ Nhận lời khuyên chuyên môn, chiến lược cá nhân hóa
+│   ├─ Được tạo kế hoạch cai thuốc cá nhân
+│   └─ Theo dõi & báo cáo tiến độ cho Coach, nhận chỉnh sửa/động viên
+│
+├─ 2.7 ĐÁNH GIÁ VÀ PHẢN HỒI
+│   ├─ Rating các tính năng (sao, nhận xét)
+│   ├─ Đánh giá chất lượng tư vấn của Coach
+│   ├─ Gửi góp ý/cải tiến hệ thống, báo lỗi kỹ thuật
+│   └─ Theo dõi trạng thái xử lý phản hồi (Admin, đội kỹ thuật)
+│
+└─ 📑 Chức năng phụ bổ sung nếu cần
+    ├─ Đăng nhập nhanh bằng Google/Facebook/Zalo
+    ├─ Chat trực tiếp với Coach hoặc nhóm hỗ trợ
+    ├─ Nhắc nhở qua SMS/Email (nếu cho phép)
+    ├─ Tùy chỉnh giao diện, thông báo cá nhân
+    └─ Lưu trữ nhật ký & xuất báo cáo tiến trình cá nhân
+
+
+
 
 LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 ├─ 3.1 ĐĂNG NHẬP VÀ QUẢN LÝ HỒ SƠ
