@@ -1,6 +1,6 @@
 import React from 'react';
 import { Input, Badge } from 'antd';
-import { SearchOutlined, ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
+import { SearchOutlined, BellOutlined, UserOutlined } from '@ant-design/icons';
 import { Link } from 'react-router';
 import styled from 'styled-components';
 
@@ -16,29 +16,51 @@ const HeaderContainer = styled.header`
 const Logo = styled(Link)`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.8rem;
   text-decoration: none;
   
   img {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
   }
   
   span {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: bold;
     color: #5FB8B3;
   }
 `;
 
 const SearchBar = styled(Input)`
-  max-width: 500px;
+  max-width: 700px;
   width: 100%;
-  border-radius: 20px;
+  border-radius: 25px;
+  height: 45px;
+  font-size: 1.1rem;
   
   .ant-input {
-    border-radius: 20px;
+    border-radius: 25px;
+    height: 45px;
+    font-size: 1.1rem;
+    padding-left: 20px;
+    line-height: 45px;
+    display: flex;
+    align-items: center;
+  }
+
+  .ant-input-prefix {
+    margin-right: 10px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .ant-input-affix-wrapper {
+    padding: 0 15px;
+    height: 45px;
+    display: flex;
+    align-items: center;
   }
 `;
 
@@ -49,7 +71,7 @@ const NavIcons = styled.div`
   
   a {
     color: #666;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     display: flex;
     align-items: center;
     
@@ -57,33 +79,37 @@ const NavIcons = styled.div`
       color: #5FB8B3;
     }
   }
+
+  .anticon {
+    font-size: 1.8rem;
+  }
 `;
 
 const Header = () => {
-    return (
-        <HeaderContainer>
-            <Logo to="/users/home">
-                <img src="/Images/logo.jpg" alt="SmokeFree" />
-                <span>SmokeFree</span>
-            </Logo>
+  return (
+    <HeaderContainer>
+      <Logo to="/users/home">
+        <img src="/Images/logo.jpg" alt="SmokeFree" />
+        <span>SmokeFree</span>
+      </Logo>
 
-            <SearchBar
-                placeholder="Tìm kiếm..."
-                prefix={<SearchOutlined style={{ color: '#5FB8B3' }} />}
-            />
+      <SearchBar
+        placeholder="Tìm kiếm..."
+        prefix={<SearchOutlined style={{ color: '#5FB8B3' }} />}
+      />
 
-            <NavIcons>
-                <Link to="/users/notifications">
-                    <Badge count={2} style={{ backgroundColor: '#5FB8B3' }}>
-                        <ShoppingCartOutlined />
-                    </Badge>
-                </Link>
-                <Link to="/users/profile">
-                    <UserOutlined />
-                </Link>
-            </NavIcons>
-        </HeaderContainer>
-    );
+      <NavIcons>
+        <Link to="/users/notifications">
+          <Badge count={2} style={{ backgroundColor: '#5FB8B3' }}>
+            <BellOutlined />
+          </Badge>
+        </Link>
+        <Link to="/users/profile">
+          <UserOutlined />
+        </Link>
+      </NavIcons>
+    </HeaderContainer>
+  );
 };
 
 export default Header; 
