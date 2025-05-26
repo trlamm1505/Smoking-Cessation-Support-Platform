@@ -243,10 +243,10 @@ LUỒNG 4 ADMIN (QUẢN TRỊ VIÊN)
 LUỒNG 5 TÍCH HỢP HỆ THỐNG (5)
 ├─ 5.1 HỆ THỐNG THÔNG BÁO TỰ ĐỘNG
 │   ├─ Trigger (Kích hoạt)
-│   │   ├─ Milestone: 1 ngày/tuần/tháng/3-6-12 tháng không hút
+│   │   ├─ Milestone: 1 ngày/tuần/tháng/3-6-12 tháng không hút   MILESTONE CÓ NGHĨA LÀ CỘT MỐC QUAN TRỌNG
 │   ├─ Process (Xử lý)
 │   │   ├─ Xác nhận milestone từ nhật ký cai thuốc
-│   │   ├─ Tạo thông báo cá nhân hóa (lời chúc, lợi ích sức khỏe, gợi ý mục tiêu mới)
+│   │   ├─ Tạo thông báo cá nhân hóa (lời chúc, lợi ích sức khỏe, gợi ý mục tiêu mới) ???
 │   │   └─ Xử lý thông báo tức thì hoặc theo lịch
 │   └─ Output (Hình thức gửi)
 │       ├─ Notification push (app/web)
@@ -259,7 +259,7 @@ LUỒNG 5 TÍCH HỢP HỆ THỐNG (5)
 │   │   ├─ Nhật ký hút thuốc: số điếu/ngày, tần suất, thời điểm, tâm trạng/yếu tố ảnh hưởng
 │   ├─ Process (Phân tích)
 │   │   ├─ Tổng hợp dữ liệu hàng ngày/tuần
-│   │   ├─ Phân tích xu hướng: giảm/tăng số thuốc, xác định thời điểm dễ tái nghiện
+│   │   ├─ Phân tích xu hướng: giảm/tăng số thuốc, xác định thời điểm dễ tái nghiện  ///
 │   │   ├─ Phân tích yếu tố ảnh hưởng (stress, môi trường…)
 │   │   
 │   └─ Output (Kết quả)
@@ -290,12 +290,10 @@ LUỒNG 5 TÍCH HỢP HỆ THỐNG (5)
 │   └─ Recipients (Người nhận)
 │       ├─ Admin (tổng quan, doanh thu, hiệu quả)
 │       ├─ Coach (báo cáo tiến độ, cảnh báo, hiệu quả cá nhân)
-│       └─ Stakeholder (ban lãnh đạo, nhà đầu tư, bộ phận tài chính, marketing…)
+│       └─ Stakeholder (ban lãnh đạo, nhà đầu tư, bộ phận tài chính, marketing…) ///
 │
 └─ 🚩 Các tính năng bổ sung NẾU CẦN
     ├─ Dashboard tổng hợp (tích hợp kết quả các hệ thống)
-    ├─ Lưu trữ báo cáo & lịch sử thông báo
+    ├─ Lưu trữ báo cáo & lịch sử thông báo ???             
     ├─ Feedback trực tiếp trên thông báo/báo cáo
-    └─ Tích hợp công cụ phân tích nâng cao (Google Analytics, Power BI…)
-
-
+   
