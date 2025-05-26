@@ -1,8 +1,18 @@
 LUỒNG 1 GUEST (KHÁCH)
-├─ 1.1 TRUY CẬP TRANG CHỦ
+├─  TRUY CẬP TRANG CHỦ
 │   ├─ Truy cập website/app
 │   │   ├─ Nhập URL/truy cập app
 │   │   └─ Giao diện tương thích đa thiết bị
+|   ├─ Click "Đăng ký"
+│   │   └─ Nút nổi bật, giao diện đăng ký trực quan
+│   ├─ Điền thông tin cá nhân
+│   │   ├─ Họ tên, email, số điện thoại
+│   │   └─ Kiểm tra, báo lỗi nhập liệu
+│   ├─ Tạo mật khẩu
+│   │   ├─ Kiểm tra độ mạnh, xác nhận lại mật khẩu
+│   └─ Xác thực email/SMS
+│   |    ├─ Gửi mã xác thực, nhập mã, kiểm tra/chuyển lại mã
+│   |    └─ Xác nhận hoàn tất
 │   ├─ Xem thông tin giới thiệu nền tảng
 │   │   ├─ Mục tiêu, sứ mệnh, lợi ích
 │   │   ├─ Giới thiệu chuyên gia/Coach
@@ -15,36 +25,14 @@ LUỒNG 1 GUEST (KHÁCH)
 │   │   ├─ Danh sách thành viên xuất sắc (top cai thành công, tiến độ tốt)
 │   │   ├─ Thông tin: tên/nickname, ngày cai thành công, cấp bậc
 │   │   └─ Lọc xếp hạng theo tháng/quý/năm/thử thách
-│   └─ Tìm hiểu các tính năng hỗ trợ cai thuốc
-│       ├─ Tư vấn 1-1 với Coach
-│       ├─ Theo dõi tiến trình, báo cáo hiệu quả
-│       ├─ Tham gia thử thách, nhận huy hiệu
-│       ├─ Xem video, tài liệu chuyên sâu
-│       └─ Mô tả lợi ích & minh họa sử dụng
-│
-├─ 1.2 ĐĂNG KÝ THÀNH VIÊN
-│   ├─ Click "Đăng ký"
-│   │   └─ Nút nổi bật, giao diện đăng ký trực quan
-│   ├─ Điền thông tin cá nhân
-│   │   ├─ Họ tên, email, số điện thoại
-│   │   └─ Kiểm tra, báo lỗi nhập liệu
-│   ├─ Tạo mật khẩu
-│   │   ├─ Kiểm tra độ mạnh, xác nhận lại mật khẩu
-│   └─ Xác thực email/SMS
-│       ├─ Gửi mã xác thực, nhập mã, kiểm tra/chuyển lại mã
-│       └─ Xác nhận hoàn tất
-│   └─ Chuyển thành Member
-│       ├─ Thông báo đăng ký thành công
-│       ├─ Chuyển đến trang đăng nhập/dashboard
-│       └─ Gửi email chào mừng, hướng dẫn sử dụng
-│
-└─ 📑 Chức năng phụ bổ sung   NẾU CẦN
-    ├─ Chat/tư vấn nhanh với Coach hoặc chatbot (chưa cần đăng ký)
-    ├─ Chia sẻ nội dung (blog, xếp hạng) lên mạng xã hội
-    ├─ Đăng ký nhanh bằng Google/Facebook/Zalo
-    ├─ Gợi ý thông minh nội dung phù hợp
-    └─ Thống kê truy cập & tương tác khách vãng lai
-
+│   └─ Dat lịch hẹn với Coach
+│   |  ├─ Tư vấn 1-1 với Coach
+│   |  ├─ Tham gia thử thách, nhận huy hiệu
+│   │  └─ Mô tả lợi ích & minh họa sử dụng
+│   │
+│   │- Đăng kí gói Thành Viên
+│   |  ├ Xem và sử dung các chức năng 
+    
 
 
 
@@ -52,7 +40,7 @@ LUỒNG 2 MEMBER (THÀNH VIÊN)
 ├─ 2.1 ĐĂNG NHẬP VÀ THIẾT LẬP HỒ SƠ
 │   ├─ Đăng nhập vào hệ thống
 │   │   ├─ Nhập tên đăng nhập, mật khẩu
-│   │   ├─ Xác thực 2 lớp/quên mật khẩu
+│   │   ├─ Xác thực 2 lớp/quên mật khẩu(nếu cần)
 │   │   └─ Đăng nhập thành công vào dashboard
 │   ├─ Hoàn thiện hồ sơ cá nhân
 │   │   ├─ Họ tên, tuổi, giới tính, ảnh đại diện
@@ -66,6 +54,7 @@ LUỒNG 2 MEMBER (THÀNH VIÊN)
 │   │   ├─ Chọn/tự nhập ngày bắt đầu, ngày mong muốn cai
 │   │   ├─ Đặt mục tiêu số ngày không hút, phần thưởng cá nhân
 │   │   └─ Cam kết/thử thách riêng
+		|- Chỉnh sửa ngày bắt đầu/kết thúc
 │   └─ Chọn lý do cai thuốc
 │       ├─ Sức khỏe, tiết kiệm tiền, gia đình, làm gương con cái...
 │       └─ Ghi chú cá nhân hóa lý do
@@ -73,53 +62,40 @@ LUỒNG 2 MEMBER (THÀNH VIÊN)
 ├─ 2.2 GHI NHẬN THÔNG TIN HÚT THUỐC HÀNG NGÀY
 │   ├─ Truy cập "Theo dõi hút thuốc"
 │   ├─ Ghi nhận số điếu hút/ngày
-│   ├─ Nhập tần suất hút (thời gian, địa điểm, bối cảnh)
+│   ├─ Nhập tần suất hút (thời gian)
 │   ├─ Ghi nhận chi phí thuốc lá
-│   │   └─ Nhập giá, hệ thống tự tính tổng chi phí/tiết kiệm
-│   └─ Hệ thống tự động phân tích & khuyến nghị
-│       ├─ So sánh với mục tiêu, cảnh báo hoặc động viên
-│       └─ Gợi ý bài tập, mẹo giảm hút, nhắc nhở tự động
+│   
+	2.2b Lịch trình chi tiết
+	| Hôm nay làm gì?
+│   
 │
 ├─ 2.3 THEO DÕI TIẾN TRÌNH CAI THUỐC
 │   ├─ Xem dashboard cá nhân (tiến trình tổng hợp)
 │   ├─ Theo dõi số ngày không hút
 │   ├─ Xem biểu đồ tiến độ cai thuốc
-│   ├─ Kiểm tra cải thiện sức khỏe (nhập số liệu & xem so sánh)
-│   └─ So sánh với mục tiêu đã đặt, điều chỉnh mục tiêu nếu cần
+│   
 │
 ├─ 2.4 NHẬN THÔNG BÁO VÀ ĐỘNG VIÊN
 │   ├─ Nhận thông báo định kỳ (ngày/tuần)
-│   ├─ Xem lại lý do cai thuốc để tạo động lực
-│   ├─ Nhận thông báo thành tích (badge, milestone, tiết kiệm)
-│   └─ Chia sẻ thành tích lên mạng xã hội (Facebook, Zalo...)
+│   ├ Nhận thông báo cộng đồng, blog
+│   ├─ Nhận thông báo thành tích  
+│   
 │
 ├─ 2.5 TƯƠNG TÁC VỚI CỘNG ĐỒNG
 │   ├─ Tham gia diễn đàn thảo luận
 │   ├─ Chia sẻ kinh nghiệm, nhật ký, cảm nghĩ
 │   ├─ Đọc & bình luận blog của thành viên khác
 │   ├─ Xem bảng xếp hạng & so sánh tiến độ
-│   └─ Kết bạn, nhắn tin, hỗ trợ lẫn nhau
+│   
 │
 ├─ 2.6 TƯ VẤN VỚI COACH
 │   ├─ Đặt lịch tư vấn với Coach (xem lịch, chọn khung giờ)
-│   ├─ Tham gia buổi tư vấn video call/chat
-│   ├─ Nhận lời khuyên chuyên môn, chiến lược cá nhân hóa
-│   ├─ Được tạo kế hoạch cai thuốc cá nhân
-│   └─ Theo dõi & báo cáo tiến độ cho Coach, nhận chỉnh sửa/động viên
+│   
 │
 ├─ 2.7 ĐÁNH GIÁ VÀ PHẢN HỒI
 │   ├─ Rating các tính năng (sao, nhận xét)
 │   ├─ Đánh giá chất lượng tư vấn của Coach
-│   ├─ Gửi góp ý/cải tiến hệ thống, báo lỗi kỹ thuật
-│   └─ Theo dõi trạng thái xử lý phản hồi (Admin, đội kỹ thuật)
-│
-└─ 📑 Chức năng phụ bổ sung nếu cần
-    ├─ Đăng nhập nhanh bằng Google/Facebook/Zalo
-    ├─ Chat trực tiếp với Coach hoặc nhóm hỗ trợ
-    ├─ Nhắc nhở qua SMS/Email (nếu cho phép)
-    ├─ Tùy chỉnh giao diện, thông báo cá nhân
-    └─ Lưu trữ nhật ký & xuất báo cáo tiến trình cá nhân
-
+│   
 
 
 LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
@@ -132,7 +108,7 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 │   ├─ Thiết lập lịch làm việc
 │   │   ├─ Chọn ngày làm/ngày nghỉ, khung giờ rảnh
 │   │   ├─ Xem/chỉnh sửa/xóa lịch đã thiết lập
-│   │   └─ Đồng bộ Google Calendar
+│   │   
 │   └─ Xem danh sách thành viên được phân công
 │       ├─ Xem toàn bộ thành viên đang phụ trách
 │       ├─ Xem thông tin cơ bản, lọc/tìm kiếm
@@ -150,7 +126,7 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 │   ├─ Ghi nhận nội dung tư vấn
 │   │   ├─ Viết ghi chú/báo cáo kết quả
 │   │   ├─ Lưu đánh giá tình trạng/thái độ
-│   │   └─ Đính kèm tài liệu, hình ảnh, bài tập
+│   │   └
 │   └─ Đưa ra kế hoạch hành động cho thành viên
 │       ├─ Đặt mục tiêu cụ thể, giao nhiệm vụ
 │       ├─ Đặt lịch tư vấn tiếp theo
@@ -178,12 +154,10 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 ├─ 3.4 TẠO NỘI DUNG HỖ TRỢ
 │   ├─ Viết blog chia sẻ kinh nghiệm
 │   │   ├─ Xây dựng chủ đề, viết bài, đính kèm ảnh, xuất bản
-│   ├─ Tạo video hướng dẫn cai thuốc
-│   │   ├─ Viết kịch bản, quay/biên tập, tải video, quản lý kho video
-│   ├─ Phát triển chương trình tư vấn mới
-│   │   ├─ Nghiên cứu nhu cầu, thiết kế/thử nghiệm chương trình
-│   │   └─ Triển khai chương trình mới đã duyệt
-│   └─
+│   ├─  
+│     
+│      
+│    
 │       
 │       
 │       
@@ -211,14 +185,8 @@ LUỒNG 4 ADMIN (QUẢN TRỊ VIÊN)
 │   │   ├─ Dashboard trạng thái (uptime, downtime, server, tài nguyên)
 │   │   ├─ Cảnh báo lỗi bất thường
 │   │   └─ Lịch sử vấn đề hệ thống
-│   ├─ Cập nhật phần mềm & bảo mật
-│   │   ├─ Danh sách cập nhật, bản vá, kiểm tra bảo mật
-│   │   └─ Thông báo kết quả cập nhật
-│   └─ Backup dữ liệu định kỳ
-│       ├─ Thiết lập backup tự động (ngày/tuần/tháng)
-│       ├─ Backup dữ liệu user, hệ thống, thanh toán
-│       ├─ Phục hồi từ backup khi cần
-│       └─ Kiểm tra tình trạng backup/cảnh báo lỗi
+│   ├─ 
+│   └ 
 │
 ├─ 4.2 QUẢN LÝ NGƯỜI DÙNG
 │   ├─ Xem danh sách người dùng (Coach, Member, Guest)
@@ -229,16 +197,16 @@ LUỒNG 4 ADMIN (QUẢN TRỊ VIÊN)
 │   │   ├─ Thiết lập, chỉnh sửa phân quyền theo vai trò
 │   ├─ Xử lý khiếu nại & báo cáo vi phạm
 │   │   ├─ Xem danh sách, phân loại, xử lý, phản hồi
-│   ├─ Khóa/mở khóa tài khoản
-│   │   ├─ Tạm khóa, khóa vĩnh viễn, mở khóa khi xử lý xong
+│   ├─  
+│   │    
 │   └─ Quản lý đơn hàng/giao dịch tài chính
 │       ├─ Xem lịch sử giao dịch, trạng thái thanh toán
 │       ├─ Xử lý hoàn tiền khi cần
 │       └─ Theo dõi thanh toán thành công/thất bại
 │
 ├─ 4.3 QUẢN LÝ COACH
-│   ├─ Tuyển dụng & đào tạo Coach mới
-│   │   ├─ Đăng tuyển, quản lý hồ sơ ứng viên, phỏng vấn, cấp tài khoản, đào tạo
+│   ├─  
+│   │    
 │   ├─ Phân công thành viên cho Coach
 │   │   ├─ Danh sách Coach, số thành viên, phân công/chuyển đổi
 │   ├─ Đánh giá hiệu suất Coach
@@ -249,8 +217,7 @@ LUỒNG 4 ADMIN (QUẢN TRỊ VIÊN)
 ├─ 4.4 QUẢN LÝ NỘI DUNG
 │   ├─ Duyệt bài blog trước đăng
 │   │   ├─ Xem trước nội dung, phê duyệt/từ chối, feedback lý do
-│   ├─ Kiểm duyệt nội dung thành viên
-│   │   ├─ Quản lý bình luận/chia sẻ, xử lý vi phạm
+│   ├─ 
 │   ├─ Cập nhật thông tin y tế & khoa học mới
 │   │   ├─ Tổng hợp, đăng tải tài liệu, bài viết, video mới
 │   └─ Quản lý thư viện tài liệu hỗ trợ
@@ -262,16 +229,15 @@ LUỒNG 4 ADMIN (QUẢN TRỊ VIÊN)
 │   ├─ Phân tích tỷ lệ thành công cai thuốc
 │   │   ├─ Báo cáo hiệu quả, phân tích tổng thể
 │   ├─ Báo cáo doanh thu & chi phí vận hành
-│   │   ├─ Xem báo cáo doanh thu, xuất/tổng hợp hóa đơn, đối soát ngân hàng/cổng thanh toán
+│   │   ├─ Xem báo cáo doanh thu, xuất/tổng hợp hóa đơn,
 │   └─ Đánh giá hiệu quả các tính năng
 │       ├─ Báo cáo sử dụng tính năng, đề xuất cải thiện
 │
 └─ 4.6 PHÁT TRIỂN & CẢI TIẾN
     ├─ Thu thập feedback người dùng (khảo sát, form, email)
     ├─ Phân tích dữ liệu sử dụng tính năng, xác định thói quen/nhu cầu
-    ├─ Lên kế hoạch phát triển tính năng mới (ưu tiên, roadmap)
-    ├─ Phối hợp team phát triển (trao đổi, giao nhiệm vụ, quản lý tiến độ)
-    └─ Test & triển khai cập nhật (test nội bộ, xác nhận ổn định, triển khai chính thức)
+    ├─ 
+    
 
 
 LUỒNG 5 TÍCH HỢP HỆ THỐNG (5)
@@ -286,7 +252,7 @@ LUỒNG 5 TÍCH HỢP HỆ THỐNG (5)
 │       ├─ Notification push (app/web)
 │       ├─ Email chúc mừng
 │       ├─ SMS nhắc nhở/chúc mừng
-│       └─ Tích hợp đa kênh (Zalo, Messenger…)
+│       
 │
 ├─ 5.2 HỆ THỐNG PHÂN TÍCH DỮ LIỆU
 │   ├─ Input (Dữ liệu vào)
@@ -295,7 +261,7 @@ LUỒNG 5 TÍCH HỢP HỆ THỐNG (5)
 │   │   ├─ Tổng hợp dữ liệu hàng ngày/tuần
 │   │   ├─ Phân tích xu hướng: giảm/tăng số thuốc, xác định thời điểm dễ tái nghiện
 │   │   ├─ Phân tích yếu tố ảnh hưởng (stress, môi trường…)
-│   │   └─ Dự đoán nguy cơ tái phát bằng AI/ML
+│   │   
 │   └─ Output (Kết quả)
 │       ├─ Khuyến nghị cá nhân hóa (hành động, nhắc Coach điều chỉnh)
 │       ├─ Cảnh báo sớm tới Coach/Admin
