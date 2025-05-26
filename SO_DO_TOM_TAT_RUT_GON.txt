@@ -49,118 +49,76 @@ LUỒNG 1 GUEST (KHÁCH)
 
 
 LUỒNG 2 MEMBER (THÀNH VIÊN)
-├─ 2.1 ĐĂNG NHẬP, THIẾT LẬP HỒ SƠ, ĐĂNG KÝ/NÂNG CẤP GÓI
-│   ├─ Đăng nhập hệ thống
-│   │   ├─ Nhập email/SĐT và mật khẩu
-│   │   ├─ Xác thực thông tin, quên mật khẩu
-│   │   └─ Báo lỗi/sai thông tin đăng nhập
+├─ 2.1 ĐĂNG NHẬP VÀ THIẾT LẬP HỒ SƠ
+│   ├─ Đăng nhập vào hệ thống
+│   │   ├─ Nhập tên đăng nhập, mật khẩu
+│   │   ├─ Xác thực 2 lớp/quên mật khẩu
+│   │   └─ Đăng nhập thành công vào dashboard
 │   ├─ Hoàn thiện hồ sơ cá nhân
-│   │   ├─ Nhập họ tên, email, SĐT, địa chỉ, ảnh đại diện
-│   │   ├─ Nhánh A (chưa trả phí): Chỉ xem hoặc chỉnh sửa thông tin cơ bản
-│   │   └─ Nhánh B (đã trả phí): Tạo mới, chỉnh sửa đầy đủ (họ tên, nghề nghiệp, mô tả cá nhân, mạng xã hội...)
+│   │   ├─ Họ tên, tuổi, giới tính, ảnh đại diện
+│   │   ├─ Địa chỉ, nghề nghiệp, mô tả bản thân
+│   │   └─ Lưu, chỉnh sửa hồ sơ bất cứ lúc nào
 │   ├─ Khai báo lịch sử hút thuốc
-│   │   ├─ Nhánh A: Nhập tổng số điếu/ngày cơ bản
-│   │   └─ Nhánh B: Khai báo chi tiết (số năm hút, loại thuốc, tần suất, địa điểm, thời điểm, lý do hút)
+│   │   ├─ Số năm hút, số điếu/ngày, loại thuốc lá
+│   │   ├─ Sức khỏe liên quan, thói quen đặc biệt
+│   │   └─ Lưu nhật ký khai báo
 │   ├─ Thiết lập mục tiêu cai thuốc
-│   │   ├─ Nhánh A: Không được thiết lập/chỉnh sửa mục tiêu
-│   │   └─ Nhánh B: Được thiết lập, chỉnh sửa mục tiêu cá nhân hóa, thêm cột mốc phụ
-│   ├─ Chọn lý do cai thuốc
-│   │   ├─ Chọn lý do mẫu (sức khỏe, tiết kiệm, gia đình...)
-│   │   └─ Nhập lý do cá nhân
-│   ├─ Chọn mua hoặc nâng cấp gói thành viên
-│   │   ├─ Xem danh sách gói, quyền lợi, mức phí
-│   │   ├─ Lựa chọn gói, hệ thống tạo đơn hàng
-│   │   ├─ Chọn phương thức thanh toán (Momo, VNPay, thẻ ngân hàng...)
-│   │   ├─ Thực hiện thanh toán và xác nhận giao dịch
-│   │   ├─ Nếu thành công: cập nhật quyền, gửi hóa đơn, lưu lịch sử giao dịch
-│   │   ├─ Xem/tải hóa đơn bất cứ lúc nào
-│   │   ├─ Yêu cầu hoàn tiền khi cần (theo chính sách)
-│   │   └─ Nhận thông báo duyệt/từ chối hoàn tiền
+│   │   ├─ Chọn/tự nhập ngày bắt đầu, ngày mong muốn cai
+│   │   ├─ Đặt mục tiêu số ngày không hút, phần thưởng cá nhân
+│   │   └─ Cam kết/thử thách riêng
+│   └─ Chọn lý do cai thuốc
+│       ├─ Sức khỏe, tiết kiệm tiền, gia đình, làm gương con cái...
+│       └─ Ghi chú cá nhân hóa lý do
+│
 ├─ 2.2 GHI NHẬN THÔNG TIN HÚT THUỐC HÀNG NGÀY
 │   ├─ Truy cập "Theo dõi hút thuốc"
-│   ├─ Ghi nhận số lượng thuốc hút
-│   │   ├─ Nhánh A: Chỉ nhập tổng số điếu/ngày
-│   │   └─ Nhánh B: Ghi nhận chi tiết từng lần hút (giờ, loại thuốc, tình huống)
-│   ├─ Nhập tần suất hút (thời gian, địa điểm)
-│   │   ├─ Nhánh A: Không hoặc rất hạn chế
-│   │   └─ Nhánh B: Nhập chi tiết theo từng lần
+│   ├─ Ghi nhận số điếu hút/ngày
+│   ├─ Nhập tần suất hút (thời gian, địa điểm, bối cảnh)
 │   ├─ Ghi nhận chi phí thuốc lá
-│   │   ├─ Nhánh A: Không có
-│   │   └─ Nhánh B: Nhập chi phí hàng ngày, hệ thống tổng hợp
-│   └─ Hệ thống phân tích, khuyến nghị
-│       ├─ Nhánh A: Khuyến nghị chung chung
-│       └─ Nhánh B: Phân tích cá nhân hóa, cảnh báo nguy cơ, gợi ý liên hệ Coach
+│   │   └─ Nhập giá, hệ thống tự tính tổng chi phí/tiết kiệm
+│   └─ Hệ thống tự động phân tích & khuyến nghị
+│       ├─ So sánh với mục tiêu, cảnh báo hoặc động viên
+│       └─ Gợi ý bài tập, mẹo giảm hút, nhắc nhở tự động
+│
 ├─ 2.3 THEO DÕI TIẾN TRÌNH CAI THUỐC
-│   ├─ Xem dashboard cá nhân
-│   │   ├─ Nhánh A: Giao diện đơn giản, không có biểu đồ chi tiết
-│   │   └─ Nhánh B: Biểu đồ chuyên sâu, so sánh tiến độ
-│   ├─ Theo dõi số ngày không hút thuốc
+│   ├─ Xem dashboard cá nhân (tiến trình tổng hợp)
+│   ├─ Theo dõi số ngày không hút
 │   ├─ Xem biểu đồ tiến độ cai thuốc
-│   │   ├─ Nhánh A: Không hoặc rất hạn chế
-│   │   └─ Nhánh B: Biểu đồ động, so sánh thành viên khác
-│   ├─ Kiểm tra cải thiện sức khỏe theo thời gian
-│   │   ├─ Nhánh A: Không có
-│   │   └─ Nhánh B: Có báo cáo, so sánh cải thiện sức khỏe
-│   └─ So sánh với mục tiêu đã đặt
-│       ├─ Nhánh A: Không có
-│       └─ Nhánh B: Có so sánh tiến độ, nhắc nhở điều chỉnh mục tiêu
+│   ├─ Kiểm tra cải thiện sức khỏe (nhập số liệu & xem so sánh)
+│   └─ So sánh với mục tiêu đã đặt, điều chỉnh mục tiêu nếu cần
+│
 ├─ 2.4 NHẬN THÔNG BÁO VÀ ĐỘNG VIÊN
-│   ├─ Nhận thông báo định kỳ
-│   │   ├─ Nhánh A: Thông báo cơ bản, không định kỳ
-│   │   └─ Nhánh B: Định kỳ, cá nhân hóa milestone/nguy cơ
-│   ├─ Xem lý do cai thuốc
-│   ├─ Nhận thông báo thành tích
-│   │   ├─ Nhánh A: Không hoặc hạn chế
-│   │   └─ Nhánh B: Đầy đủ, động viên mỗi mốc quan trọng
-│   └─ Chia sẻ thành tích lên mạng xã hội
-│       ├─ Nhánh A: Không có
-│       └─ Nhánh B: Có thể chia sẻ Facebook/Zalo/Instagram
+│   ├─ Nhận thông báo định kỳ (ngày/tuần)
+│   ├─ Xem lại lý do cai thuốc để tạo động lực
+│   ├─ Nhận thông báo thành tích (badge, milestone, tiết kiệm)
+│   └─ Chia sẻ thành tích lên mạng xã hội (Facebook, Zalo...)
+│
 ├─ 2.5 TƯƠNG TÁC VỚI CỘNG ĐỒNG
 │   ├─ Tham gia diễn đàn thảo luận
-│   │   ├─ Nhánh A: Đọc blog, hạn chế bình luận
-│   │   └─ Nhánh B: Tạo chủ đề, bình luận, tương tác tự do
-│   ├─ Chia sẻ kinh nghiệm cai thuốc
-│   │   ├─ Nhánh A: Không hoặc chỉ xem
-│   │   └─ Nhánh B: Đăng bài chia sẻ, up ảnh, clip
-│   ├─ Đọc/bình luận blog của thành viên khác
-│   │   ├─ Nhánh A: Bình luận hạn chế, cần duyệt trước
-│   │   └─ Nhánh B: Bình luận tự do, trả lời, tag thành viên
-│   ├─ Xem bảng xếp hạng, so sánh tiến độ
-│   │   ├─ Nhánh A: Không có
-│   │   └─ Nhánh B: Xem bảng xếp hạng, so sánh bạn bè
-│   └─ Kết bạn, hỗ trợ lẫn nhau
-│       ├─ Nhánh A: Không có
-│       └─ Nhánh B: Kết bạn, nhắn tin, lập nhóm hỗ trợ
+│   ├─ Chia sẻ kinh nghiệm, nhật ký, cảm nghĩ
+│   ├─ Đọc & bình luận blog của thành viên khác
+│   ├─ Xem bảng xếp hạng & so sánh tiến độ
+│   └─ Kết bạn, nhắn tin, hỗ trợ lẫn nhau
+│
 ├─ 2.6 TƯ VẤN VỚI COACH
-│   ├─ Đặt lịch tư vấn với Coach
-│   │   ├─ Nhánh A: Không có quyền
-│   │   └─ Nhánh B: Được chọn Coach, đặt lịch theo thời gian rảnh
-│   ├─ Tham gia buổi tư vấn (video call/chat)
-│   │   ├─ Nhánh A: Không có
-│   │   └─ Nhánh B: Tham gia video call, chat, gửi câu hỏi trước
-│   ├─ Nhận lời khuyên chuyên môn
-│   │   ├─ Nhánh A: Không có
-│   │   └─ Nhánh B: Lời khuyên chi tiết, tài liệu cá nhân hóa
-│   ├─ Được tạo kế hoạch cai thuốc cá nhân hóa
-│   │   ├─ Nhánh A: Không có
-│   │   └─ Nhánh B: Nhận/tùy chỉnh kế hoạch do Coach lên
-│   └─ Theo dõi, báo cáo tiến độ với Coach
-│       ├─ Nhánh A: Không có
-│       └─ Nhánh B: Cập nhật kết quả, nhận nhận xét, đặt lịch mới
-└─ 2.7 ĐÁNH GIÁ VÀ PHẢN HỒI
-    ├─ Rating các tính năng
-    │   ├─ Nhánh A: Feedback, báo lỗi cơ bản
-    │   └─ Nhánh B: Feedback chi tiết, rating Coach, ưu tiên xử lý
-    ├─ Đánh giá Coach
-    │   ├─ Nhánh A: Không có
-    │   └─ Nhánh B: Đánh giá từng buổi/từng Coach
-    ├─ Gửi feedback cải thiện hệ thống
-    │   ├─ Cả hai nhánh: Gửi được, Nhánh B ưu tiên xét duyệt
-    └─ Báo lỗi kỹ thuật
-        ├─ Cả hai nhánh: Được báo lỗi
-        └─ Nhánh B: Ưu tiên hỗ trợ nhanh hơn
-
-
+│   ├─ Đặt lịch tư vấn với Coach (xem lịch, chọn khung giờ)
+│   ├─ Tham gia buổi tư vấn video call/chat
+│   ├─ Nhận lời khuyên chuyên môn, chiến lược cá nhân hóa
+│   ├─ Được tạo kế hoạch cai thuốc cá nhân
+│   └─ Theo dõi & báo cáo tiến độ cho Coach, nhận chỉnh sửa/động viên
+│
+├─ 2.7 ĐÁNH GIÁ VÀ PHẢN HỒI
+│   ├─ Rating các tính năng (sao, nhận xét)
+│   ├─ Đánh giá chất lượng tư vấn của Coach
+│   ├─ Gửi góp ý/cải tiến hệ thống, báo lỗi kỹ thuật
+│   └─ Theo dõi trạng thái xử lý phản hồi (Admin, đội kỹ thuật)
+│
+└─ 📑 Chức năng phụ bổ sung nếu cần
+    ├─ Đăng nhập nhanh bằng Google/Facebook/Zalo
+    ├─ Chat trực tiếp với Coach hoặc nhóm hỗ trợ
+    ├─ Nhắc nhở qua SMS/Email (nếu cho phép)
+    ├─ Tùy chỉnh giao diện, thông báo cá nhân
+    └─ Lưu trữ nhật ký & xuất báo cáo tiến trình cá nhân
 
 
 
