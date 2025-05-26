@@ -207,52 +207,71 @@ const SubscriptionStatusCard = styled(Card)`
 `;
 
 const ActionButtons = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 0 24px 24px;
+
+  .action-button {
+    flex: 1;
+    height: 48px;
+    border-radius: 24px;
+    font-weight: 600;
+    font-size: 1rem;
     display: flex;
-    gap: 16px;
-    margin-top: 24px;
-    padding: 0 24px 24px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    z-index: 0;
 
-    .action-button {
-        flex: 1;
-        height: 48px;
-        border-radius: 24px;
-        font-weight: 600;
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.3s;
-
-        &.renew {
-            background: #5FB8B3;
-            border-color: #5FB8B3;
-            color: white;
-
-            &:hover {
-                background: #4a9691;
-                border-color: #4a9691;
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(95, 184, 179, 0.2);
-            }
-        }
-
-        &.change {
-            background: white;
-            border: 2px solid #5FB8B3;
-            color: #5FB8B3;
-
-            &:hover {
-                background: rgba(95, 184, 179, 0.1);
-                transform: translateY(-2px);
-            }
-        }
-
-        .anticon {
-            font-size: 20px;
-        }
+    .anticon {
+      font-size: 20px;
+      color: inherit;
+      transition: all 0.4s ease;
     }
+
+    &.renew {
+      background: #5FB8B3;
+      color: white;
+      border: 2px solid transparent;
+
+      &:hover {
+        background: linear-gradient(135deg, #5FB8B3, #4A90E2);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(95, 184, 179, 0.3);
+      }
+    }
+
+    &.change {
+      background: #ffffff;
+      color: #5FB8B3;
+      border: 2px solid #5FB8B3;
+
+      &:hover {
+        background: linear-gradient(135deg, #5FB8B3, #4A90E2);
+        color: white;
+        border-color: transparent;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(95, 184, 179, 0.2);
+      }
+
+      .anticon {
+        transition: color 0.3s ease;
+      }
+
+      &:hover .anticon {
+        color: white;
+      }
+    }
+  }
 `;
+
+
 
 const StyledAlert = styled(Alert)`
     margin-top: 20px;
@@ -350,7 +369,7 @@ const Premium = () => {
                 'Hỗ trợ qua email',
                 'Tham gia cộng đồng',
                 'Các tài liệu hướng dẫn'
-            ]
+            ]   
         },
         {
             title: 'Nâng Cao',
