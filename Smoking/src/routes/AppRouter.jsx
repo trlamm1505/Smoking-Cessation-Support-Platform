@@ -1,21 +1,45 @@
 import React from 'react'
-import { Route, Routes } from 'react-router'
+import { Route, Routes, Link } from 'react-router'
 import Home from '../source/page/Home/Home'
 import Login from '../source/page/Home/Login'
 import Error from '../source/page/Home/Error'
+import UserHome from '../source/page/Users/Home'
+import UserDashboard from '../source/page/Users/Dashboard'
+import UserProfile from '../source/page/Users/Profile'
+import UserPlan from '../source/page/Users/Plan'
+import UserLayout from '../source/page/Users/UserLayout'
+import Premium from '../source/page/Users/Premium'
+import Progress from '../source/page/Users/Progress'
+import SmokingTrackerPage from '../source/page/Users/SmokingTrackerPage'
+import Achievements from '../source/page/Users/Achievements'
+import Consultation from '../source/page/Users/Consultation'
+import Community from '../source/page/Users/Community'
+import Blog from '../source/page/Users/Blog'
 
 export default function AppRouter() {
   return (
     <Routes>
-        {/* Home */}
-     <Route path='/' element={<Home/>}/>
-     <Route path='login' element={<Login/>}/>
+      {/* Home */}
+      <Route path='/' element={<Home />} />
+      <Route path='login' element={<Login />} />
 
+      {/* Users Routes */}
+      <Route path='users' element={<UserLayout />}>
+        <Route path='home' element={<UserHome />} />
+        <Route path='dashboard' element={<UserDashboard />} />
+        <Route path='profile' element={<UserProfile />} />
+        <Route path='plan' element={<UserPlan />} />
+        <Route path='premium' element={<Premium />} />
+        <Route path='progress' element={<Progress />} />
+        <Route path='smoking-tracker' element={<SmokingTrackerPage />} />
+        <Route path='achievements' element={<Achievements />} />
+        <Route path='consultation' element={<Consultation />} />
+        <Route path='community' element={<Community />} />
+        <Route path='blog' element={<Blog />} />
+      </Route>
 
-        
-          {/* Splats: TỨC LÀ NẾU KO THẤY TUYẾN ĐƯỜNG PHÙ HỢP THÌ SẼ TRẢ VỀ TRANG NÀY */}
-          <Route path='*' element={<Error/>} />
-
+      {/* Splats: TỨC LÀ NẾU KO THẤY TUYẾN ĐƯỜNG PHÙ HỢP THÌ SẼ TRẢ VỀ TRANG NÀY */}
+      <Route path='*' element={<Error />} />
     </Routes>
   )
 }
