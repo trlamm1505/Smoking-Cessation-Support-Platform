@@ -186,11 +186,9 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 │   │   └─ Trạng thái hẹn, thông báo nhắc tư vấn
 │   ├─ Chuẩn bị thông tin thành viên trước buổi tư vấn
 │   │   ├─ Xem hồ sơ thành viên, lịch sử, tài liệu, ghi chú
-│   │   └─ Soạn câu hỏi/bài test/tài liệu hỗ trợ
-│   ├─ Tiến hành buổi tư vấn (video/chat/voice)
-│   │   ├─ Video call, chat hoặc thoại trực tiếp
-│   │   ├─ Chia sẻ màn hình/tài liệu
-│   │   └─ Ghi chú nhanh nội dung, (có thể lưu lại video)
+│   │  
+│   ├
+│   │
 │   ├─ Ghi nhận nội dung tư vấn
 │   │   ├─ Viết ghi chú/báo cáo kết quả
 │   │   ├─ Lưu đánh giá tình trạng/thái độ
@@ -227,10 +225,10 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 │   ├─ Phát triển chương trình tư vấn mới
 │   │   ├─ Nghiên cứu nhu cầu, thiết kế/thử nghiệm chương trình
 │   │   └─ Triển khai chương trình mới đã duyệt
-│   └─ Cập nhật kiến thức chuyên môn
-│       ├─ Tham gia đào tạo định kỳ
-│       ├─ Nghiên cứu tài liệu mới
-│       └─ Kiểm tra định kỳ, cấp chứng nhận
+│   └─
+│       
+│       
+│       
 │
 └─ 3.5 BÁO CÁO VÀ THỐNG KÊ
     ├─ Tạo báo cáo tiến độ thành viên
@@ -238,7 +236,7 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
     │   └─ Xuất/báo cáo chia sẻ cho Admin, Coach khác
     ├─ Thống kê hiệu quả tư vấn
     │   ├─ Tính toán, trực quan hóa hiệu quả/tỉ lệ thành công
-    │   └─ So sánh hiệu quả theo từng Coach
+    │  
     ├─ Phân tích xu hướng cai thuốc
     │   ├─ Phân tích dữ liệu tổng hợp, tìm xu hướng chung
     │   └─ Dự đoán rủi ro, đề xuất giải pháp
