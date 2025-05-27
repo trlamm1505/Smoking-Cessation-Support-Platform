@@ -7,10 +7,11 @@ import UserHome from '../source/page/Users/Home'
 import UserDashboard from '../source/page/Users/Dashboard'
 import UserProfile from '../source/page/Users/Profile'
 import UserPlan from '../source/page/Users/Plan'
-import UserLayout from '../source/page/Users/UserLayout'
+import UserLayout from '../source/page/Users/Layout'
 import Premium from '../source/page/Users/Premium'
 import Progress from '../source/page/Users/Progress'
 import SmokingTrackerPage from '../source/page/Users/SmokingTrackerPage'
+import DetailedSchedule from '../source/page/Users/DetailedSchedule'
 import Achievements from '../source/page/Users/Achievements'
 import Consultation from '../source/page/Users/Consultation'
 import Community from '../source/page/Users/Community'
@@ -32,6 +33,7 @@ export default function AppRouter() {
         <Route path='premium' element={<Premium />} />
         <Route path='progress' element={<Progress />} />
         <Route path='smoking-tracker' element={<SmokingTrackerPage />} />
+        <Route path='schedule' element={<DetailedSchedule />} />
         <Route path='achievements' element={<Achievements />} />
         <Route path='consultation' element={<Consultation />} />
         <Route path='community' element={<Community />} />

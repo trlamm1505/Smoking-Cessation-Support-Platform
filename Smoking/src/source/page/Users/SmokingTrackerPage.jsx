@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Form, InputNumber, Select, Button, Typography, TimePicker, Space, Table, DatePicker } from 'antd';
-import { PlusOutlined, SaveOutlined, ClockCircleOutlined, EnvironmentOutlined, DollarOutlined, SmileOutlined } from '@ant-design/icons';
+import { PlusOutlined, SaveOutlined, ClockCircleOutlined, EnvironmentOutlined, DollarOutlined, SmileOutlined, CalendarOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 const { Title } = Typography;
@@ -8,58 +8,175 @@ const { Option } = Select;
 
 const PageContainer = styled.div`
   padding: 24px;
+  background: #e8f4f3;
+  min-height: 100vh;
   
   .page-title {
     margin-bottom: 24px;
     display: flex;
     align-items: center;
     gap: 12px;
+    color: #1a1a1a;
     
     .anticon {
       color: #5FB8B3;
       font-size: 24px;
+      animation: shine 2s infinite;
+    }
+
+    @keyframes shine {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); }
     }
   }
 
   .stats-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
     margin-bottom: 24px;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   .stat-card {
-    background: white;
-    padding: 20px;
+    background: #ffffff;
+    padding: 24px;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(95, 184, 179, 0.15);
+      border-color: #5FB8B3;
+    }
 
     .stat-title {
-      color: #666;
-      font-size: 14px;
+      color: #64748b;
+      font-size: 16px;
+      font-weight: normal;
       margin-bottom: 8px;
     }
 
     .stat-value {
       font-size: 24px;
+      font-weight: 600;
       color: #5FB8B3;
-      font-weight: 500;
     }
   }
 
   .tracker-form-card {
     background: white;
     padding: 24px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(95, 184, 179, 0.1);
+    border: 1px solid rgba(95, 184, 179, 0.1);
     margin-bottom: 24px;
+
+    .ant-card-head {
+      border-bottom: 2px solid #E3F6F5;
+      margin-bottom: 20px;
+    }
+
+    .ant-form-item-label > label {
+      color: #2c7a75;
+      font-weight: 500;
+      font-size: 15px;
+
+      .anticon {
+        color: #5FB8B3;
+      }
+    }
+
+    .ant-input-number,
+    .ant-picker,
+    .ant-select-selector {
+      border-radius: 8px;
+      border: 1px solid #E3F6F5;
+      padding: 8px 12px;
+      height: auto;
+      transition: all 0.3s ease;
+      
+      &:hover, &:focus {
+        border-color: #5FB8B3;
+        box-shadow: 0 0 0 2px rgba(95, 184, 179, 0.1);
+      }
+    }
+
+    .ant-select-selector {
+      height: 42px !important;
+      padding: 0 12px !important;
+      
+      .ant-select-selection-item {
+        line-height: 42px;
+      }
+    }
+
+    .ant-btn {
+      border-radius: 8px;
+      height: 42px;
+      background: linear-gradient(135deg, #5FB8B3, #70C1BC);
+      border: none;
+      box-shadow: 0 2px 8px rgba(95, 184, 179, 0.2);
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(95, 184, 179, 0.3);
+        background: linear-gradient(135deg, #70C1BC, #5FB8B3);
+      }
+
+      .anticon {
+        margin-right: 8px;
+      }
+    }
   }
 
   .history-card {
     background: white;
     padding: 24px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(95, 184, 179, 0.1);
+    border: 1px solid rgba(95, 184, 179, 0.1);
+
+    .ant-card-head {
+      border-bottom: 2px solid #E3F6F5;
+      margin-bottom: 20px;
+    }
+
+    .ant-table {
+      .ant-table-thead > tr > th {
+        background: #f0f8f7;
+        color: #2c7a75;
+        font-weight: 500;
+        border-bottom: 2px solid #E3F6F5;
+        padding: 16px;
+      }
+
+      .ant-table-tbody > tr:hover > td {
+        background: #f0f8f7;
+      }
+
+      .ant-table-tbody > tr > td {
+        border-bottom: 1px solid #E3F6F5;
+        padding: 16px;
+        color: #666;
+      }
+    }
+  }
+
+  .achievements-section {
+    margin-bottom: 32px;
   }
 `;
 
