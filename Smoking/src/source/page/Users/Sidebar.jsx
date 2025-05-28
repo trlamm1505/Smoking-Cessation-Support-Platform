@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router'
-import { HomeOutlined, LineChartOutlined, CalendarOutlined, TrophyOutlined, TeamOutlined, MessageOutlined, FileTextOutlined, CrownOutlined, SmileOutlined } from '@ant-design/icons'
+import { HomeOutlined, LineChartOutlined, CalendarOutlined, TrophyOutlined, TeamOutlined, MessageOutlined, FileTextOutlined, CrownOutlined, SmileOutlined, ScheduleOutlined, StarOutlined } from '@ant-design/icons'
 import styled from 'styled-components'
 
 const SidebarContainer = styled.div`
@@ -57,6 +57,11 @@ const Sidebar = () => {
             icon: <SmileOutlined />
         },
         {
+            path: '/users/schedule',
+            name: 'Lịch Trình Chi Tiết',
+            icon: <ScheduleOutlined />
+        },
+        {
             path: '/users/achievements',
             name: 'Thành Tích',
             icon: <TrophyOutlined />
@@ -70,6 +75,11 @@ const Sidebar = () => {
             path: '/users/consultation',
             name: 'Tư Vấn',
             icon: <MessageOutlined />
+        },
+        {
+            path: '/users/reviews',
+            name: 'Đánh Giá',
+            icon: <StarOutlined />
         },
         {
             path: '/users/blog',
