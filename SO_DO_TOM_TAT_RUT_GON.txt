@@ -14,7 +14,7 @@ LUỒNG 1 GUEST (KHÁCH)
 │   |    ├─ Gửi mã xác thực, nhập mã, kiểm tra/chuyển lại mã
 │   |    └─ Xác nhận hoàn tất
 │   ├─ Xem thông tin giới thiệu nền tảng
-│   │   ├─ Mục tiêu, sứ mệnh, lợi ích
+│   │   ├─ Mục tiêu, sứ mệnh (About Us), lợi ích
 │   │   ├─ Giới thiệu chuyên gia/Coach
 │   │   └─ Quy trình hỗ trợ thành viên
 │   ├─ Đọc blog chia sẻ kinh nghiệm cai thuốc
@@ -25,14 +25,16 @@ LUỒNG 1 GUEST (KHÁCH)
 │   │   ├─ Danh sách thành viên xuất sắc (top cai thành công, tiến độ tốt)
 │   │   ├─ Thông tin: tên/nickname, ngày cai thành công, cấp bậc
 │   │   └─ Lọc xếp hạng theo tháng/quý/năm/thử thách
-│   └─ Dat lịch hẹn với Coach
+│   └─ Xem chức năng đặt lịch hẹn với Coach
 │   |  ├─ Tư vấn 1-1 với Coach
 │   |  ├─ Tham gia thử thách, nhận huy hiệu
 │   │  └─ Mô tả lợi ích & minh họa sử dụng
 │   │
 │   │- Đăng kí gói Thành Viên
 │   |  ├ Xem và sử dung các chức năng 
-    
+|
+|
+|
 
 
 
@@ -49,24 +51,25 @@ LUỒNG 2 MEMBER (THÀNH VIÊN)
 │   ├─ Khai báo lịch sử hút thuốc
 │   │   ├─ Số năm hút, số điếu/ngày, loại thuốc lá
 │   │   ├─ Sức khỏe liên quan, thói quen đặc biệt
-│   │   └─ Lưu nhật ký khai báo
+│   │   └
 │   ├─ Thiết lập mục tiêu cai thuốc
 │   │   ├─ Chọn/tự nhập ngày bắt đầu, ngày mong muốn cai
 │   │   ├─ Đặt mục tiêu số ngày không hút, phần thưởng cá nhân
 │   │   └─ Cam kết/thử thách riêng
-		|- Chỉnh sửa ngày bắt đầu/kết thúc
-│   └─ Chọn lý do cai thuốc
-│       ├─ Sức khỏe, tiết kiệm tiền, gia đình, làm gương con cái...
-│       └─ Ghi chú cá nhân hóa lý do
+	  |- Chỉnh sửa ngày bắt đầu/kết thúc
+│        └─ Chọn lý do cai thuốc
+│            ├─ Sức khỏe, tiết kiệm tiền, gia đình, làm gương con cái...
+│            └─ Ghi chú cá nhân hóa lý do
 │
 ├─ 2.2 GHI NHẬN THÔNG TIN HÚT THUỐC HÀNG NGÀY
 │   ├─ Truy cập "Theo dõi hút thuốc"
 │   ├─ Ghi nhận số điếu hút/ngày
 │   ├─ Nhập tần suất hút (thời gian)
 │   ├─ Ghi nhận chi phí thuốc lá
-│   
-	2.2b Lịch trình chi tiết
-	| Hôm nay làm gì?
+│    -Lưu nhật ký khai báo
+
+2.2b Lịch trình chi tiết
+| Hôm nay làm gì?
 │   
 │
 ├─ 2.3 THEO DÕI TIẾN TRÌNH CAI THUỐC
@@ -106,7 +109,7 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 │   │   ├─ Nhập/thay đổi họ tên, email, sđt, bằng cấp, lĩnh vực mạnh
 │   │   └─ Thêm ảnh đại diện, mô tả bản thân
 │   ├─ Thiết lập lịch làm việc
-│   │   ├─ Chọn ngày làm/ngày nghỉ, khung giờ rảnh
+│   │   ├
 │   │   ├─ Xem/chỉnh sửa/xóa lịch đã thiết lập
 │   │   
 │   └─ Xem danh sách thành viên được phân công
@@ -122,19 +125,19 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 │   ├
 │   │
 │   ├─ Ghi nhận nội dung tư vấn
-│   │   ├─ Viết ghi chú/báo cáo kết quả
-│   │   ├
-│   │   └
-│   └─ Đưa ra kế hoạch hành động cho thành viên
+│   │   ├─ Viết ghi chú/báo cáo kết quả (tạo form r gửi)
+│   │    └─ Đưa ra kế hoạch hành động cho thành viên
+│   │  
+│   
 │      
-│       └─ Gửi tin nhắn/email tóm tắt kế hoạch
+│       
 │
 ├─ 3.3 THEO DÕI VÀ HỖ TRỢ THÀNH VIÊN
 │   ├─ Theo dõi tiến độ cai thuốc
-│   │   ├─ Nhật ký cai thuốc từng ngày, biểu đồ tiến trình
-│   │   └─ Đánh giá tiến bộ, cập nhật tình trạng sức khỏe
+│   │   ├─ Nhật ký cai thuốc từng ngày, biểu đồ tiến trình (bấm vào dẫn đến trang profile người dùng )
+│   │  
 │   ├─ Gửi tin nhắn động viên định kỳ
-│   │   ├─ Thiết lập gửi tự động cá nhân hóa
+│   │   
 │   │   └─ Theo dõi phản hồi để tư vấn kịp thời
 │   ├─ Phân tích dữ liệu hút thuốc
 │   │   ├─ Thu thập dữ liệu chi tiết, trực quan hóa
@@ -146,32 +149,26 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 │   └─ Báo cáo tình hình cho Admin
 │       ├─ Tạo báo cáo tiến độ định kỳ
 │       ├─ Đề xuất hỗ trợ hoặc can thiệp
-│       └─ Tổng hợp báo cáo tuần/tháng
+│       |-Lập đề xuất cải tiến, trình bày với Admin
 │
 ├─ 3.4 TẠO NỘI DUNG HỖ TRỢ
 │   ├─ Viết blog chia sẻ kinh nghiệm
 │   │   ├─ Xây dựng chủ đề, viết bài, đính kèm ảnh, xuất bản
-│   ├  
-│     
+│        - Phân tích hiệu quả phương pháp hiện tại
+│        
 │      
 │    
 │       
 │       
 │       
 │
-└─ 3.5 BÁO CÁO VÀ THỐNG KÊ
-    ├─ Tạo báo cáo tiến độ thành viên
-    │   ├─ Tổng hợp, phân tích tiến độ từng thành viên
-    │   └─ Xuất/báo cáo chia sẻ cho Admin, Coach khác
+└─ 3.5  THỐNG KÊ
+    | 
+    ├─
     ├─ Thống kê hiệu quả tư vấn
     │   ├─ Tính toán, trực quan hóa hiệu quả/tỉ lệ thành công
-    │  
-    ├
-    │   
-    │   
-    └─ Đề xuất cải thiện phương pháp
-        ├─ Phân tích hiệu quả phương pháp hiện tại
-        └─ Lập đề xuất cải tiến, trình bày với Admin
+    
+   
 
 
 LUỒNG 4 ADMIN (QUẢN TRỊ VIÊN)
@@ -179,19 +176,19 @@ LUỒNG 4 ADMIN (QUẢN TRỊ VIÊN)
 │   ├─ Đăng nhập admin panel
 │   │   ├─ Nhập username/password, 2FA bảo mật, báo lỗi/quên mật khẩu
 │   ├─ Kiểm tra tình trạng hoạt động hệ thống
-│   │   ├─ Dashboard trạng thái (uptime, downtime, server, tài nguyên)
+│   │   ├─ Dashboard trạng thái
 │   │   ├─ Cảnh báo lỗi bất thường
-│   │   └─ Lịch sử vấn đề hệ thống
-│   ├─ 
+│   │   
+│   ├
 │   └ 
 │
-├─ 4.2 QUẢN LÝ NGƯỜI DÙNG
+├─ 4.2 QUẢN LÝ THÀNH VIÊN
 │   ├─ Xem danh sách người dùng (Coach, Member, Guest)
 │   │   ├─ Tìm kiếm, lọc theo tên/email/trạng thái
-│   ├─ Phê duyệt/từ chối đăng ký thành viên mới
+│   ├─ Phê duyệt/từ chối Blog 
 │   │   ├─ Xem thông tin chi tiết, phê duyệt/từ chối, lý do
-│   ├─ Quản lý quyền hạn từng loại user
-│   │   ├─ Thiết lập, chỉnh sửa phân quyền theo vai trò
+│   ├
+│   │   
 │   ├─ Xử lý khiếu nại & báo cáo vi phạm
 │   │   ├─ Xem danh sách, phân loại, xử lý, phản hồi
 │   ├─  
@@ -202,10 +199,10 @@ LUỒNG 4 ADMIN (QUẢN TRỊ VIÊN)
 │       └─ Theo dõi thanh toán thành công/thất bại
 │
 ├─ 4.3 QUẢN LÝ COACH
-│   ├─  
-│   │    
+│     
+│       
 │   ├─ Phân công thành viên cho Coach
-│   │   ├─ Danh sách Coach, số thành viên, phân công/chuyển đổi
+│   │   ├─ Danh sách Coach, số thành viên
 │   ├─ Đánh giá hiệu suất Coach
 │   │   ├─ Thu thập feedback, xuất báo cáo hiệu suất định kỳ
 │   └─ Xử lý khiếu nại chất lượng tư vấn
@@ -226,14 +223,11 @@ LUỒNG 4 ADMIN (QUẢN TRỊ VIÊN)
 │   ├─ Phân tích tỷ lệ thành công cai thuốc
 │   │   ├─ Báo cáo hiệu quả, phân tích tổng thể
 │   ├─ Báo cáo doanh thu & chi phí vận hành
-│   │   ├─ Xem báo cáo doanh thu, xuất/tổng hợp hóa đơn,
-│   └─ Đánh giá hiệu quả các tính năng
-│       ├─ Báo cáo sử dụng tính năng, đề xuất cải thiện
-│
-└─ 4.6 PHÁT TRIỂN & CẢI TIẾN
-    ├─ Thu thập feedback người dùng (khảo sát, form, email)
-    ├─ Phân tích dữ liệu sử dụng tính năng, xác định thói quen/nhu cầu
-    ├─ 
+│   │   ├─ Xem báo cáo doanh thu
+│   
+
+
+
     
 
 
@@ -243,12 +237,12 @@ LUỒNG 5 TÍCH HỢP HỆ THỐNG (5)
 │   │   ├─ Milestone: 1 ngày/tuần/tháng/3-6-12 tháng không hút   MILESTONE CÓ NGHĨA LÀ CỘT MỐC QUAN TRỌNG
 │   ├─ Process (Xử lý)
 │   │   ├─ Xác nhận milestone từ nhật ký cai thuốc
-│   │   ├─ Tạo thông báo cá nhân hóa (lời chúc, lợi ích sức khỏe, gợi ý mục tiêu mới) ???
-│   │   └─ Xử lý thông báo tức thì hoặc theo lịch
+│   │   ├─ Tạo thông báo cá nhân hóa (lời chúc, lợi ích sức khỏe, gợi ý mục tiêu mới) (GỬI EMAIL)
+│   │   
 │   └─ Output (Hình thức gửi)
 │       ├─ Notification push (app/web)
 │       ├─ Email chúc mừng
-│       ├─ SMS nhắc nhở/chúc mừng
+│       
 │       
 │
 ├─ 5.2 HỆ THỐNG PHÂN TÍCH DỮ LIỆU
@@ -256,7 +250,7 @@ LUỒNG 5 TÍCH HỢP HỆ THỐNG (5)
 │   │   ├─ Nhật ký hút thuốc: số điếu/ngày, tần suất, thời điểm, tâm trạng/yếu tố ảnh hưởng
 │   ├─ Process (Phân tích)
 │   │   ├─ Tổng hợp dữ liệu hàng ngày/tuần
-│   │   ├─ Phân tích xu hướng: giảm/tăng số thuốc, xác định thời điểm dễ tái nghiện  ///
+│   │   ├─ Phân tích xu hướng: giảm/tăng số thuốc, gửi cảnh báo khi có dấu hiệu tái nghiện  
 │   │   ├─ Phân tích yếu tố ảnh hưởng (stress, môi trường…)
 │   │   
 │   └─ Output (Kết quả)
@@ -282,15 +276,12 @@ LUỒNG 5 TÍCH HỢP HỆ THỐNG (5)
 │   │   └─ Hàng tháng: báo cáo tổng hợp, xu hướng dài hạn
 │   ├─ Process (Tạo báo cáo)
 │   │   ├─ Tự động tổng hợp dữ liệu (sử dụng, người dùng mới/hoạt động, hiệu quả, doanh thu, chi phí…)
-│   │   ├─ Xuất báo cáo theo mẫu, trình bày rõ ràng
-│   │   └─ Kiểm tra chất lượng, xác thực dữ liệu trước khi gửi
+│   │   
+│   │   
 │   └─ Recipients (Người nhận)
 │       ├─ Admin (tổng quan, doanh thu, hiệu quả)
-│       ├─ Coach (báo cáo tiến độ, cảnh báo, hiệu quả cá nhân)
-│       └─ Stakeholder (ban lãnh đạo, nhà đầu tư, bộ phận tài chính, marketing…) ///
+│       
+│  
 │
-└─ 🚩 Các tính năng bổ sung NẾU CẦN
-    ├─ Dashboard tổng hợp (tích hợp kết quả các hệ thống)
-    ├─ Lưu trữ báo cáo & lịch sử thông báo ???             
-    ├─ Feedback trực tiếp trên thông báo/báo cáo
+└─ 
    
