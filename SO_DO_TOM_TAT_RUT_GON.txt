@@ -118,18 +118,15 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 │   ├─ Xem lịch hẹn tư vấn
 │   │   ├─ Danh sách lịch hẹn (lọc theo ngày/tuần/tháng)
 │   │   └─ Trạng thái hẹn, thông báo nhắc tư vấn
-│   ├─ Chuẩn bị thông tin thành viên trước buổi tư vấn
-│   │   ├─ Xem hồ sơ thành viên, lịch sử, tài liệu, ghi chú
-│   │  
+│   ├
 │   ├
 │   │
 │   ├─ Ghi nhận nội dung tư vấn
 │   │   ├─ Viết ghi chú/báo cáo kết quả
-│   │   ├─ Lưu đánh giá tình trạng/thái độ
+│   │   ├
 │   │   └
 │   └─ Đưa ra kế hoạch hành động cho thành viên
-│       ├─ Đặt mục tiêu cụ thể, giao nhiệm vụ
-│       ├─ Đặt lịch tư vấn tiếp theo
+│      
 │       └─ Gửi tin nhắn/email tóm tắt kế hoạch
 │
 ├─ 3.3 THEO DÕI VÀ HỖ TRỢ THÀNH VIÊN
@@ -141,7 +138,7 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 │   │   └─ Theo dõi phản hồi để tư vấn kịp thời
 │   ├─ Phân tích dữ liệu hút thuốc
 │   │   ├─ Thu thập dữ liệu chi tiết, trực quan hóa
-│   │   └─ Phát hiện xu hướng tái nghiện/yếu tố ảnh hưởng
+│   │   
 │   ├─ Điều chỉnh kế hoạch tư vấn khi cần
 │   │   ├─ Xác định thành viên cần điều chỉnh
 │   │   ├─ Đổi mục tiêu/phương pháp tư vấn
@@ -154,7 +151,7 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
 ├─ 3.4 TẠO NỘI DUNG HỖ TRỢ
 │   ├─ Viết blog chia sẻ kinh nghiệm
 │   │   ├─ Xây dựng chủ đề, viết bài, đính kèm ảnh, xuất bản
-│   ├─  
+│   ├  
 │     
 │      
 │    
@@ -169,9 +166,9 @@ LUỒNG 3: COACH (HUẤN LUYỆN VIÊN)
     ├─ Thống kê hiệu quả tư vấn
     │   ├─ Tính toán, trực quan hóa hiệu quả/tỉ lệ thành công
     │  
-    ├─ Phân tích xu hướng cai thuốc
-    │   ├─ Phân tích dữ liệu tổng hợp, tìm xu hướng chung
-    │   └─ Dự đoán rủi ro, đề xuất giải pháp
+    ├
+    │   
+    │   
     └─ Đề xuất cải thiện phương pháp
         ├─ Phân tích hiệu quả phương pháp hiện tại
         └─ Lập đề xuất cải tiến, trình bày với Admin
