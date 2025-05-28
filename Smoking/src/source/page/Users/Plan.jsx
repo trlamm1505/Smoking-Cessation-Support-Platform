@@ -1,806 +1,207 @@
 import React, { useState } from 'react';
-import {
-    Card,
-    Form,
-    InputNumber,
-    Select,
-    Button,
-    Typography,
-    DatePicker,
-    Space,
-    Input,
-    Row,
-    Col,
-    Divider,
-    message,
-    Radio,
-    Checkbox
-} from 'antd';
-import {
-    SaveOutlined,
-    CalendarOutlined,
-    HeartOutlined,
-    DollarOutlined,
-    UserOutlined,
-    TrophyOutlined,
-    EditOutlined,
-    FileTextOutlined,
-    AimOutlined,
-    BulbOutlined,
-    GiftOutlined
-} from '@ant-design/icons';
+import { Form, Input, Button, Card, Steps, DatePicker, InputNumber, Select, Row, Col, Timeline } from 'antd';
+import { CalendarOutlined, CheckOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
-import dayjs from 'dayjs';
 
-const { Title, Text } = Typography;
-const { Option } = Select;
+const { Step } = Steps;
 const { TextArea } = Input;
+const { Option } = Select;
 
-const PageContainer = styled.div`
+const PlanContainer = styled.div`
   padding: 24px;
-  background: #e8f4f3;
-  min-height: 100vh;
-  
-  .page-title {
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #1a1a1a;
-    
-    .anticon {
-      color: #5FB8B3;
-      font-size: 24px;
-      animation: shine 2s infinite;
-    }
+  max-width: 1200px;
+  margin: 0 auto;
+`;
 
-    @keyframes shine {
-      0% { transform: scale(1) rotate(0deg); }
-      50% { transform: scale(1.1) rotate(5deg); }
-      100% { transform: scale(1) rotate(0deg); }
-    }
-  }
+const StyledCard = styled(Card)`
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 24px;
+`;
 
-  .plan-form-card {
-    background: white;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(95, 184, 179, 0.1);
-    margin-bottom: 24px;
-    border: 1px solid #E3F6F5;
-  }
-
-  .section-header {
-    margin: 20px 0 16px 0;
-    padding: 12px 16px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #5FB8B3 0%, #70C1BC 100%);
-    color: white;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 2px 8px rgba(95, 184, 179, 0.2);
-  }
-
-  .form-item-with-icon {
-    .ant-form-item-label > label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #000000;
-    }
-  }
-
-  .date-range-container {
-    background: #e8f4f3;
-    padding: 16px;
-    border-radius: 8px;
-    margin: 16px 0;
-    border: 1px solid #BEE3E2;
-  }
-
-  .goal-container {
-    background: linear-gradient(135deg, #70C1BC, #5FB8B3);
-    color: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin: 16px 0;
-    box-shadow: 0 4px 12px rgba(95, 184, 179, 0.2);
-  }
-
-  .reasons-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin: 20px 0;
-    width: 100%;
-    
-    @media (max-width: 768px) {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-    
-    @media (max-width: 480px) {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-  }
-
-  .reason-item {
-    .ant-checkbox-wrapper {
-      width: 100%;
-      padding: 16px 20px;
-      border: 2px solid #E3F6F5;
-      border-radius: 12px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      font-size: 15px;
-      font-weight: 500;
-      text-align: left;
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      min-height: 56px;
-      background: linear-gradient(135deg, #ffffff 0%, #f8fdfc 100%);
-      position: relative;
-      cursor: pointer;
-      
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #5FB8B3, #2c7a75);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        z-index: -1;
-      }
-      
-      &:hover {
-        border-color: #5FB8B3;
-        background: #f0f8f7;
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(95, 184, 179, 0.2);
-        color: #2c7a75;
-      }
-      
-      .ant-checkbox {
-        margin-right: 12px;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        
-        .ant-checkbox-inner {
-          border-radius: 6px;
-          border: 2px solid #70C1BC;
-          width: 18px;
-          height: 18px;
-          
-          &::after {
-            border-radius: 2px;
-          }
-        }
-        
-        &.ant-checkbox-checked .ant-checkbox-inner {
-          background-color: #5FB8B3;
-          border-color: #5FB8B3;
-        }
-      }
-      
-      span:last-child {
-        flex: 1;
-        line-height: 1.4;
-        display: flex;
-        align-items: center;
-      }
-    }
-    
-    .ant-checkbox-wrapper-checked {
-      border-color: #5FB8B3;
-      background: linear-gradient(135deg, #f0f8f7 0%, #e8f4f3 100%);
-      color: #2c7a75;
-      font-weight: 600;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(95, 184, 179, 0.15);
-      
-      &::before {
-        opacity: 0.1;
-      }
-    }
-  }
-
-  .plan-section {
-    background: #e8f4f3;
-    padding: 24px;
-    border-radius: 12px;
-    margin: 16px 0;
-    border: 1px solid #BEE3E2;
-  }
+const StepContent = styled.div`
+  margin-top: 24px;
+  padding: 24px;
+  background: #fafafa;
+  border-radius: 8px;
 `;
 
 const Plan = () => {
+    const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
-    const [planData, setPlanData] = useState(null);
-    const [isEditing, setIsEditing] = useState(true);
 
-    const reasons = [
-        { value: 'health', label: 'Cải thiện sức khỏe' },
-        { value: 'money', label: 'Tiết kiệm tiền' },
-        { value: 'family', label: 'Vì gia đình' },
-        { value: 'children', label: 'Làm gương cho con' },
-        { value: 'appearance', label: 'Cải thiện ngoại hình' },
-        { value: 'fitness', label: 'Tăng cường thể lực' },
-        { value: 'social', label: 'Áp lực xã hội' },
-        { value: 'pregnancy', label: 'Mang thai/cho con bú' },
-        { value: 'smell', label: 'Loại bỏ mùi thuốc' }
+    const steps = [
+        {
+            title: 'Thông tin cơ bản',
+            content: (
+                <Form layout="vertical">
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                name="startDate"
+                                label="Ngày bắt đầu"
+                                rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu' }]}
+                            >
+                                <DatePicker style={{ width: '100%' }} />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                name="targetDate"
+                                label="Ngày mục tiêu"
+                                rules={[{ required: true, message: 'Vui lòng chọn ngày mục tiêu' }]}
+                            >
+                                <DatePicker style={{ width: '100%' }} />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+
+                    <Form.Item
+                        name="currentConsumption"
+                        label="Số điếu thuốc hiện tại/ngày"
+                        rules={[{ required: true, message: 'Vui lòng nhập số điếu thuốc' }]}
+                    >
+                        <InputNumber min={1} style={{ width: '100%' }} />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="quitReason"
+                        label="Lý do cai thuốc"
+                        rules={[{ required: true, message: 'Vui lòng nhập lý do cai thuốc' }]}
+                    >
+                        <TextArea rows={4} />
+                    </Form.Item>
+                </Form>
+            ),
+        },
+        {
+            title: 'Lập kế hoạch',
+            content: (
+                <Form layout="vertical">
+                    <Form.Item
+                        name="quitMethod"
+                        label="Phương pháp cai thuốc"
+                        rules={[{ required: true, message: 'Vui lòng chọn phương pháp' }]}
+                    >
+                        <Select>
+                            <Option value="cold_turkey">Cai hoàn toàn</Option>
+                            <Option value="gradual">Cai dần dần</Option>
+                            <Option value="nicotine_replacement">Sử dụng sản phẩm thay thế nicotine</Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="dailyReduction"
+                        label="Kế hoạch giảm số điếu/ngày"
+                    >
+                        <Timeline>
+                            <Timeline.Item>Tuần 1: Giảm 25%</Timeline.Item>
+                            <Timeline.Item>Tuần 2: Giảm 50%</Timeline.Item>
+                            <Timeline.Item>Tuần 3: Giảm 75%</Timeline.Item>
+                            <Timeline.Item>Tuần 4: Ngừng hoàn toàn</Timeline.Item>
+                        </Timeline>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="triggers"
+                        label="Các yếu tố kích thích hút thuốc"
+                    >
+                        <Select mode="multiple">
+                            <Option value="stress">Stress</Option>
+                            <Option value="social">Gặp gỡ bạn bè</Option>
+                            <Option value="coffee">Uống cà phê</Option>
+                            <Option value="alcohol">Uống rượu bia</Option>
+                            <Option value="after_meal">Sau bữa ăn</Option>
+                        </Select>
+                    </Form.Item>
+                </Form>
+            ),
+        },
+        {
+            title: 'Hỗ trợ & Theo dõi',
+            content: (
+                <Form layout="vertical">
+                    <Form.Item
+                        name="supportMethod"
+                        label="Phương pháp hỗ trợ"
+                    >
+                        <Select mode="multiple">
+                            <Option value="counseling">Tư vấn trực tuyến</Option>
+                            <Option value="community">Cộng đồng hỗ trợ</Option>
+                            <Option value="family">Hỗ trợ từ gia đình</Option>
+                            <Option value="medication">Thuốc hỗ trợ</Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="trackingPreference"
+                        label="Tần suất theo dõi"
+                    >
+                        <Select>
+                            <Option value="daily">Hàng ngày</Option>
+                            <Option value="weekly">Hàng tuần</Option>
+                            <Option value="biweekly">2 tuần/lần</Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="reminderTime"
+                        label="Thời gian nhắc nhở"
+                    >
+                        <Input type="time" />
+                    </Form.Item>
+                </Form>
+            ),
+        },
     ];
 
-    const cigaretteTypes = [
-        'Thuốc lá điếu thông thường',
-        'Thuốc lá light',
-        'Thuốc lá điện tử',
-        'Thuốc lá cuốn tay',
-        'Khác'
-    ];
+    const next = () => {
+        setCurrentStep(currentStep + 1);
+    };
 
-    const onFinish = (values) => {
-        console.log('Plan data:', values);
-        setPlanData(values);
-        setIsEditing(false);
-        message.success('Kế hoạch cai thuốc đã được lưu thành công!');
+    const prev = () => {
+        setCurrentStep(currentStep - 1);
     };
 
     return (
-        <PageContainer>
-            <Title level={2} className="page-title">
-                <CalendarOutlined />
-                Lập Kế Hoạch Cai Thuốc
-            </Title>
-
-            {isEditing ? (
-                <Card title="Thông Tin Kế Hoạch Cai Thuốc" className="plan-form-card">
-                    <Form
-                        form={form}
-                        name="smoking_cessation_plan"
-                        onFinish={onFinish}
-                        layout="vertical"
-                        initialValues={{
-                            goalType: 'temporary',
-                            goalDays: 2,
-                            startDate: dayjs()
-                        }}
-                    >
-                        {/* Lịch sử hút thuốc */}
-                        <div className="section-header">
-                            <FileTextOutlined />
-                            Lịch Sử Hút Thuốc
-                        </div>
-
-                        <Row gutter={16}>
-                            <Col span={8}>
-                                <Form.Item
-                                    name="smokingYears"
-                                    label="Số năm hút thuốc"
-                                    rules={[{ required: true, message: 'Vui lòng nhập số năm hút thuốc!' }]}
-                                    className="form-item-with-icon"
-                                >
-                                    <InputNumber
-                                        min={0}
-                                        max={100}
-                                        placeholder="Ví dụ: 5"
-                                        style={{ width: '100%' }}
-                                        suffix="năm"
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={8}>
-                                <Form.Item
-                                    name="cigarettesPerDay"
-                                    label="Số điếu mỗi ngày"
-                                    rules={[{ required: true, message: 'Vui lòng nhập số điếu mỗi ngày!' }]}
-                                >
-                                    <InputNumber
-                                        min={1}
-                                        max={100}
-                                        placeholder="Ví dụ: 20"
-                                        style={{ width: '100%' }}
-                                        suffix="điếu"
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={8}>
-                                <Form.Item
-                                    name="cigaretteType"
-                                    label="Loại thuốc lá"
-                                    rules={[{ required: true, message: 'Vui lòng chọn loại thuốc lá!' }]}
-                                >
-                                    <Select placeholder="Chọn loại thuốc lá">
-                                        {cigaretteTypes.map(type => (
-                                            <Option key={type} value={type}>{type}</Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
-                            </Col>
-                        </Row>
-
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    name="healthIssues"
-                                    label="Vấn đề sức khỏe liên quan (nếu có)"
-                                >
-                                    <TextArea
-                                        rows={3}
-                                        placeholder="Ví dụ: Ho khan, khó thở, đau ngực..."
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item
-                                    name="specialHabits"
-                                    label="Thói quen đặc biệt"
-                                >
-                                    <TextArea
-                                        rows={3}
-                                        placeholder="Ví dụ: Hút sau bữa ăn, khi uống cà phê, lúc stress..."
-                                    />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-
-                        {/* Kế hoạch cai thuốc */}
-                        <div className="section-header">
-                            <CalendarOutlined />
-                            Kế Hoạch Cai Thuốc
-                        </div>
-
-                        <div style={{
-                            padding: '24px',
-                            background: '#e8f4f3',
-                            borderRadius: '8px',
-                            border: '1px solid #BEE3E2'
-                        }}>
-                            <Row gutter={[24, 24]}>
-                                <Col span={24}>
-                                    {/* Chọn ngày */}
-                                    <Row gutter={16} style={{ marginBottom: '24px' }}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="startDate"
-                                                label={
-                                                    <span style={{ color: '#000000' }}>
-                                                        <span style={{ color: '#ff4d4f', marginRight: '4px' }}>*</span>
-                                                        Ngày bắt đầu
-                                                    </span>
-                                                }
-                                                rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu!' }]}
-                                            >
-                                                <DatePicker
-                                                    style={{ width: '100%' }}
-                                                    format="DD/MM/YYYY"
-                                                    placeholder="Chọn ngày bắt đầu"
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="endDate"
-                                                label={
-                                                    <span style={{ color: '#000000' }}>
-                                                        <span style={{ color: '#ff4d4f', marginRight: '4px' }}>*</span>
-                                                        Ngày kết thúc
-                                                    </span>
-                                                }
-                                                rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc!' }]}
-                                            >
-                                                <DatePicker
-                                                    style={{ width: '100%' }}
-                                                    format="DD/MM/YYYY"
-                                                    placeholder="Chọn ngày kết thúc"
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-
-                                    {/* Mục tiêu */}
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <span style={{ color: '#ff4d4f', marginRight: '4px' }}>*</span>
-                                        <span style={{ color: '#000000' }}>Mục tiêu số ngày không hút</span>
-                                    </div>
-
-                                    <Form.Item
-                                        name="goalType"
-                                        rules={[{ required: true, message: 'Vui lòng chọn loại mục tiêu!' }]}
-                                        style={{ marginBottom: '16px' }}
-                                    >
-                                        <Radio.Group>
-                                            <Space direction="vertical" style={{ width: '100%' }}>
-                                                <Radio value="temporary" style={{ color: '#000000' }}>
-                                                    Cai thuốc trong thời gian nhất định
-                                                </Radio>
-                                                <Radio value="permanent" style={{ color: '#000000' }}>
-                                                    Cai thuốc vĩnh viễn
-                                                </Radio>
-                                            </Space>
-                                        </Radio.Group>
-                                    </Form.Item>
-
-                                    <Form.Item
-                                        noStyle
-                                        shouldUpdate={(prevValues, currentValues) =>
-                                            prevValues.goalType !== currentValues.goalType
-                                        }
-                                    >
-                                        {({ getFieldValue }) => {
-                                            const goalType = getFieldValue('goalType');
-                                            return goalType === 'temporary' ? (
-                                                <Form.Item
-                                                    name="goalDays"
-                                                    rules={[{ required: true, message: 'Vui lòng nhập số ngày!' }]}
-                                                >
-                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                        <Input
-                                                            type="number"
-                                                            min={1}
-                                                            placeholder="2"
-                                                            style={{
-                                                                width: '100%',
-                                                                height: '40px',
-                                                                borderRadius: '6px'
-                                                            }}
-                                                        />
-                                                        <span style={{
-                                                            marginLeft: '8px',
-                                                            color: '#000000',
-                                                            fontSize: '14px'
-                                                        }}>
-                                                            ngày
-                                                        </span>
-                                                    </div>
-                                                </Form.Item>
-                                            ) : (
-                                                <div style={{
-                                                    background: 'rgba(255,255,255,0.15)',
-                                                    padding: '16px',
-                                                    borderRadius: '8px',
-                                                    marginBottom: '24px',
-                                                    border: '1px solid rgba(255,255,255,0.2)'
-                                                }}>
-                                                    <div style={{
-                                                        color: '#000000',
-                                                        fontSize: '15px',
-                                                        fontWeight: '500',
-                                                        textAlign: 'center',
-                                                        marginBottom: '8px'
-                                                    }}>
-                                                        🎯 Quyết tâm cai thuốc vĩnh viễn
-                                                    </div>
-                                                    <div style={{
-                                                        color: '#000000',
-                                                        fontSize: '14px',
-                                                        textAlign: 'center',
-                                                        lineHeight: '1.5'
-                                                    }}>
-                                                        Đây là một quyết định tuyệt vời cho sức khỏe và cuộc sống của bạn.
-                                                        Hãy kiên định với mục tiêu này!
-                                                    </div>
-                                                </div>
-                                            );
-                                        }}
-                                    </Form.Item>
-
-                                    <div style={{ marginBottom: '16px', marginTop: '24px' }}>
-                                        <span style={{ color: '#000000' }}>Phần thưởng cá nhân</span>
-                                    </div>
-                                    <Form.Item name="personalReward">
-                                        <Input.TextArea
-                                            placeholder="Ví dụ: Mua điện thoại mới, đi du lịch..."
-                                            style={{
-                                                width: '100%',
-                                                minHeight: '120px',
-                                                borderRadius: '6px',
-                                                resize: 'none',
-                                                padding: '12px'
-                                            }}
-                                        />
-                                        <div style={{
-                                            marginTop: '8px',
-                                            color: '#000000',
-                                            fontSize: '14px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px',
-                                            opacity: 0.85
-                                        }}>
-                                            <BulbOutlined />
-                                            Hãy đặt một phần thưởng xứng đáng để tạo động lực cho bản thân
-                                        </div>
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </div>
-
-                        {/* Lý do cai thuốc */}
-                        <div className="section-header">
-                            <HeartOutlined />
-                            Lý Do Cai Thuốc
-                        </div>
-
-                        <Form.Item
-                            name="quitReasons"
-                            label="Chọn lý do thúc đẩy bạn cai thuốc (có thể chọn nhiều)"
-                            rules={[{ required: true, message: 'Vui lòng chọn ít nhất một lý do!' }]}
-                        >
-                            <Checkbox.Group style={{ width: '100%' }}>
-                                <div className="reasons-grid">
-                                    {reasons.map(reason => (
-                                        <div key={reason.value} className="reason-item">
-                                            <Checkbox value={reason.value}>
-                                                {reason.label}
-                                            </Checkbox>
-                                        </div>
-                                    ))}
-                                </div>
-                            </Checkbox.Group>
-                        </Form.Item>
-
-                        <Form.Item
-                            name="customReason"
-                            label="Lý do khác (tùy chọn)"
-                        >
-                            <TextArea
-                                rows={2}
-                                placeholder="Nhập lý do cá nhân khác..."
-                            />
-                        </Form.Item>
-
-                        {/* Ghi chú thêm */}
-                        <Divider />
-
-                        <Form.Item
-                            name="additionalNotes"
-                            label="Ghi chú thêm"
-                        >
-                            <TextArea
-                                rows={4}
-                                placeholder="Ghi chú thêm về kế hoạch, động lực, mối quan tâm..."
-                            />
-                        </Form.Item>
-
-                        <Form.Item>
-                            <Space>
-                                <Button
-                                    type="primary"
-                                    htmlType="submit"
-                                    icon={<SaveOutlined />}
-                                    size="large"
-                                    style={{
-                                        background: '#5FB8B3',
-                                        borderColor: '#5FB8B3',
-                                        boxShadow: '0 2px 8px rgba(95, 184, 179, 0.2)'
-                                    }}
-                                >
-                                    Lưu Kế Hoạch Cai Thuốc
-                                </Button>
-                                <Button
-                                    icon={<EditOutlined />}
-                                    size="large"
-                                    onClick={() => form.resetFields()}
-                                >
-                                    Làm Mới
-                                </Button>
-                            </Space>
-                        </Form.Item>
-                    </Form>
-                </Card>
-            ) : (
-                <Card
-                    title={
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <TrophyOutlined style={{ color: '#5FB8B3', fontSize: '20px' }} />
-                            <span>Kế Hoạch Đã Lưu</span>
-                        </div>
-                    }
-                    className="plan-form-card"
-                    style={{
-                        background: 'white',
-                        border: '1px solid #E3F6F5',
-                        boxShadow: '0 4px 12px rgba(95, 184, 179, 0.1)'
-                    }}
-                >
-                    {/* Lịch sử hút thuốc */}
-                    <div style={{ marginBottom: '24px' }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            color: '#5FB8B3',
-                            fontSize: '16px',
-                            fontWeight: '500',
-                            marginBottom: '16px'
-                        }}>
-                            <FileTextOutlined />
-                            <span>Lịch Sử Hút Thuốc</span>
-                        </div>
-                        <div style={{
-                            background: '#f8fdfc',
-                            padding: '16px',
-                            borderRadius: '8px',
-                            color: '#444'
-                        }}>
-                            <p>• Thời gian hút: {planData.smokingYears} năm</p>
-                            <p>• Số lượng: {planData.cigarettesPerDay} điếu/ngày</p>
-                            <p>• Loại thuốc lá: {planData.cigaretteType}</p>
-                            {planData.healthIssues && (
-                                <p>• Vấn đề sức khỏe: {planData.healthIssues}</p>
-                            )}
-                            {planData.specialHabits && (
-                                <p>• Thói quen đặc biệt: {planData.specialHabits}</p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Kế hoạch cai thuốc */}
-                    <div style={{ marginBottom: '24px' }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            color: '#5FB8B3',
-                            fontSize: '16px',
-                            fontWeight: '500',
-                            marginBottom: '16px'
-                        }}>
-                            <CalendarOutlined />
-                            <span>Kế Hoạch Cai Thuốc</span>
-                        </div>
-                        <div style={{
-                            background: '#f8fdfc',
-                            padding: '16px',
-                            borderRadius: '8px'
-                        }}>
-                            <div style={{
-                                background: 'rgba(95, 184, 179, 0.1)',
-                                padding: '12px 16px',
-                                borderRadius: '8px',
-                                marginBottom: '16px',
-                                color: '#2c7a75'
-                            }}>
-                                {planData.goalType === 'permanent' ? (
-                                    <>
-                                        <div style={{ fontSize: '16px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span>🎯</span>
-                                            <span>Cai thuốc vĩnh viễn</span>
-                                        </div>
-                                        <div style={{ marginTop: '8px', fontSize: '14px', fontStyle: 'italic' }}>
-                                            Bạn đã chọn một mục tiêu tuyệt vời cho sức khỏe và cuộc sống!
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div style={{ fontSize: '16px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <span>📅</span>
-                                        <span>Cai thuốc trong {planData.goalDays} ngày</span>
-                                    </div>
-                                )}
-                            </div>
-                            <div style={{ color: '#444' }}>
-                                <p>• Ngày bắt đầu: {planData.startDate?.format('DD/MM/YYYY')}</p>
-                                <p>• Ngày kết thúc: {planData.endDate?.format('DD/MM/YYYY')}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Lý do cai thuốc */}
-                    <div style={{ marginBottom: '24px' }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            color: '#5FB8B3',
-                            fontSize: '16px',
-                            fontWeight: '500',
-                            marginBottom: '16px'
-                        }}>
-                            <HeartOutlined />
-                            <span>Lý Do Cai Thuốc</span>
-                        </div>
-                        <div style={{
-                            background: '#f8fdfc',
-                            padding: '16px',
-                            borderRadius: '8px'
-                        }}>
-                            {planData.quitReasons && planData.quitReasons.length > 0 && (
-                                <div style={{ marginBottom: '12px' }}>
-                                    <div style={{ marginBottom: '8px', color: '#444' }}>Lý do đã chọn:</div>
-                                    <div style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                                        gap: '8px'
-                                    }}>
-                                        {planData.quitReasons.map(reasonValue => {
-                                            const reason = reasons.find(r => r.value === reasonValue);
-                                            return (
-                                                <div key={reasonValue} style={{
-                                                    padding: '8px 12px',
-                                                    background: 'rgba(95, 184, 179, 0.1)',
-                                                    borderRadius: '6px',
-                                                    color: '#2c7a75'
-                                                }}>
-                                                    • {reason?.label}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Ghi chú thêm */}
-                    {planData.additionalNotes && (
-                        <div style={{ marginBottom: '24px' }}>
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                color: '#5FB8B3',
-                                fontSize: '16px',
-                                fontWeight: '500',
-                                marginBottom: '16px'
-                            }}>
-                                <EditOutlined />
-                                <span>Ghi Chú Thêm</span>
-                            </div>
-                            <div style={{
-                                background: '#f8fdfc',
-                                padding: '16px',
-                                borderRadius: '8px',
-                                color: '#444'
-                            }}>
-                                {planData.additionalNotes}
-                            </div>
-                        </div>
+        <PlanContainer>
+            <StyledCard>
+                <Steps current={currentStep}>
+                    {steps.map(item => (
+                        <Step key={item.title} title={item.title} />
+                    ))}
+                </Steps>
+                <StepContent>
+                    {steps[currentStep].content}
+                </StepContent>
+                <div style={{ marginTop: 24 }}>
+                    {currentStep < steps.length - 1 && (
+                        <Button type="primary" onClick={() => next()}>
+                            Tiếp theo
+                        </Button>
                     )}
+                    {currentStep === steps.length - 1 && (
+                        <Button type="primary" onClick={() => console.log('Hoàn thành')}>
+                            Hoàn thành
+                        </Button>
+                    )}
+                    {currentStep > 0 && (
+                        <Button style={{ margin: '0 8px' }} onClick={() => prev()}>
+                            Quay lại
+                        </Button>
+                    )}
+                </div>
+            </StyledCard>
 
-                    {/* Action buttons */}
-                    <div style={{
-                        marginTop: '24px',
-                        paddingTop: '20px',
-                        borderTop: '1px solid #e8f4f3',
-                        display: 'flex',
-                        gap: '12px',
-                        justifyContent: 'center'
-                    }}>
-                        <Button
-                            type="primary"
-                            icon={<EditOutlined />}
-                            onClick={() => {
-                                form.setFieldsValue(planData);
-                                setIsEditing(true);
-                            }}
-                            style={{
-                                background: '#5FB8B3',
-                                borderColor: '#5FB8B3'
-                            }}
-                        >
-                            Chỉnh Sửa Kế Hoạch
-                        </Button>
-                        <Button
-                            icon={<SaveOutlined />}
-                            onClick={() => {
-                                message.success('Kế hoạch đã được lưu vào hệ thống!');
-                            }}
-                        >
-                            Lưu Vào Hệ Thống
-                        </Button>
-                    </div>
-                </Card>
-            )}
-        </PageContainer>
+            <StyledCard title="Tiến trình thực hiện">
+                <Timeline mode="left">
+                    <Timeline.Item dot={<CalendarOutlined />}>Bắt đầu kế hoạch cai thuốc</Timeline.Item>
+                    <Timeline.Item dot={<CheckOutlined />}>Hoàn thành tuần đầu tiên</Timeline.Item>
+                    <Timeline.Item dot={<ClockCircleOutlined />}>Đang thực hiện giai đoạn 2</Timeline.Item>
+                </Timeline>
+            </StyledCard>
+        </PlanContainer>
     );
 };
 
-export default Plan;
+export default Plan; 
