@@ -7,15 +7,24 @@ import UserHome from '../source/page/Users/Home'
 import UserDashboard from '../source/page/Users/Dashboard'
 import UserProfile from '../source/page/Users/Profile'
 import UserPlan from '../source/page/Users/Plan'
-import UserLayout from '../source/page/Users/Layout'
+import UserLayout from '../source/page/Users/UserLayout'
 import Premium from '../source/page/Users/Premium'
 import Progress from '../source/page/Users/Progress'
 import SmokingTrackerPage from '../source/page/Users/SmokingTrackerPage'
-import DetailedSchedule from '../source/page/Users/DetailedSchedule'
 import Achievements from '../source/page/Users/Achievements'
 import Consultation from '../source/page/Users/Consultation'
 import Community from '../source/page/Users/Community'
 import Blog from '../source/page/Users/Blog'
+import CoachLayout from '../source/page/Coach/CoachLayout'
+import CoachHome from '../source/page/Coach/Home'
+import CoachProfile from '../source/page/Coach/CoachProfile'
+import Schedule from '../source/page/Coach/Schedule'
+import Members from '../source/page/Coach/Members'
+import Messages from '../source/page/Coach/Messages'
+import Statistics from '../source/page/Coach/Statistics'
+import BlogManagement from '../source/page/Coach/BlogManagement'
+import ConsultationCoach from '../source/page/Coach/Consultation'
+import ReportPage from '../source/page/Coach/ReportPage'
 
 export default function AppRouter() {
   return (
@@ -33,11 +42,23 @@ export default function AppRouter() {
         <Route path='premium' element={<Premium />} />
         <Route path='progress' element={<Progress />} />
         <Route path='smoking-tracker' element={<SmokingTrackerPage />} />
-        <Route path='schedule' element={<DetailedSchedule />} />
         <Route path='achievements' element={<Achievements />} />
         <Route path='consultation' element={<Consultation />} />
         <Route path='community' element={<Community />} />
         <Route path='blog' element={<Blog />} />
+      </Route>
+
+      {/* Coach Routes */}
+      <Route path='coach' element={<CoachLayout />}>
+        <Route index element={<CoachHome />} />
+        <Route path='profile' element={<CoachProfile />} />
+        <Route path='schedule' element={<Schedule />} />
+        <Route path='members' element={<Members />} />
+        <Route path='consultation' element={<ConsultationCoach />} />
+        <Route path='messages' element={<Messages />} />
+        <Route path='statistics' element={<Statistics />} />
+        <Route path='blog' element={<BlogManagement />} />
+        <Route path='report' element={<ReportPage />} />
       </Route>
 
       {/* Splats: TỨC LÀ NẾU KO THẤY TUYẾN ĐƯỜNG PHÙ HỢP THÌ SẼ TRẢ VỀ TRANG NÀY */}
