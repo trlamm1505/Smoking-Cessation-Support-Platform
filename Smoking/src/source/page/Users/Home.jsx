@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag } from 'antd';
-import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, HomeOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 const { Title, Text } = Typography;
@@ -13,10 +13,24 @@ const PageContainer = styled.div`
 
 const WelcomeTitle = styled(Title)`
     position: relative;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     margin-bottom: 32px !important;
     padding-bottom: 12px;
+    gap: 12px;
     
+    .home-icon {
+        font-size: 28px;
+        color: #5FB8B3;
+        animation: shine 2s infinite;
+    }
+
+    @keyframes shine {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
     &:after {
         content: '';
         position: absolute;
@@ -256,6 +270,7 @@ const Home = () => {
   return (
     <PageContainer>
       <WelcomeTitle level={2}>
+        <HomeOutlined className="home-icon" />
         Xin chào, Nguyễn Văn A
       </WelcomeTitle>
 

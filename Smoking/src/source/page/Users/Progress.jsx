@@ -400,140 +400,176 @@ const UpdateButton = styled(Button)`
   }
 `;
 
+const PageHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 16px 0;
+
+  .header-icon {
+    font-size: 28px;
+    color: #5FB8B3;
+    display: flex;
+    align-items: center;
+    animation: shine 2s infinite;
+  }
+
+  @keyframes shine {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.1) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+  }
+`;
+
 const Progress = () => {
-    const [currentPhase, setCurrentPhase] = useState(2);
+  const [currentPhase, setCurrentPhase] = useState(2);
 
-    const phases = [
-        { title: 'Chuẩn bị', description: 'Lập kế hoạch và chuẩn bị tâm lý' },
-        { title: 'Giảm dần', description: 'Giảm số lượng điếu thuốc' },
-        { title: 'Cai hoàn toàn', description: 'Ngừng hút thuốc' },
-        { title: 'Duy trì', description: 'Duy trì thói quen không hút thuốc' }
-    ];
+  const phases = [
+    { title: 'Chuẩn bị', description: 'Lập kế hoạch và chuẩn bị tâm lý' },
+    { title: 'Giảm dần', description: 'Giảm số lượng điếu thuốc' },
+    { title: 'Cai hoàn toàn', description: 'Ngừng hút thuốc' },
+    { title: 'Duy trì', description: 'Duy trì thói quen không hút thuốc' }
+  ];
 
-    return (
-        <ProgressContainer>
-            <Row gutter={[24, 24]}>
-                <Col span={24}>
-                    <StyledCard delay="0.1s">
-                        <StyledSteps current={currentPhase}>
-                            {phases.map(phase => (
-                                <Step key={phase.title} title={phase.title} description={phase.description} />
-                            ))}
-                        </StyledSteps>
-                    </StyledCard>
-                </Col>
+  return (
+    <ProgressContainer>
+      <PageHeader>
+        <div className="header-icon">
+          <LineChartOutlined />
+        </div>
+        <h1>Tiến Trình Cai Thuốc</h1>
+      </PageHeader>
 
-                <Col span={6}>
-                    <StatisticCard delay="0.2s">
-                        <div className="icon-wrapper">
-                            <ClockCircleOutlined />
-                        </div>
-                        <Statistic
-                            title="Số ngày không hút thuốc"
-                            value={15}
-                            suffix="ngày"
-                        />
-                    </StatisticCard>
-                </Col>
+      <Row gutter={[24, 24]}>
+        <Col span={24}>
+          <StyledCard delay="0.1s">
+            <StyledSteps current={currentPhase}>
+              {phases.map(phase => (
+                <Step key={phase.title} title={phase.title} description={phase.description} />
+              ))}
+            </StyledSteps>
+          </StyledCard>
+        </Col>
 
-                <Col span={6}>
-                    <StatisticCard delay="0.3s">
-                        <div className="icon-wrapper">
-                            <DollarOutlined />
-                        </div>
-                        <Statistic
-                            title="Tiền tiết kiệm được"
-                            value={750000}
-                            suffix="VND"
-                        />
-                    </StatisticCard>
-                </Col>
+        <Col span={6}>
+          <StatisticCard delay="0.2s">
+            <div className="icon-wrapper">
+              <ClockCircleOutlined />
+            </div>
+            <Statistic
+              title="Số ngày không hút thuốc"
+              value={15}
+              suffix="ngày"
+            />
+          </StatisticCard>
+        </Col>
 
-                <Col span={6}>
-                    <StatisticCard delay="0.4s">
-                        <div className="icon-wrapper">
-                            <CheckCircleOutlined />
-                        </div>
-                        <Statistic
-                            title="Điếu thuốc đã bỏ"
-                            value={300}
-                        />
-                    </StatisticCard>
-                </Col>
+        <Col span={6}>
+          <StatisticCard delay="0.3s">
+            <div className="icon-wrapper">
+              <DollarOutlined />
+            </div>
+            <Statistic
+              title="Tiền tiết kiệm được"
+              value={750000}
+              suffix="VND"
+            />
+          </StatisticCard>
+        </Col>
 
-                <Col span={6}>
-                    <StatisticCard delay="0.5s">
-                        <div className="icon-wrapper">
-                            <TrophyOutlined />
-                        </div>
-                        <Statistic
-                            title="Sức khỏe phục hồi"
-                            value={75}
-                            suffix="%"
-                        />
-                    </StatisticCard>
-                </Col>
+        <Col span={6}>
+          <StatisticCard delay="0.4s">
+            <div className="icon-wrapper">
+              <CheckCircleOutlined />
+            </div>
+            <Statistic
+              title="Điếu thuốc đã bỏ"
+              value={300}
+            />
+          </StatisticCard>
+        </Col>
 
-                <Col span={16}>
-                    <StyledCard delay="0.6s" title="Tiến độ theo tuần">
-                        <Row gutter={[16, 16]}>
-                            <Col span={24}>
-                                <div>
-                                    <h4>Tuần 1: Giảm 25%</h4>
-                                    <StyledProgress percent={100} status="success" />
-                                </div>
-                                <div>
-                                    <h4>Tuần 2: Giảm 50%</h4>
-                                    <StyledProgress percent={80} status="active" />
-                                </div>
-                                <div>
-                                    <h4>Tuần 3: Giảm 75%</h4>
-                                    <StyledProgress percent={30} status="active" />
-                                </div>
-                                <div>
-                                    <h4>Tuần 4: Cai hoàn toàn</h4>
-                                    <StyledProgress percent={0} />
-                                </div>
-                            </Col>
-                        </Row>
-                    </StyledCard>
-                </Col>
+        <Col span={6}>
+          <StatisticCard delay="0.5s">
+            <div className="icon-wrapper">
+              <TrophyOutlined />
+            </div>
+            <Statistic
+              title="Sức khỏe phục hồi"
+              value={75}
+              suffix="%"
+            />
+          </StatisticCard>
+        </Col>
 
-                <Col span={8}>
-                    <StyledCard delay="0.7s" title="Thành tựu đạt được">
-                        <StyledTimeline>
-                            <Timeline.Item color="green">
-                                <strong>Hoàn thành 24 giờ đầu tiên không hút thuốc</strong>
-                                <p><small>10/03/2024</small></p>
-                            </Timeline.Item>
-                            <Timeline.Item color="green">
-                                <strong>Giảm 50% số điếu thuốc hàng ngày</strong>
-                                <p><small>05/03/2024</small></p>
-                            </Timeline.Item>
-                            <Timeline.Item color="blue">
-                                <strong>Tiết kiệm được 500,000 VND</strong>
-                                <p><small>01/03/2024</small></p>
-                            </Timeline.Item>
-                            <Timeline.Item color="blue">
-                                <strong>Bắt đầu kế hoạch cai thuốc</strong>
-                                <p><small>28/02/2024</small></p>
-                            </Timeline.Item>
-                        </StyledTimeline>
-                    </StyledCard>
-                </Col>
+        <Col span={16}>
+          <StyledCard delay="0.6s" title="Tiến độ theo tuần">
+            <Row gutter={[16, 16]}>
+              <Col span={24}>
+                <div>
+                  <h4>Tuần 1: Giảm 25%</h4>
+                  <StyledProgress percent={100} status="success" />
+                </div>
+                <div>
+                  <h4>Tuần 2: Giảm 50%</h4>
+                  <StyledProgress percent={80} status="active" />
+                </div>
+                <div>
+                  <h4>Tuần 3: Giảm 75%</h4>
+                  <StyledProgress percent={30} status="active" />
+                </div>
+                <div>
+                  <h4>Tuần 4: Cai hoàn toàn</h4>
+                  <StyledProgress percent={0} />
+                </div>
+              </Col>
             </Row>
+          </StyledCard>
+        </Col>
 
-            <StyledCard delay="0.8s">
-                <Row justify="center">
-                    <Col>
-                        <UpdateButton type="primary" size="large" icon={<CheckCircleOutlined />}>
-                            Cập nhật tiến độ hôm nay
-                        </UpdateButton>
-                    </Col>
-                </Row>
-            </StyledCard>
-        </ProgressContainer>
-    );
+        <Col span={8}>
+          <StyledCard delay="0.7s" title="Thành tựu đạt được">
+            <StyledTimeline>
+              <Timeline.Item color="green">
+                <strong>Hoàn thành 24 giờ đầu tiên không hút thuốc</strong>
+                <p><small>10/03/2024</small></p>
+              </Timeline.Item>
+              <Timeline.Item color="green">
+                <strong>Giảm 50% số điếu thuốc hàng ngày</strong>
+                <p><small>05/03/2024</small></p>
+              </Timeline.Item>
+              <Timeline.Item color="blue">
+                <strong>Tiết kiệm được 500,000 VND</strong>
+                <p><small>01/03/2024</small></p>
+              </Timeline.Item>
+              <Timeline.Item color="blue">
+                <strong>Bắt đầu kế hoạch cai thuốc</strong>
+                <p><small>28/02/2024</small></p>
+              </Timeline.Item>
+            </StyledTimeline>
+          </StyledCard>
+        </Col>
+      </Row>
+
+      <StyledCard delay="0.8s">
+        <Row justify="center">
+          <Col>
+            <UpdateButton type="primary" size="large" icon={<CheckCircleOutlined />}>
+              Cập nhật tiến độ hôm nay
+            </UpdateButton>
+          </Col>
+        </Row>
+      </StyledCard>
+    </ProgressContainer>
+  );
 };
 
 export default Progress; 
