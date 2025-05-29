@@ -7,57 +7,57 @@ const UpgradePackages = () => {
   const packages = [
     {
       id: "basic",
-      name: "BASIC PACKAGE",
+      name: "GÓI CƠ BẢN",
       price: "100,000 VND",
-      duration: "1 month",
+      duration: "1 tháng",
       features: [
-        "Track your quitting progress",
-        "Basic quitting techniques guidance",
-        "Access to shared experience articles",
-        "Join supportive community",
-        "Receive daily motivation notifications",
+        "Theo dõi tiến trình cai thuốc",
+        "Hướng dẫn các kỹ thuật cai thuốc cơ bản",
+        "Truy cập các bài viết chia sẻ kinh nghiệm",
+        "Tham gia cộng đồng hỗ trợ",
+        "Nhận thông báo động lực hàng ngày",
       ],
-      highlight: "Detailed quitting progress tracking",
+      highlight: "Theo dõi chi tiết tiến trình cai thuốc",
     },
     {
       id: "pro",
-      name: "PROFESSIONAL PACKAGE",
+      name: "GÓI CHUYÊN NGHIỆP",
       price: "550,000 VND",
-      duration: "6 months",
+      duration: "6 tháng",
       features: [
-        "All benefits from Basic Package",
-        "Direct consultation with healthcare experts",
-        "Weekly quitting challenges program",
-        "Priority support via chat and email",
-        "Reward points and prizes system",
+        "Tất cả các lợi ích từ Gói Cơ bản",
+        "Tư vấn trực tiếp với chuyên gia y tế",
+        "Chương trình thử thách cai thuốc hàng tuần",
+        "Hỗ trợ ưu tiên qua chat và email",
+        "Hệ thống điểm thưởng và giải thưởng",
       ],
-      highlight: "Expert consultation and priority support",
+      highlight: "Tư vấn chuyên gia và hỗ trợ ưu tiên",
     },
     {
       id: "premium",
-      name: "PREMIUM PACKAGE",
+      name: "GÓI CAO CẤP",
       price: "1000,000 VND",
-      duration: "1 years",
+      duration: "1 năm",
       features: [
-        "All benefits from Professional Package",
-        "Personalized coaching program",
-        "Access to advanced health courses",
-        "Special effects for account and community",
-        "24/7 priority support",
+        "Tất cả các lợi ích từ Gói Chuyên nghiệp",
+        "Chương trình huấn luyện cá nhân hóa",
+        "Truy cập các khóa học sức khỏe nâng cao",
+        "Hiệu ứng đặc biệt cho tài khoản và cộng đồng",
+        "Hỗ trợ ưu tiên 24/7",
       ],
-      highlight: "High-level personalized coaching and support",
+      highlight: "Huấn luyện và hỗ trợ cá nhân hóa cấp cao",
     },
   ];
 
   return (
     <div id="package" className="max-w-5xl mx-auto px-6 py-10">
       <h1 className="text-4xl font-extrabold text-black text-center mb-6">
-        Choose Your Smoking Cessation Package
+        Chọn Gói Cai thuốc lá của Bạn
       </h1>
       <p className="text-center text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-        Subscribe to a membership package to unlock special features and
-        access valuable resources to help you quit smoking effectively and
-        sustainably.
+        Đăng ký gói thành viên để mở khóa các tính năng đặc biệt và
+        truy cập các tài nguyên quý giá giúp bạn cai thuốc lá hiệu quả và
+        bền vững.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -83,7 +83,7 @@ const UpgradePackages = () => {
               </h2>
               <div className="flex items-baseline gap-3 mb-4 text-[#4da8a8]">
                 <span className="text-3xl font-bold">{pkg.price}</span>
-                <span className="text-lg text-gray-500">for {pkg.duration}</span>
+                <span className="text-lg text-gray-500">trong {pkg.duration}</span>
               </div>
 
               <p className="mb-4 border-l-4 border-[#4da8a8] pl-3 font-semibold text-[#4da8a8]">
@@ -101,13 +101,12 @@ const UpgradePackages = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  alert(`You selected the ${pkg.name}. Proceed to payment.`);
+                  alert(`Bạn đã chọn ${pkg.name}. Tiến hành thanh toán.`);
                 }}
-                className={`mt-6 self-start rounded-full bg-[#4da8a8] px-10 py-3 text-white font-semibold text-lg shadow-lg transition-all duration-500 ${
-                  inView ? "animate-heartBeat" : ""
-                } cursor-pointer`}
+                className={`mt-6 self-start rounded-full bg-[#4da8a8] px-10 py-3 text-white font-semibold text-lg shadow-lg transition-all duration-500 ${inView ? "animate-heartBeat" : ""
+                  } cursor-pointer`}
               >
-                Pay Now ♥
+                Thanh toán ngay ♥
               </button>
             </div>
           );
