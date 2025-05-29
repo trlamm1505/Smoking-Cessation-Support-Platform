@@ -12,19 +12,19 @@ const FAQWithImage = () => {
 
   const faqs = [
     {
-      question: "How can I start quitting smoking?",
+      question: "Làm thế nào để bắt đầu cai thuốc lá?",
       answer:
-        "Simply sign up to receive a personalized quit plan tailored to your smoking habits. You’ll get step-by-step guidance, daily tips, and professional support.",
+        "Chỉ cần đăng ký để nhận một kế hoạch cai thuốc được cá nhân hóa phù hợp với thói quen hút thuốc của bạn. Bạn sẽ nhận được hướng dẫn từng bước, mẹo hàng ngày và hỗ trợ chuyên nghiệp.",
     },
     {
-      question: "Will I get expert help during the process?",
+      question: "Tôi có nhận được sự giúp đỡ của chuyên gia trong quá trình này không?",
       answer:
-        "Yes, our platform connects you with certified doctors and wellness coaches who provide real-time support throughout your quitting journey.",
+        "Có, nền tảng của chúng tôi kết nối bạn với các bác sĩ và huấn luyện viên sức khỏe được chứng nhận, những người cung cấp hỗ trợ theo thời gian thực trong suốt hành trình cai thuốc của bạn.",
     },
     {
-      question: "How does the platform keep me motivated?",
+      question: "Nền tảng làm thế nào để giữ động lực cho tôi?",
       answer:
-        "You’ll track your health progress and money saved, join a supportive community, and earn rewards as you reach milestones — all to keep you inspired every day.",
+        "Bạn sẽ theo dõi tiến trình sức khỏe và số tiền tiết kiệm được, tham gia một cộng đồng hỗ trợ và nhận phần thưởng khi đạt được các cột mốc — tất cả để giữ cho bạn có cảm hứng mỗi ngày.",
     },
   ];
 
@@ -33,11 +33,10 @@ const FAQWithImage = () => {
   };
 
   return (
-    <section 
+    <section
       ref={ref}
-      className={`max-w-7xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center gap-12 transition-all duration-700 ${
-        inView ? "animate__animated animate__backInLeft" : "opacity-0"
-      }`}
+      className={`max-w-7xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center gap-12 transition-all duration-700 ${inView ? "animate__animated animate__backInLeft" : "opacity-0"
+        }`}
     >
       {/* Left Image */}
       <div className="w-full md:w-1/2 flex justify-center">
@@ -58,10 +57,10 @@ const FAQWithImage = () => {
       {/* Right FAQ Section */}
       <div className="w-full md:w-1/2">
         <p className="text-teal-500 font-semibold mb-2">
-          Frequently Asked Questions
+          Các câu hỏi thường gặp
         </p>
         <h2 className="text-3xl font-extrabold mb-8 leading-snug">
-          Your Journey to Quit Smoking <br /> Starts with the Right Support
+          Hành trình cai thuốc của bạn <br /> Bắt đầu với sự hỗ trợ đúng đắn
         </h2>
 
         <div className="space-y-4">
@@ -74,11 +73,10 @@ const FAQWithImage = () => {
               >
                 <button
                   onClick={() => toggleFAQ(index)}
-                  className={`w-full flex justify-between items-center px-6 py-4 font-semibold text-left focus:outline-none transition-colors duration-300 ${
-                    isActive
-                      ? "bg-teal-500 text-white"
-                      : "bg-white text-gray-900 hover:bg-gray-100"
-                  }`}
+                  className={`w-full flex justify-between items-center px-6 py-4 font-semibold text-left focus:outline-none transition-colors duration-300 ${isActive
+                    ? "bg-teal-500 text-white"
+                    : "bg-white text-gray-900 hover:bg-gray-100"
+                    }`}
                   aria-expanded={isActive}
                   aria-controls={`faq-content-${index}`}
                 >
@@ -88,9 +86,8 @@ const FAQWithImage = () => {
 
                 <div
                   id={`faq-content-${index}`}
-                  className={`transition-all duration-300 ease-in-out ${
-                    isActive ? "block py-4 px-6 bg-gray-50" : "hidden"
-                  }`}
+                  className={`transition-all duration-300 ease-in-out ${isActive ? "block py-4 px-6 bg-gray-50" : "hidden"
+                    }`}
                 >
                   <p className="text-gray-700">{faq.answer}</p>
                 </div>

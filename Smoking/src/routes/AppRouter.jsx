@@ -1,5 +1,5 @@
 import React from 'react'
-import { Route, Routes, Link } from 'react-router'
+import { Route, Routes, Link, Navigate } from 'react-router'
 import Home from '../source/page/Home/Home'
 import Login from '../source/page/Home/Login'
 import Error from '../source/page/Home/Error'
@@ -36,6 +36,7 @@ export default function AppRouter() {
 
       {/* Users Routes */}
       <Route path='users' element={<UserLayout />}>
+        <Route index element={<Navigate to="/users/home" replace />} />
         <Route path='home' element={<UserHome />} />
         <Route path='dashboard' element={<UserDashboard />} />
         <Route path='profile' element={<UserProfile />} />

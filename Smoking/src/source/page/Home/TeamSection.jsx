@@ -5,19 +5,19 @@ const teamMembers = [
   {
     id: 1,
     name: "James Wilson",
-    position: "Smoking Cessation Consultant",
+    position: "Chuyên gia tư vấn Cai thuốc lá",
     img: "/Images/chuyengia1.png",
   },
   {
     id: 2,
     name: "Emily Clark",
-    position: "Smoking Addiction Researcher",
+    position: "Nhà nghiên cứu Nghiện thuốc lá",
     img: "/Images/chuyengia2.jpg",
   },
   {
     id: 3,
     name: "Laura Bennett",
-    position: "Public Health Specialist",
+    position: "Chuyên gia Y tế Công cộng",
     img: "/Images/chuyengia3.png",
   },
 ];
@@ -38,24 +38,22 @@ const TeamSection = () => {
       {/* Tiêu đề */}
       <div
         ref={refTitle}
-        className={`max-w-7xl mx-auto text-center mb-16 transition-all duration-700 ${
-          inViewTitle ? "animate__animated animate__fadeIn" : "opacity-0"
-        }`}
+        className={`max-w-7xl mx-auto text-center mb-16 transition-all duration-700 ${inViewTitle ? "animate__animated animate__fadeIn" : "opacity-0"
+          }`}
       >
         <p className="text-teal-500 font-semibold text-base uppercase tracking-widest">
-          Meet Our Experts
+          Gặp gỡ Chuyên gia của chúng tôi
         </p>
         <h2 className="text-4xl font-extrabold text-black mt-4 leading-snug">
-          Professional Team Dedicated <br /> to Smoking Cessation Support
+          Đội ngũ Chuyên nghiệp Tận tâm <br /> Hỗ trợ Cai thuốc lá
         </h2>
       </div>
 
       {/* Danh sách chuyên gia */}
       <div
         ref={refCards}
-        className={`grid grid-cols-1 md:grid-cols-3 gap-16 max-w-7xl mx-auto transition-all duration-700 ${
-          inViewCards ? "animate__animated animate__fadeInUp" : "opacity-0"
-        }`}
+        className={`grid grid-cols-1 md:grid-cols-3 gap-16 max-w-7xl mx-auto transition-all duration-700 ${inViewCards ? "animate__animated animate__fadeInUp" : "opacity-0"
+          }`}
       >
         {teamMembers.map(({ id, img, name, position }) => (
           <div
