@@ -30,11 +30,11 @@ const Header = () => {
   }, []);
 
   const navItems = [
-    { label: 'Home', id: 'home' },
-    { label: 'Services', id: 'services' },
-    { label: 'Package', id: 'package' },
-    { label: 'About', id: 'about' },
-    { label: 'Contact', id: 'contact' },
+    { label: 'Trang chủ', id: 'home' },
+    { label: 'Dịch vụ', id: 'services' },
+    { label: 'Gói dịch vụ', id: 'package' },
+    { label: 'Giới thiệu', id: 'about' },
+    { label: 'Liên hệ', id: 'contact' },
   ];
 
   // Hàm để đóng menu mobile khi click vào link
@@ -45,9 +45,8 @@ const Header = () => {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 w-full z-50 bg-white shadow transition-transform duration-300 ${
-          showHeader ? 'translate-y-0' : '-translate-y-full'
-        }`}
+        className={`fixed top-0 left-0 w-full z-50 bg-white shadow transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'
+          }`}
       >
         <nav className="bg-white border-gray-200">
           <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
@@ -105,7 +104,7 @@ const Header = () => {
                     className="relative overflow-hidden font-bold text-white rounded-full text-base px-5 py-2 w-full bg-[#5FB8B3] group flex justify-center items-center text-center"
                   >
                     <span className="absolute top-0 left-0 w-full h-0 bg-[#85BB47] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
-                    <span className="relative z-10">Login</span>
+                    <span className="relative z-10">Đăng nhập</span>
                   </a>
                 </div>
               </div>
@@ -135,7 +134,7 @@ const Header = () => {
                     className="relative overflow-hidden font-bold mt-3 text-white rounded-full text-2xl px-10 py-3 bg-[#5FB8B3] group flex justify-center items-center"
                   >
                     <span className="absolute top-0 left-0 w-full h-0 bg-[#85BB47] transition-all duration-500 ease-in-out group-hover:h-full z-0"></span>
-                    <span className="relative z-10">Login</span>
+                    <span className="relative z-10">Đăng nhập</span>
                   </a>
                 </div>
               </>

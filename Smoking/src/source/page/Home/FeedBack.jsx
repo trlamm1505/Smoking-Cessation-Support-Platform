@@ -10,30 +10,30 @@ const testimonials = [
     id: 1,
     stat: '66',
     rating: 5,
-    quote: 'Thanks to this program, I successfully quit after 10 years of addiction.',
+    quote: 'Nhờ chương trình này, tôi đã cai thuốc thành công sau 10 năm nghiện.',
     author: 'Triết Lê',
-    role: 'Successfully quit smoking',
-    duration: '66 days smoke-free',
+    role: 'Cai thuốc thành công',
+    duration: '66 ngày không hút thuốc',
     avatar: '/Images/Fb1.jpg',
   },
   {
     id: 2,
     stat: '120+',
     rating: 4,
-    quote: "My doctor couldn't believe my lung capacity improvement - the numbers looked like I'd turned back the clock 5 years!",
+    quote: "Bác sĩ của tôi không thể tin được sự cải thiện dung tích phổi của tôi - các con số trông như thể tôi đã trẻ lại 5 tuổi!",
     author: 'Hoang Vu',
-    role: 'Top achiever',
-    duration: '4 months smoke-free',
+    role: 'Người đạt thành tích cao nhất',
+    duration: '4 tháng không hút thuốc',
     avatar: '/Images/Fb2.jpg',
   },
   {
     id: 3,
     stat: '92%',
     rating: 5,
-    quote: 'The first week was tough — cravings, doubts, everything. But now? I wake up energized, food tastes amazing, and I can even smell the rain again. I only ask myself one thing: why didn’t I quit sooner?',
+    quote: 'Tuần đầu tiên thật khó khăn - thèm thuốc, nghi ngờ, đủ thứ. Nhưng bây giờ? Tôi thức dậy tràn đầy năng lượng, đồ ăn ngon tuyệt, và tôi thậm chí còn ngửi thấy mùi mưa lần nữa. Tôi chỉ tự hỏi một điều: tại sao tôi không bỏ thuốc sớm hơn?',
     author: 'Lam Alex',
-    role: 'Former 15-year smoker',
-    duration: '6 months smoke-free',
+    role: 'Người từng hút 15 năm',
+    duration: '6 tháng không hút thuốc',
     avatar: '/Images/Fb4.jpg',
   },
 ];
@@ -47,20 +47,19 @@ const SmokingCessationTestimonials = () => {
   return (
     <section
       ref={ref}
-      className={`py-16 bg-white transition-all duration-700 ${
-        inView ? 'animate__animated animate__backInRight' : 'opacity-0'
-      }`}
+      className={`py-16 bg-white transition-all duration-700 ${inView ? 'animate__animated animate__backInRight' : 'opacity-0'
+        }`}
     >
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-12">
           <span className="inline-block px-5 py-2 text-sm font-medium text-white bg-[#4da8a8] rounded-full mb-4 shadow-md transform hover:scale-105 transition-transform">
-            SUCCESS STORIES
+            CÂU CHUYỆN THÀNH CÔNG
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            Quit Smoking Journeys
+            Hành trình Cai thuốc lá
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Real stories from people who successfully quit smoking
+            Những câu chuyện có thật từ những người đã cai thuốc lá thành công
           </p>
         </div>
 
