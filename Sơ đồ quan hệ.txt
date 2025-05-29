@@ -1,0 +1,63 @@
+ 
+LAB 1: CodiumAI 
+LAB 2: PerfAI 
+LAB 3: Codiga 
+LAB 4: Linear.app
+
+
+Giap Hoang
+21:42
+[Users] --1----<Đăng ký gói>----M-- [MembershipPackages]
+Giap Hoang
+21:46
+[Users] --1----<Thực hiện thanh toán>----M-- [Payments
+Giap Hoang
+21:51
+[MembershipPackages] --1----<Được thanh toán qua>----M-- [Payments]
+Giap Hoang
+21:53
+[Users] --1----<tình trạng hút>----M-- [SmokingStatusLogs]
+Giap Hoang
+21:55
+[Users] --1----<Lập kế hoạch cai>----M-- [CessationPlans]
+Giap Hoang
+21:56
+[CessationPlans] --1----<Giai đoạn>----M-- [PlanStages]
+Giap Hoang
+21:58
+[Users] --1----<Cập nhật tiến độ>----M-- [DailyProgress]
+Giap Hoang
+22:00
+[CessationPlans] --1----<Được theo dõi bởi>----M-- [DailyProgress]
+Giap Hoang
+22:01
+[Users] --1----<Sở hữu>----M-- [UserBadges]
+Giap Hoang
+22:02
+[Badges] --1----<Được trao>----M-- [UserBadges]
+Giap Hoang
+22:04
+[Users] --1----<Nhận thông báo>----M-- [Notifications]
+Giap Hoang
+22:06
+[Coaches] --1----<Phụ trách>----M-- [Users]
+[Users] --1----<Là tài khoản của>----1-- [Coaches]
+Giap Hoang
+22:10
+[Users] --1----<Tham gia tư vấn>----M-- [Consultations]
+Giap Hoang
+22:11
+[Coaches] --1----<Thực hiện tư vấn>----M-- [Consultations]
+Giap Hoang
+22:15
+[Users] --1----<Gửi>----M-- [Feedback]
+Giap Hoang
+22:18
+[Users] --1----<Viết>----M-- [BlogPosts]
+Giap Hoang
+22:20
+[Users] --1----<Bình luận>----M-- [PostComments]
+Giap Hoang
+22:24
+[BlogPosts] --1----<Có>----M-- [PostComments]
+[PostComments] --1----<Trả lời cho>----M-- [PostComments]
