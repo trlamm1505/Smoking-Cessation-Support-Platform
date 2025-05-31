@@ -27,12 +27,37 @@ import BlogManagement from '../source/page/Coach/BlogManagement'
 import ConsultationCoach from '../source/page/Coach/Consultation'
 import ReportPage from '../source/page/Coach/ReportPage'
 
+// Guest Components
+import GuestHome from '../source/page/Guest/Home'
+import GuestProfile from '../source/page/Guest/Profile'
+import GuestConsultation from '../source/page/Guest/Consultation'
+import GuestBlog from '../source/page/Guest/Blog'
+import GuestPremium from '../source/page/Guest/Premium'
+import GuestLayout from '../source/page/Guest/Layout'
+import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
+
 export default function AppRouter() {
   return (
     <Routes>
       {/* Home */}
       <Route path='/' element={<Home />} />
       <Route path='login' element={<Login />} />
+
+      {/* Guest Routes */}
+      <Route path='guest' element={<GuestLayout />}>
+        <Route index element={<Navigate to="/guest/home" replace />} />
+        <Route path='home' element={<GuestHome />} />
+        <Route path='profile' element={<GuestProfile />} />
+        <Route path='consultation' element={<GuestConsultation />} />
+        <Route path='blog' element={<GuestBlog />} />
+        <Route path='premium' element={<GuestPremium />} />
+        <Route path='progress' element={<RequirePremiumNotice />} />
+        <Route path='plan' element={<RequirePremiumNotice />} />
+        <Route path='smoking-tracker' element={<RequirePremiumNotice />} />
+        <Route path='schedule' element={<RequirePremiumNotice />} />
+        <Route path='achievements' element={<RequirePremiumNotice />} />
+        <Route path='community' element={<RequirePremiumNotice />} />
+      </Route>
 
       {/* Users Routes */}
       <Route path='users' element={<UserLayout />}>
