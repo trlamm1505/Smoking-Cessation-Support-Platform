@@ -21,7 +21,7 @@ const Container = styled.div`
   overflow-x: auto; /* Add horizontal scroll for small screens */
 `;
 
-const Header = styled.div`
+const GuestHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;

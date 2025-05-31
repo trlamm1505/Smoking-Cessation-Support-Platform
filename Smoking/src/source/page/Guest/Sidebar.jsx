@@ -74,57 +74,57 @@ const LogoutButton = styled.button`
 const Sidebar = () => {
     const menuItems = [
         {
-            path: '/users/home',
+            path: '/guest/home',
             name: 'Trang Chủ',
             icon: <HomeOutlined />
         },
         {
-            path: '/users/progress',
+            path: '/guest/progress',
             name: 'Tiến Trình Cai Thuốc',
             icon: <LineChartOutlined />
         },
         {
-            path: '/users/plan',
+            path: '/guest/plan',
             name: 'Kế Hoạch Cai Thuốc',
             icon: <CalendarOutlined />
         },
         {
-            path: '/users/smoking-tracker',
+            path: '/guest/smoking-tracker',
             name: 'Ghi Nhận Thói Quen',
             icon: <SmileOutlined />
         },
         {
-            path: '/users/schedule',
+            path: '/guest/schedule',
             name: 'Lịch Trình Chi Tiết',
             icon: <ScheduleOutlined />
         },
         {
-            path: '/users/achievements',
+            path: '/guest/achievements',
             name: 'Thành Tích',
             icon: <TrophyOutlined />
         },
         {
-            path: '/users/community',
+            path: '/guest/community',
             name: 'Cộng Đồng',
             icon: <TeamOutlined />
         },
         {
-            path: '/users/consultation',
+            path: '/guest/consultation',
             name: 'Tư Vấn',
             icon: <MessageOutlined />
         },
         {
-            path: '/users/reviews',
+            path: '/guest/reviews',
             name: 'Đánh Giá',
             icon: <StarOutlined />
         },
         {
-            path: '/users/blog',
+            path: '/guest/blog',
             name: 'Blog',
             icon: <FileTextOutlined />
         },
         {
-            path: '/users/premium',
+            path: '/guest/premium',
             name: 'Gói Thành Viên',
             icon: <CrownOutlined />
         }
