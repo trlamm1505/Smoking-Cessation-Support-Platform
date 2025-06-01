@@ -1,21 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router';
 // import '../../CSS/Coach/CoachLayout.css'; // Remove CSS file import
 import { HomeOutlined, TeamOutlined, CalendarOutlined, MessageOutlined, BarChartOutlined, UserOutlined, LogoutOutlined, EditOutlined, WarningOutlined, ContainerOutlined } from '@ant-design/icons';
 import CoachHeader from './CoachHeader';
-import { Menu } from 'antd';
+import { Menu, Modal, Button } from 'antd';
 
 const CoachLayout = () => {
   const location = useLocation();
+  const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
 
   const isActive = (path) => {
     return location.pathname.includes(path);
   };
 
-  // Dummy logout function
-  const handleLogout = () => {
+  // Handle logout button click (opens modal)
+  const handleLogoutClick = () => {
+    setIsLogoutModalVisible(true);
+  };
+
+  // Handle actual logout after confirmation
+  const handleConfirmLogout = () => {
     console.log('Logging out...');
-    // Implement actual logout logic here (e.g., clearing token, redirecting to login)
+    // TODO: Implement actual logout logic here (e.g., clearing token, redirecting to login)
+    setIsLogoutModalVisible(false); // Close modal after logout
+  };
+
+  const handleCancelLogout = () => {
+    setIsLogoutModalVisible(false);
   };
 
   const handleMenuClick = (e) => {
@@ -107,7 +118,10 @@ const CoachLayout = () => {
 
         {/* Logout Button */}
         <div className="p-4 border-t border-gray-200">
-           <button onClick={handleLogout} className="flex items-center space-x-3 p-3 rounded-md text-gray-700 hover:bg-gray-100 w-full text-left transition-colors">
+           <button 
+              onClick={handleLogoutClick}
+              className="flex items-center space-x-3 p-3 rounded-md text-gray-700 hover:bg-gray-100 w-full text-left transition-colors"
+            >
              <LogoutOutlined className="text-lg" />
              <span className="text-base">Đăng xuất</span>
            </button>
@@ -122,6 +136,23 @@ const CoachLayout = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        title="Xác nhận đăng xuất"
+        open={isLogoutModalVisible}
+        onOk={handleConfirmLogout}
+        onCancel={handleCancelLogout}
+        okText="Đăng xuất"
+        cancelText="Hủy"
+        okButtonProps={{ 
+            danger: true,
+            icon: <LogoutOutlined />
+        }}
+      >
+          <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
+      </Modal>
+
     </div>
   );
 };

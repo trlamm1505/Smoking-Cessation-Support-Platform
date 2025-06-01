@@ -16,6 +16,7 @@ import Achievements from '../source/page/Users/Achievements'
 import Consultation from '../source/page/Users/Consultation'
 import Community from '../source/page/Users/Community'
 import Blog from '../source/page/Users/Blog'
+import UserReviews from '../source/page/Users/UserReviews'
 import CoachLayout from '../source/page/Coach/CoachLayout'
 import CoachHome from '../source/page/Coach/Home'
 import CoachProfile from '../source/page/Coach/CoachProfile'
@@ -26,6 +27,7 @@ import Statistics from '../source/page/Coach/Statistics'
 import BlogManagement from '../source/page/Coach/BlogManagement'
 import ConsultationCoach from '../source/page/Coach/Consultation'
 import ReportPage from '../source/page/Coach/ReportPage'
+import NotificationsPage from '../source/page/Users/NotificationsPage'
 
 export default function AppRouter() {
   return (
@@ -49,6 +51,8 @@ export default function AppRouter() {
         <Route path='consultation' element={<Consultation />} />
         <Route path='community' element={<Community />} />
         <Route path='blog' element={<Blog />} />
+        <Route path='reviews' element={<UserReviews />} />
+        <Route path='notifications' element={<NotificationsPage />} />
       </Route>
 
       {/* Coach Routes */}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { CameraOutlined, TrophyOutlined, HeartOutlined, CrownOutlined, TeamOutlined, MailOutlined, PhoneOutlined, HomeOutlined, CalendarOutlined, LockOutlined, EditOutlined, UserOutlined as UserIcon } from '@ant-design/icons'; // Import icons, use alias for UserOutlined to avoid conflict
+import { CameraOutlined, TrophyOutlined, HeartOutlined, CrownOutlined, TeamOutlined, MailOutlined, PhoneOutlined, HomeOutlined, CalendarOutlined, LockOutlined, EditOutlined, UserOutlined as UserIcon, LogoutOutlined } from '@ant-design/icons'; // Import icons, use alias for UserOutlined to avoid conflict
 import { Typography, Space, Tag, Button as AntButton, Modal, Form, Input } from 'antd'; // Import Modal, Form, Input
 
 const { Title, Text } = Typography;
@@ -220,9 +220,14 @@ const InfoItem = styled.div`
   }
 `;
 
+const FileInput = styled.input` // Add FileInput styled component
+  display: none;
+`;
+
 const CoachProfile = () => {
     // Removed: const navigate = useNavigate(); // Initialize useNavigate
     const [isEditModalVisible, setIsEditModalVisible] = useState(false); // State for modal visibility
+    const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
     const [editForm] = Form.useForm(); // Form instance
 
     // Mock data for Coach - replace with real data
@@ -264,9 +269,19 @@ const CoachProfile = () => {
         alert('Chức năng thay đổi mật khẩu sẽ được triển khai tại đây.');
     };
 
-     const handleChangeAvatar = () => {
-        console.log('Change avatar button clicked');
-        alert('Chức năng thay đổi ảnh đại diện sẽ được triển khai tại đây.');
+     // Handle avatar file selection
+    const handleAvatarChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            console.log('Selected avatar file:', file);
+            // TODO: Implement file upload logic here
+            // For now, just display a temporary URL or process the file
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCoachData({ ...coachData, avatarUrl: reader.result }); // Update avatar URL with data URL
+            };
+            reader.readAsDataURL(file); // Read file as Data URL for preview
+        }
     };
 
     // Removed: const handleGoToSchedule = () => {
@@ -309,18 +324,23 @@ const CoachProfile = () => {
         <Container>
             <ProfileHeader>
                 <HeaderButtons>
-                    {/* Temporarily removed Schedule button functionality */}
-                    <Button icon={<CalendarOutlined />} /* onClick={handleGoToSchedule} */>Thiết lập lịch làm việc</Button>
-                    <Button icon={<CameraOutlined />} onClick={handleChangeAvatar}>Thay đổi ảnh đại diện</Button>
-                    <Button icon={<EditOutlined />} onClick={handleEditProfileClick}>Chỉnh sửa hồ sơ</Button> {/* Added onClick */}
+                    <Button icon={<CalendarOutlined />}>Thiết lập lịch làm việc</Button>
+                    <Button icon={<CameraOutlined />} onClick={() => document.getElementById('avatarInput').click()}>Thay đổi ảnh đại diện</Button>
+                    <Button icon={<EditOutlined />} onClick={handleEditProfileClick}>Chỉnh sửa hồ sơ</Button>
                     <Button icon={<LockOutlined />} onClick={handleChangePassword}>Thay đổi mật khẩu</Button>
                 </HeaderButtons>
                 <ProfileContent>
                     <AvatarContainer>
                          {/* Use actual img tag for avatar */}
                         <img src={coachData.avatarUrl} alt={`${coachData.name}'s Avatar`} className="w-full h-full rounded-full object-cover" />
-                        {/* <div className="camera-icon"><CameraOutlined /></div> */}
-                         {/* Camera icon can be added back if needed for avatar upload, perhaps positioned over the image */}
+                        {/* Add hidden file input */}
+                        <FileInput
+                            id="avatarInput"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarChange} // Call the new handler
+                        />
+                        {/* Camera icon can be added back if needed for avatar upload, perhaps positioned over the image */}
                     </AvatarContainer>
                     <UserName>{coachData.name}</UserName>
                     <CoachTitle>
