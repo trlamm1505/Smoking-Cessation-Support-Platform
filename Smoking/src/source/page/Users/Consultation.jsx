@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, Row, Col, Typography, Avatar, Button, Rate, Tag, Modal, Form, DatePicker, TimePicker, Input, message, Select } from 'antd';
 import { MessageOutlined, CalendarOutlined, ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
+import ReviewList from './components/ReviewList';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -116,6 +117,10 @@ const Consultation = () => {
     const [selectedDate, setSelectedDate] = useState(null);
     const [form] = Form.useForm();
 
+    const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
+    const [reviewForm] = Form.useForm();
+    const [coachToReview, setCoachToReview] = useState(null);
+
     // Mock data cho danh sách huấn luyện viên
     const coaches = [
         {
@@ -129,7 +134,7 @@ const Consultation = () => {
             successRate: '92%',
             specialties: ['Tư vấn tâm lý', 'Liệu pháp thay thế', 'Quản lý stress'],
             availability: true,
-            availableTime: ['09:00', '10:00', '14:00', '15:00', '16:00']
+            availableTime: ['09:00', '10:00', '14:00', '15:00', '16:00'],
         },
         {
             id: 2,
@@ -142,7 +147,7 @@ const Consultation = () => {
             successRate: '95%',
             specialties: ['CBT Therapy', 'Meditation', 'Cai nghiện'],
             availability: true,
-            availableTime: ['09:30', '10:30', '13:30', '14:30', '15:30']
+            availableTime: ['09:30', '10:30', '13:30', '14:30', '15:30'],
         }
     ];
 
@@ -163,6 +168,27 @@ const Consultation = () => {
     const handleModalCancel = () => {
         setIsModalVisible(false);
         form.resetFields();
+    };
+
+    const handleReviewClick = (coach) => {
+        setCoachToReview(coach);
+        setIsReviewModalVisible(true);
+    };
+
+    const handleReviewModalOk = () => {
+        reviewForm.validateFields().then((values) => {
+            console.log('Review values:', coachToReview.id, values);
+            message.success('Đã gửi đánh giá thành công!');
+            setIsReviewModalVisible(false);
+            reviewForm.resetFields();
+            setCoachToReview(null);
+        });
+    };
+
+    const handleReviewModalCancel = () => {
+        setIsReviewModalVisible(false);
+        reviewForm.resetFields();
+        setCoachToReview(null);
     };
 
     const disabledDate = (current) => {
@@ -222,7 +248,18 @@ const Consultation = () => {
                                 >
                                     Đặt Lịch Tư Vấn
                                 </Button>
+                                <Button onClick={() => handleReviewClick(coach)}>
+                                    Đánh giá
+                                </Button>
                             </div>
+
+                            {/* Display Reviews */}
+                            {/*
+                            <div style={{ marginTop: '20px' }}>
+                                <Title level={5}>Đánh giá từ người dùng:</Title>
+                                <ReviewList reviews={coach.reviews} />
+                            </div>
+                            */}
                         </CoachCard>
                     </Col>
                 ))}
@@ -289,6 +326,36 @@ const Consultation = () => {
                     </Form>
                 )}
             </BookingModal>
+
+            <Modal
+                title={coachToReview ? `Đánh giá ${coachToReview.name}` : 'Gửi Đánh Giá'}
+                visible={isReviewModalVisible}
+                onOk={handleReviewModalOk}
+                onCancel={handleReviewModalCancel}
+                okText="Gửi đánh giá"
+                cancelText="Hủy"
+            >
+                <Form
+                    form={reviewForm}
+                    layout="vertical"
+                    name="review_form"
+                >
+                    <Form.Item
+                        name="rating"
+                        label="Số sao"
+                        rules={[{ required: true, message: 'Vui lòng chọn số sao' }]}
+                    >
+                        <Rate />
+                    </Form.Item>
+                    <Form.Item
+                        name="comment"
+                        label="Nội dung đánh giá"
+                        rules={[{ required: true, message: 'Vui lòng nhập nội dung đánh giá' }]}
+                    >
+                        <Input.TextArea rows={4} />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </PageContainer>
     );
 };

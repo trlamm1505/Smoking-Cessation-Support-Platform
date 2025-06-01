@@ -24,7 +24,7 @@ const PageContainer = styled.div`
 const PostCard = styled(Card)`
   margin-bottom: 24px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 
   .ant-card-meta {
     margin-bottom: 16px;
@@ -41,14 +41,17 @@ const PostCard = styled(Card)`
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid #5FB8B3;
     margin-top: 16px;
   }
 
   .comments-section {
     margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #f0f0f0;
+    padding: 16px;
+    border-top: 1px solid #5FB8B3;
+    background-color: rgba(95, 184, 179, 0.05);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
   }
 `;
 
@@ -65,6 +68,38 @@ const AchievementBadge = styled(Tag)`
   }
 `;
 
+const CommentAuthor = styled(Text)`
+  font-weight: 600;
+  color: #5FB8B3; /* Using theme color for author */
+`;
+
+const CommentContent = styled(Paragraph)`
+  margin-bottom: 0;
+  color: #2c3e50; /* A slightly darker color for content */
+`;
+
+const AchievementStatButton = styled(Button)`
+  background-color: #5FB8B3;
+  color: white;
+  border-radius: 8px;
+  padding: 12px 24px;
+  height: auto;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+
+  &:hover {
+    background-color: #4AA19C; /* Slightly darker shade on hover */
+    color: white;
+  }
+
+  .anticon {
+    font-size: 20px;
+  }
+`;
+
 const CreatePostButton = styled(Button)`
   margin-bottom: 24px;
   width: 100%;
@@ -78,6 +113,14 @@ const CreatePostButton = styled(Button)`
   &:hover {
     background-color: #f5f5f5;
   }
+`;
+
+const TopContentContainer = styled.div`
+  background-color: white; /* White background */
+  padding: 24px; /* Add padding */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Add shadow */
+  margin-bottom: 24px; /* Space below the container */
 `;
 
 const Community = () => {
@@ -99,7 +142,8 @@ const Community = () => {
                 { id: 1, author: 'Trần B', content: 'Chúc mừng bạn! Cố gắng duy trì nhé!' },
                 { id: 2, author: 'Lê C', content: 'Tuyệt vời! Mình cũng đang cố gắng đạt được thành tích này.' }
             ],
-            timestamp: '2 giờ trước'
+            timestamp: '2 giờ trước',
+            showComments: false
         }
     ]);
 
@@ -124,7 +168,8 @@ const Community = () => {
             achievements: selectedAchievements,
             likes: 0,
             comments: [],
-            timestamp: 'Vừa xong'
+            timestamp: 'Vừa xong',
+            showComments: false
         };
 
         setPosts([newPost, ...posts]);
@@ -159,14 +204,34 @@ const Community = () => {
         }));
     };
 
+    const toggleComments = (postId) => {
+        setPosts(posts.map(post => {
+            if (post.id === postId) {
+                return { ...post, showComments: !post.showComments };
+            }
+            return post;
+        }));
+    };
+
     return (
         <PageContainer>
             <Title level={2}>Cộng Đồng Cai Thuốc</Title>
 
-            <CreatePostButton onClick={() => setIsPostModalVisible(true)}>
-                <Avatar src="https://xsgames.co/randomusers/avatar.php?g=male" />
-                <Text type="secondary">Chia sẻ thành tích của bạn...</Text>
-            </CreatePostButton>
+            <TopContentContainer>
+                <Space style={{ marginBottom: '24px' }}>
+                    <AchievementStatButton
+                        icon={<TrophyOutlined />}
+                        // onClick={...} // Add your click handler here
+                    >
+                        Thời Gian Không Hút Thuốc
+                    </AchievementStatButton>
+                </Space>
+
+                <CreatePostButton onClick={() => setIsPostModalVisible(true)}>
+                    <Avatar src="https://xsgames.co/randomusers/avatar.php?g=male" />
+                    <Text type="secondary">Chia sẻ thành tích của bạn...</Text>
+                </CreatePostButton>
+            </TopContentContainer>
 
             <Tabs defaultActiveKey="1">
                 <TabPane tab="Tất Cả Bài Viết" key="1">
@@ -200,51 +265,58 @@ const Community = () => {
                                     <Space>
                                         <Button
                                             type="text"
-                                            icon={<LikeOutlined />}
+                                            icon={<LikeOutlined style={{ color: '#5FB8B3' }} />}
                                             onClick={() => handleLike(post.id)}
+                                            style={{ color: '#5FB8B3' }}
                                         >
                                             {post.likes} Thích
                                         </Button>
                                         <Button
                                             type="text"
-                                            icon={<CommentOutlined />}
+                                            icon={<CommentOutlined style={{ color: '#5FB8B3' }} />}
+                                            onClick={() => toggleComments(post.id)}
+                                            style={{ color: '#5FB8B3' }}
                                         >
                                             {post.comments.length} Bình luận
                                         </Button>
                                         <Button
                                             type="text"
-                                            icon={<ShareAltOutlined />}
+                                            icon={<ShareAltOutlined style={{ color: '#5FB8B3' }} />}
+                                            style={{ color: '#5FB8B3' }}
                                         >
                                             Chia sẻ
                                         </Button>
                                     </Space>
                                 </div>
 
-                                <div className="comments-section">
-                                    <List
-                                        itemLayout="horizontal"
-                                        dataSource={post.comments}
-                                        renderItem={comment => (
-                                            <List.Item>
-                                                <List.Item.Meta
-                                                    avatar={<Avatar icon={<UserOutlined />} />}
-                                                    title={comment.author}
-                                                    description={comment.content}
-                                                />
-                                            </List.Item>
-                                        )}
-                                    />
-                                    <Input.TextArea
-                                        placeholder="Viết bình luận..."
-                                        autoSize={{ minRows: 1, maxRows: 3 }}
-                                        onPressEnter={(e) => {
-                                            if (e.target.value.trim()) {
-                                                handleComment(post.id, e.target.value);
-                                                e.target.value = '';
-                                            }
-                                        }}
-                                    />
-                                </div>
+                                {post.showComments && (
+                                    <div className="comments-section">
+                                        <List
+                                            itemLayout="horizontal"
+                                            dataSource={post.comments}
+                                            renderItem={comment => (
+                                                <List.Item style={{ borderColor: '#5FB8B3' }}>
+                                                    <List.Item.Meta
+                                                        avatar={<Avatar icon={<UserOutlined style={{ color: '#5FB8B3' }} />} style={{ backgroundColor: '#e6f7ff' }} />}
+                                                        title={<CommentAuthor>{comment.author}</CommentAuthor>}
+                                                        description={<CommentContent>{comment.content}</CommentContent>}
+                                                    />
+                                                </List.Item>
+                                            )}
+                                        />
+                                        <Input.TextArea
+                                            placeholder="Viết bình luận..."
+                                            autoSize={{ minRows: 1, maxRows: 3 }}
+                                            onPressEnter={(e) => {
+                                                if (e.target.value.trim()) {
+                                                    handleComment(post.id, e.target.value);
+                                                    e.target.value = '';
+                                                }
+                                            }}
+                                            style={{ marginTop: '12px', borderColor: '#5FB8B3' }}
+                                        />
+                                    </div>
+                                )}
                             </PostCard>
                         )}
                     />
