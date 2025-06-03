@@ -22,12 +22,12 @@ import CoachHome from '../source/page/Coach/Home'
 import CoachProfile from '../source/page/Coach/CoachProfile'
 import Schedule from '../source/page/Coach/Schedule'
 import Members from '../source/page/Coach/Members'
-import Messages from '../source/page/Coach/Messages'
 import Statistics from '../source/page/Coach/Statistics'
 import BlogManagement from '../source/page/Coach/BlogManagement'
 import ConsultationCoach from '../source/page/Coach/Consultation'
 import ReportPage from '../source/page/Coach/ReportPage'
 import NotificationsPage from '../source/page/Users/NotificationsPage'
+import CoachBlog from '../source/page/Coach/CoachBlog'
 
 export default function AppRouter() {
   return (
@@ -62,10 +62,10 @@ export default function AppRouter() {
         <Route path='schedule' element={<Schedule />} />
         <Route path='members' element={<Members />} />
         <Route path='consultation' element={<ConsultationCoach />} />
-        <Route path='messages' element={<Messages />} />
         <Route path='statistics' element={<Statistics />} />
         <Route path='blog' element={<BlogManagement />} />
         <Route path='report' element={<ReportPage />} />
+        <Route path='blog-view' element={<CoachBlog />} />
       </Route>
 
       {/* Splats: TỨC LÀ NẾU KO THẤY TUYẾN ĐƯỜNG PHÙ HỢP THÌ SẼ TRẢ VỀ TRANG NÀY */}

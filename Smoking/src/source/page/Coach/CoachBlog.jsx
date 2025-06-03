@@ -232,7 +232,7 @@ const articles = [
         readTime: '8 phút đọc',
         date: '15/03/2024',
         excerpt: 'Khám phá những phương pháp cai thuốc lá được chứng minh hiệu quả bởi các chuyên gia y tế...',
-        content: 'Nội dung đầy đủ của bài viết Top 10 Phương Pháp Cai Thuốc Lá Hiệu Quả Nhất. Đây là phần sẽ hiển thị trong modal. Nó sẽ bao gồm chi tiết về từng phương pháp, lời khuyên từ chuyên gia, và các bước thực hiện. Mục tiêu là cung cấp đủ thông tin cho người đọc. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+        content: 'Nội dung đầy đủ của bài viết Top 10 Phương Pháp Cai Thuốc Lá Hiệu Quả Nhất. Đây là phần sẽ hiển thị trong modal. Nó sẽ bao gồm chi tiết về từng phương pháp, lời khuyên từ chuyên gia, và các bước thực hiện. Mục tiêu là cung cấp đủ thông tin cho coach để họ có thể tham khảo và hỗ trợ thành viên của mình một cách tốt nhất. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
     },
     {
         id: 2,
@@ -248,7 +248,7 @@ const articles = [
         readTime: '10 phút đọc',
         date: '12/03/2024',
         excerpt: 'Nghiên cứu mới nhất về ảnh hưởng của thuốc lá đối với hệ tim mạch và cách phòng ngừa...',
-        content: 'Nội dung đầy đủ của bài viết Tác Hại của Thuốc Lá Đối Với Sức Khỏe Tim Mạch. Bài viết này sẽ đi sâu vào cơ chế thuốc lá gây hại cho tim, các bệnh liên quan, và cách giảm thiểu rủi ro khi bỏ thuốc. Thông tin này rất quan trọng để người đọc hiểu rõ hơn. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+        content: 'Nội dung đầy đủ của bài viết Tác Hại của Thuốc Lá Đối Với Sức Khỏe Tim Mạch. Bài viết này sẽ đi sâu vào cơ chế thuốc lá gây hại cho tim, các bệnh liên quan, và cách giảm thiểu rủi ro khi bỏ thuốc. Thông tin này rất quan trọng để coach có thể giáo dục và động viên thành viên. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
     },
     {
         id: 3,
@@ -264,11 +264,11 @@ const articles = [
         readTime: '12 phút đọc',
         date: '10/03/2024',
         excerpt: 'Chia sẻ từ người đã cai thuốc thành công sau 15 năm hút thuốc và những bài học quý giá...',
-        content: 'Nội dung đầy đủ của bài viết Câu Chuyện Thành Công: Hành Trình Cai Thuốc Của Tôi. Câu chuyện truyền cảm hứng này sẽ chia sẻ kinh nghiệm cá nhân, những khó khăn đã vượt qua, và những lợi ích đạt được sau khi bỏ thuốc. Đây là nguồn động lực lớn cho người đọc. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        content: 'Nội dung đầy đủ của bài viết Câu Chuyện Thành Công: Hành Trình Cai Thuốc Của Tôi. Câu chuyện truyền cảm hứng này sẽ chia sẻ kinh nghiệm cá nhân, những khó khăn đã vượt qua, và những lợi ích đạt được sau khi bỏ thuốc. Đây là nguồn động lực lớn cho cả coach và thành viên. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
     }
 ];
 
-const Blog = () => {
+const CoachBlog = () => {
     const [activeCategory, setActiveCategory] = useState('all');
     const [isArticleModalVisible, setIsArticleModalVisible] = useState(false);
     const [selectedArticle, setSelectedArticle] = useState(null);
@@ -388,4 +388,4 @@ const Blog = () => {
     );
 };
 
-export default Blog;
+export default CoachBlog; 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Modal, Form, Input, Select, message, Typography, Space, Tag, Descriptions } from 'antd';
 import styled from 'styled-components';
-import { ClockCircleOutlined, UserOutlined, FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, PhoneOutlined, MailOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, UserOutlined, FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, PhoneOutlined, MailOutlined, LinkOutlined, TrophyOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import weekday from 'dayjs/plugin/weekday';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
@@ -12,6 +12,7 @@ dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
 
 const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 const Container = styled.div`
   padding: 24px;
@@ -21,11 +22,24 @@ const Container = styled.div`
   overflow-x: auto; /* Add horizontal scroll for small screens */
 `;
 
-const Header = styled.div`
+const GuestHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  background-color: #e0f2f1; /* Light blue-green background */
+  padding: 16px 24px; /* Add some padding */
+  border-radius: 8px; /* Rounded corners */
+  border: 1px solid #b2dfdb; /* Subtle border */
+
+  .header-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 `;
 
 const TimeTableControls = styled.div`
@@ -50,7 +64,7 @@ const TimeTable = styled.table`
   }
 
   th {
-    background-color: #e6f7ff; /* Light blue background for headers */
+    background-color: #b2dfdb; /* Matching blue-green background for headers */
     font-weight: bold;
   }
 
@@ -85,23 +99,41 @@ const TimeConsultation = () => {
   const [selectedConsultation, setSelectedConsultation] = useState(null);
   const [feedbackForm] = Form.useForm();
 
+  // State for confirm modal
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+  const [confirmConsultation, setConfirmConsultation] = useState(null);
+  const [meetLink, setMeetLink] = useState('');
+  const [confirmForm] = Form.useForm();
+
+  console.log('Initial selectedDate:', selectedDate.format('YYYY-MM-DD'));
+
   // Mock data for consultations - structured for easy lookup by date and time slot
-   const mockConsultations = {
+   const [mockConsultations, setMockConsultations] = useState({
        '2024-03-25': { // Tuesday
            'Slot 2': [
-               { id: 1, memberName: 'Nguyễn Văn A', time: '09:30-11:00', notes: 'Kiểm tra tiến độ', status: 'confirmed' }
+               { id: 1, memberName: 'Nguyễn Văn A', time: '09:30-11:00', notes: 'Kiểm tra tiến độ', status: 'confirmed', meetLink: 'https://meet.google.com/abc-def-ghi' }
            ]
        },
         '2024-03-28': { // Friday
             'Slot 2': [
-                 { id: 2, memberName: 'Trần Thị B', time: '09:30-11:00', notes: 'Tư vấn phương pháp mới', status: 'confirmed' }
+                 { id: 2, memberName: 'Trần Thị B', time: '09:30-11:00', notes: 'Tư vấn phương pháp mới', status: 'confirmed', meetLink: 'https://meet.google.com/jkl-mno-pqr' }
             ],
             'Slot 3': [
                  { id: 3, memberName: 'Nguyễn Văn A', time: '12:30-14:00', notes: 'Thảo luận yếu tố tái nghiện', status: 'pending' }
             ]
-        }
-       // Add more mock data
-   };
+        },
+       // Add more mock data - Adding data for the current calculated week
+       [dayjs().startOf('week').add(1, 'day').format('YYYY-MM-DD')]: { // Monday of current week
+            'Slot 1': [
+                { id: 101, memberName: 'Thành viên Test 1', time: '07:00-09:00', notes: 'Cuộc hẹn đầu tiên', status: 'pending' } // Pending for testing confirmation
+            ]
+       },
+       [dayjs().startOf('week').add(3, 'day').format('YYYY-MM-DD')]: { // Wednesday of current week
+            'Slot 3': [
+                { id: 102, memberName: 'Thành viên Test 2', time: '12:30-14:00', notes: 'Theo dõi tiến độ', status: 'pending' }
+            ]
+       }
+   });
 
     // Define time slots - adjust as needed
     const timeSlots = [
@@ -116,7 +148,7 @@ const TimeConsultation = () => {
     const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
     // Get the start date of the week based on selectedDate
-    const startOfWeek = selectedDate.startOf('week'); // dayjs week starts on Sunday by default
+    const startOfWeek = dayjs(selectedDate).startOf('week'); // dayjs week starts on Sunday by default
     const startOfWeekMonday = dayjs(startOfWeek).add(1, 'day'); // Adjust to start on Monday
 
     // Get dates for the current week
@@ -124,26 +156,40 @@ const TimeConsultation = () => {
         dayjs(startOfWeekMonday).add(i, 'day').format('YYYY-MM-DD')
     );
 
-    // Get the current year and week number
+    console.log('Calculated weekDates:', weekDates);
+
+    // Get the current year and week number based on selectedDate
     const currentYear = selectedDate.year();
     const currentWeek = selectedDate.week();
 
     // Options for Year and Week dropdowns (simplified mock)
-    const yearOptions = [{ value: currentYear, label: currentYear }];
-    const weekOptions = [
-        { value: currentWeek, label: `Tuần ${currentWeek}: ${startOfWeekMonday.format('DD/MM')} - ${dayjs(startOfWeekMonday).add(6, 'day').format('DD/MM')}` },
-         { value: currentWeek - 1, label: `Tuần ${currentWeek - 1}: ${dayjs(startOfWeekMonday).subtract(7, 'day').format('DD/MM')} - ${dayjs(startOfWeekMonday).subtract(1, 'day').format('DD/MM')}` },
-         { value: currentWeek + 1, label: `Tuần ${currentWeek + 1}: ${dayjs(startOfWeekMonday).add(7, 'day').format('DD/MM')} - ${dayjs(startOfWeekMonday).add(13, 'day').format('DD/MM')}` },
-        // Add more week options based on the year
-    ];
+     // Generate year options around the current year
+     const yearOptions = [-2, -1, 0, 1, 2].map(offset => {
+         const year = dayjs().year() + offset;
+         return { value: year, label: year };
+     });
+
+     // Generate week options for the current year
+     const weeksInYear = dayjs(currentYear + '-12-28').week(); // Alternative way to get weeks in year
+      const weekOptions = Array.from({ length: weeksInYear }).map((_, i) => {
+          const week = i + 1;
+          const startOfWeek = dayjs().year(currentYear).week(week).startOf('week').add(1, 'day'); // Adjust to Monday
+          const endOfWeek = dayjs(startOfWeek).add(6, 'day');
+          return {
+              value: week,
+              label: `Tuần ${week}: ${startOfWeek.format('DD/MM')} - ${endOfWeek.format('DD/MM')}`
+          };
+      });
 
     const handleYearChange = (year) => {
-        // Update selectedDate to the first day of the first week of the new year
-        setSelectedDate(dayjs(`${year}-01-01`));
+        console.log('handleYearChange - New year:', year);
+        // Set the date to the first week of the selected year
+        setSelectedDate(dayjs().year(year).startOf('year').startOf('week').add(1, 'day')); // First day of the first week, adjusted to Monday
     };
 
     const handleWeekChange = (week) => {
-        // Update selectedDate to the first day of the selected week in the current year
+         console.log('handleWeekChange - New week:', week);
+        // Set the date to the first day of the selected week in the current year
         setSelectedDate(dayjs().year(currentYear).week(week).startOf('week').add(1, 'day')); // Adjust to start Monday
     };
 
@@ -171,6 +217,51 @@ const TimeConsultation = () => {
     feedbackForm.resetFields();
   };
 
+   // --- New functions for confirmation ---
+   const handleOpenConfirmModal = (consultation) => {
+       setConfirmConsultation(consultation);
+       setMeetLink(''); // Reset link input
+       setIsConfirmModalVisible(true);
+   };
+
+   const handleSaveConfirmation = (values) => {
+       if (!confirmConsultation) return;
+
+       const updatedMockConsultations = { ...mockConsultations };
+
+       // Find the correct date key
+       const consultationDate = weekDates.find(date => {
+           const consultationsOnDate = mockConsultations[date] || {};
+           return Object.values(consultationsOnDate).flat().some(c => c.id === confirmConsultation.id);
+       });
+
+       if (consultationDate) {
+           const updatedDateConsultations = { ...updatedMockConsultations[consultationDate] };
+           Object.keys(updatedDateConsultations).forEach(slotKey => {
+               updatedDateConsultations[slotKey] = updatedDateConsultations[slotKey].map(c => {
+                   if (c.id === confirmConsultation.id) {
+                       return { ...c, status: 'confirmed', meetLink: values.meetLink };
+                   }
+                   return c;
+               });
+           });
+            updatedMockConsultations[consultationDate] = updatedDateConsultations;
+            setMockConsultations(updatedMockConsultations);
+            message.success('Đã xác nhận cuộc hẹn và lưu link.');
+       }
+
+       setIsConfirmModalVisible(false);
+       setConfirmConsultation(null);
+       setMeetLink('');
+       confirmForm.resetFields();
+   };
+
+   const handleCancelConfirmModal = () => {
+       setIsConfirmModalVisible(false);
+       setConfirmConsultation(null);
+       setMeetLink('');
+       confirmForm.resetFields();
+   };
 
 
   const renderConsultationStatus = (status) => {
@@ -192,12 +283,12 @@ const TimeConsultation = () => {
 
   return (
     <Container>
-      <Header>
-        <Title level={2}>Lịch tư vấn</Title>
-        {/* <Button type="primary" icon={<ClockCircleOutlined />} onClick={() => setIsAddModalVisible(true)}> */}
-        {/*   Thêm lịch tư vấn */}
-        {/* </Button> */}
-      </Header>
+      <GuestHeader>
+        <div className="header-title">
+          <TrophyOutlined />
+          Lịch Tư Vấn
+        </div>
+      </GuestHeader>
 
       <TimeTableControls>
         <Space>
@@ -236,7 +327,9 @@ const TimeConsultation = () => {
             <tr key={slot.key}>
               <td><SlotLabel>{slot.key}</SlotLabel>{slot.time}</td>
               {weekDates.map(date => {
+                console.log(`Checking consultations for date: ${date}`);
                 const consultationsOnDate = mockConsultations[date] || {};
+                console.log(`Consultations found for ${date}:`, consultationsOnDate);
                 const consultationsInSlot = consultationsOnDate[slot.key] || [];
                 return (
                   <td key={date}>
@@ -248,15 +341,39 @@ const TimeConsultation = () => {
                                 <ClockCircleOutlined style={{ fontSize: '12px' }} />
                                 <Text type="secondary" style={{ fontSize: '12px' }}>{consultation.time}</Text>
                               </Space><br/>
-                             {renderConsultationStatus(consultation.status)}<br/>
-                             {/* Add actions like View Details, Complete, etc. */}
-                              <Button type="link" size="small" onClick={() => handleOpenFeedbackModal(consultation)}>
-                                 Xem/Thêm đánh giá
-                              </Button>
+                             <Space size={4} style={{ marginTop: '4px' }}>
+                                 <FileTextOutlined style={{ fontSize: '12px' }} />
+                                  <Text style={{ fontSize: '12px' }}>{consultation.notes}</Text>
+                             </Space><br/>
+                              <div style={{ marginTop: '4px' }}>
+                                {renderConsultationStatus(consultation.status)}
+                              </div>
+                              {/* Add buttons for actions */}
+                               <Space size={4} style={{ marginTop: '8px' }}>
+                                  {consultation.status === 'pending' && (
+                                      <Button size="small" type="primary" icon={<CheckCircleOutlined />} onClick={() => handleOpenConfirmModal(consultation)}>
+                                         Xác nhận
+                                      </Button>
+                                  )}
+                                   {consultation.status === 'confirmed' && (
+                                       <Button size="small" icon={<CloseCircleOutlined />} danger >
+                                          Hủy
+                                       </Button>
+                                   )}
+                                    <Button size="small" onClick={() => handleOpenFeedbackModal(consultation)}>
+                                         Đánh giá
+                                    </Button>
+                                     {/* Display meet link if available and confirmed */}
+                                     {consultation.status === 'confirmed' && consultation.meetLink && (
+                                         <Button size="small" icon={<LinkOutlined />} href={consultation.meetLink} target="_blank">
+                                             Link Meet
+                                         </Button>
+                                     )}
+                               </Space>
                          </ConsultationEntry>
                       ))
                     ) : (
-                      <Text type="secondary">-</Text>
+                      '' // Empty cell if no consultations
                     )}
                   </td>
                 );
@@ -266,33 +383,67 @@ const TimeConsultation = () => {
         </tbody>
       </TimeTable>
 
-      {/* Feedback Modal */}
-      <Modal
-        title={selectedConsultation ? `Đánh giá buổi tư vấn với ${selectedConsultation.memberName}` : 'Đánh giá buổi tư vấn'}
-        open={isFeedbackModalVisible}
-        onCancel={() => {
-          setIsFeedbackModalVisible(false);
-          setSelectedConsultation(null);
-          feedbackForm.resetFields();
-        }}
-        onOk={() => feedbackForm.submit()}
-        okText="Lưu đánh giá"
-        cancelText="Hủy"
-      >
-        <Form
-          form={feedbackForm}
-          layout="vertical"
-          onFinish={handleSaveFeedback}
+       {/* Feedback Modal */}
+       <Modal
+           title="Gửi đánh giá"
+           open={isFeedbackModalVisible}
+           onCancel={() => setIsFeedbackModalVisible(false)}
+           footer={null}
+       >
+           <Form
+               form={feedbackForm}
+               layout="vertical"
+               onFinish={handleSaveFeedback}
+           >
+               <Form.Item
+                   name="feedback"
+                   label="Nội dung đánh giá"
+                   rules={[{ required: true, message: 'Vui lòng nhập nội dung đánh giá' }]}
+               >
+                   <Input.TextArea rows={4} placeholder="Nhập đánh giá của bạn về cuộc tư vấn..." />
+               </Form.Item>
+               <Form.Item>
+                   <Button type="primary" htmlType="submit">
+                       Lưu đánh giá
+                   </Button>
+               </Form.Item>
+           </Form>
+       </Modal>
+
+        {/* Confirm Modal */}
+        <Modal
+            title="Xác nhận cuộc hẹn và thêm Link Meet"
+            open={isConfirmModalVisible}
+            onCancel={handleCancelConfirmModal}
+            footer={null}
         >
-          <Form.Item
-            name="feedback"
-            label="Nội dung đánh giá"
-            rules={[{ required: true, message: 'Vui lòng nhập nội dung đánh giá' }]} /* Added required rule */
-          >
-            <Input.TextArea rows={6} placeholder="Nhập đánh giá của bạn về buổi tư vấn và tình hình của thành viên..." />
-          </Form.Item>
-        </Form>
-      </Modal>
+            <Form
+                form={confirmForm}
+                layout="vertical"
+                onFinish={handleSaveConfirmation}
+            >
+                <Form.Item
+                    name="meetLink"
+                    label="Link Google Meet"
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập link Google Meet' },
+                        { type: 'url', message: 'Vui lòng nhập đúng định dạng URL' }
+                    ]}
+                >
+                    <Input placeholder="Dán link Google Meet vào đây..." />
+                </Form.Item>
+                <Form.Item>
+                    <Space>
+                        <Button onClick={handleCancelConfirmModal}>
+                            Hủy
+                        </Button>
+                        <Button type="primary" htmlType="submit">
+                            Lưu và Xác nhận
+                        </Button>
+                    </Space>
+                </Form.Item>
+            </Form>
+        </Modal>
 
     </Container>
   );

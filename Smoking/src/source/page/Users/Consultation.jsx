@@ -3,6 +3,7 @@ import { Card, Row, Col, Typography, Avatar, Button, Rate, Tag, Modal, Form, Dat
 import { MessageOutlined, CalendarOutlined, ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import ReviewList from './components/ReviewList';
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -16,10 +17,24 @@ const PageContainer = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    
+    background-color: #e0f2f1; /* Light blue-green background */
+    padding: 16px 24px; /* Add some padding */
+    border-radius: 8px; /* Rounded corners */
+    border: 1px solid #b2dfdb; /* Subtle border */
+    font-size: 24px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.85);
+
     .anticon {
-      color: #5FB8B3;
+      color: #2c7a75; /* Darker shade for icon */
       font-size: 24px;
+    }
+
+    h1 {
+      font-size: 24px; /* Ensure title size is consistent */
+      font-weight: 600; /* Ensure title weight is consistent */
+      color: rgba(0, 0, 0, 0.85); /* Ensure title color is consistent */
+      margin: 0; /* Remove default margin */
     }
   }
 `;
@@ -97,6 +112,32 @@ const CoachCard = styled(Card)`
     display: flex;
     gap: 8px;
   }
+
+  .appointment-status {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #f0f8f7;
+    border: 1px solid #E3F6F5;
+
+    .status-title {
+      font-weight: 600;
+      color: #2c7a75;
+      margin-bottom: 8px;
+    }
+
+    .status-details {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .meet-link {
+      margin-top: 8px;
+      color: #5FB8B3;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
 `;
 
 const BookingModal = styled(Modal)`
@@ -151,17 +192,72 @@ const Consultation = () => {
         }
     ];
 
+    // Mock data cho lịch hẹn của người dùng
+    const [userAppointments, setUserAppointments] = useState([
+        {
+            id: 1,
+            coachName: 'Huấn luyện viên A',
+            date: dayjs().format('YYYY-MM-DD'), // Confirmed for today
+            time: '10:00 - 11:00',
+            status: 'confirmed',
+            meetLink: 'https://meet.google.com/example-link-today',
+        },
+        {
+            id: 2,
+            coachName: 'Huấn luyện viên B',
+            date: dayjs().add(2, 'day').format('YYYY-MM-DD'), // Pending in 2 days
+            time: '14:00 - 15:00',
+            status: 'pending',
+            meetLink: null,
+        }
+    ]);
+
     const handleBooking = (coach) => {
         setSelectedCoach(coach);
         setIsModalVisible(true);
     };
 
+    // Function to update appointment status
+    const updateAppointmentStatus = (appointmentId, status, meetLink = null) => {
+        setUserAppointments(prev => prev.map(appointment => 
+            appointment.id === appointmentId 
+                ? { ...appointment, status, meetLink }
+                : appointment
+        ));
+    };
+
+    // Simulate coach confirmation (this would normally come from an API call)
+    const simulateCoachConfirmation = (appointmentId) => {
+        // Simulate coach confirming after 2 seconds
+        setTimeout(() => {
+            updateAppointmentStatus(appointmentId, 'confirmed', 'https://meet.google.com/abc-def-ghi');
+            message.success('Coach đã xác nhận lịch hẹn của bạn!');
+        }, 2000);
+    };
+
     const handleModalOk = () => {
         form.validateFields().then((values) => {
             console.log('Booking values:', values);
+            
+            // Add new appointment to userAppointments
+            const newAppointment = {
+                id: userAppointments.length + 1,
+                coachName: selectedCoach.name,
+                date: values.date.format('YYYY-MM-DD'),
+                time: values.time.format('HH:mm'),
+                status: 'pending',
+                meetLink: null,
+                topic: values.topic,
+                notes: values.notes
+            };
+            
+            setUserAppointments(prev => [...prev, newAppointment]);
             message.success('Đặt lịch tư vấn thành công!');
             setIsModalVisible(false);
             form.resetFields();
+
+            // Simulate coach confirmation
+            simulateCoachConfirmation(newAppointment.id);
         });
     };
 
@@ -195,75 +291,116 @@ const Consultation = () => {
         return current && current < new Date().setHours(0, 0, 0, 0);
     };
 
+    // Check for confirmed appointment today
+    const hasConfirmedAppointmentToday = userAppointments.some(appointment =>
+        appointment.status === 'confirmed' && dayjs(appointment.date).isSame(dayjs(), 'day')
+    );
+
     return (
         <PageContainer>
-            <Title level={2} className="page-title">
+            <div className="page-title">
                 <CalendarOutlined />
-                Đặt Lịch Tư Vấn
-            </Title>
+                <Title level={1} style={{ margin: 0 }}>Đặt lịch tư vấn</Title>
+            </div>
 
             <Row gutter={[16, 16]}>
-                {coaches.map(coach => (
-                    <Col xs={24} md={12} key={coach.id}>
-                        <CoachCard>
-                            <div className="coach-header">
-                                <Avatar size={64} src={coach.avatar} />
-                                <div className="coach-info">
-                                    <Title level={4} className="coach-name">{coach.name}</Title>
-                                    <Text className="coach-title">{coach.title}</Text>
-                                    <div>
-                                        <Rate disabled defaultValue={coach.rating} style={{ fontSize: 14 }} />
-                                        <Text style={{ marginLeft: 8 }}>{coach.rating}</Text>
+                {coaches.map(coach => {
+                    // Find if this coach has any appointments
+                    const coachAppointments = userAppointments.filter(
+                        appointment => appointment.coachName === coach.name
+                    );
+                    const latestAppointment = coachAppointments[coachAppointments.length - 1];
+
+                    return (
+                        <Col xs={24} md={12} key={coach.id}>
+                            <CoachCard>
+                                <div className="coach-header">
+                                    <Avatar size={64} src={coach.avatar} />
+                                    <div className="coach-info">
+                                        <Title level={4} className="coach-name">{coach.name}</Title>
+                                        <Text className="coach-title">{coach.title}</Text>
+                                        <div>
+                                            <Rate disabled defaultValue={coach.rating} style={{ fontSize: 14 }} />
+                                            <Text style={{ marginLeft: 8 }}>{coach.rating}</Text>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="coach-stats">
-                                <div className="stat-item">
-                                    <div className="stat-value">{coach.experience}</div>
-                                    <div className="stat-label">Kinh nghiệm</div>
+                                <div className="coach-stats">
+                                    <div className="stat-item">
+                                        <div className="stat-value">{coach.experience}</div>
+                                        <div className="stat-label">Kinh nghiệm</div>
+                                    </div>
+                                    <div className="stat-item">
+                                        <div className="stat-value">{coach.consultations}</div>
+                                        <div className="stat-label">Buổi tư vấn</div>
+                                    </div>
+                                    <div className="stat-item">
+                                        <div className="stat-value">{coach.successRate}</div>
+                                        <div className="stat-label">Tỷ lệ thành công</div>
+                                    </div>
                                 </div>
-                                <div className="stat-item">
-                                    <div className="stat-value">{coach.consultations}</div>
-                                    <div className="stat-label">Buổi tư vấn</div>
+
+                                <div className="coach-tags">
+                                    {coach.specialties.map((specialty, index) => (
+                                        <Tag key={index} color="blue">{specialty}</Tag>
+                                    ))}
                                 </div>
-                                <div className="stat-item">
-                                    <div className="stat-value">{coach.successRate}</div>
-                                    <div className="stat-label">Tỷ lệ thành công</div>
+
+                                <div className="coach-actions">
+                                    <Button
+                                        type="primary"
+                                        icon={<CalendarOutlined />}
+                                        onClick={() => handleBooking(coach)}
+                                        block
+                                    >
+                                        Đặt Lịch Tư Vấn
+                                    </Button>
+                                    <Button onClick={() => handleReviewClick(coach)}>
+                                        Đánh giá
+                                    </Button>
                                 </div>
-                            </div>
 
-                            <div className="coach-tags">
-                                {coach.specialties.map((specialty, index) => (
-                                    <Tag key={index} color="blue">{specialty}</Tag>
-                                ))}
-                            </div>
-
-                            <div className="coach-actions">
-                                <Button
-                                    type="primary"
-                                    icon={<CalendarOutlined />}
-                                    onClick={() => handleBooking(coach)}
-                                    block
-                                >
-                                    Đặt Lịch Tư Vấn
-                                </Button>
-                                <Button onClick={() => handleReviewClick(coach)}>
-                                    Đánh giá
-                                </Button>
-                            </div>
-
-                            {/* Display Reviews */}
-                            {/*
-                            <div style={{ marginTop: '20px' }}>
-                                <Title level={5}>Đánh giá từ người dùng:</Title>
-                                <ReviewList reviews={coach.reviews} />
-                            </div>
-                            */}
-                        </CoachCard>
-                    </Col>
-                ))}
+                                {latestAppointment && (
+                                    <div className="appointment-status">
+                                        <div className="status-title">
+                                            {latestAppointment.status === 'confirmed' ? '✅ Lịch hẹn đã xác nhận' : '⏳ Đang chờ xác nhận'}
+                                        </div>
+                                        <div className="status-details">
+                                            <div>Ngày: {dayjs(latestAppointment.date).format('DD/MM/YYYY')}</div>
+                                            <div>Giờ: {latestAppointment.time}</div>
+                                            {latestAppointment.topic && (
+                                                <div>Chủ đề: {
+                                                    {
+                                                        'quit_plan': 'Lập kế hoạch cai thuốc',
+                                                        'withdrawal': 'Đối phó với cai nghiện',
+                                                        'motivation': 'Duy trì động lực',
+                                                        'relapse': 'Phòng ngừa tái nghiện',
+                                                        'health': 'Tư vấn sức khỏe'
+                                                    }[latestAppointment.topic]
+                                                }</div>
+                                            )}
+                                        </div>
+                                        {latestAppointment.status === 'confirmed' && latestAppointment.meetLink && (
+                                            <div className="meet-link" onClick={() => window.open(latestAppointment.meetLink, '_blank')}>
+                                                <CalendarOutlined /> Tham gia Google Meet
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </CoachCard>
+                        </Col>
+                    );
+                })}
             </Row>
+
+            {hasConfirmedAppointmentToday && (
+                <div style={{ marginTop: '24px', textAlign: 'center' }}>
+                    <Tag color="blue" style={{ fontSize: '16px', padding: '8px 16px' }}>
+                        Bạn có lịch hẹn tư vấn đã xác nhận hôm nay!
+                    </Tag>
+                </div>
+            )}
 
             <BookingModal
                 title="Đặt Lịch Tư Vấn"

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag } from 'antd';
-import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, TeamOutlined, MessageOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, TeamOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 const { Title, Text } = Typography;
@@ -147,7 +147,6 @@ const CoachHome = () => {
     activeClients: 12,
     pendingConsultations: 5,
     successRate: 78,
-    unreadMessages: 8,
     recentActivities: [
       {
         date: '15/03/2024',
@@ -206,23 +205,13 @@ const CoachHome = () => {
             />
           </StatisticCard>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={8}>
           <StatisticCard>
             <CalendarOutlined className="icon" />
             <Statistic
               title="Buổi Tư Vấn Đang Chờ"
               value={coachData.pendingConsultations}
               suffix="buổi"
-            />
-          </StatisticCard>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatisticCard>
-            <MessageOutlined className="icon" />
-            <Statistic
-              title="Tin Nhắn Chưa Đọc"
-              value={coachData.unreadMessages}
-              suffix="tin"
             />
           </StatisticCard>
         </Col>

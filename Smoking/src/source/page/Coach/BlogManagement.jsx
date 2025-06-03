@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Typography, Card, Button, Space, Modal, Form, Input, message, Upload, Tag, Table, Select } from 'antd';
+import { Typography, Card, Button, Space, Modal, Form, Input, message, Upload, Tag, Table, Select, Tooltip } from 'antd';
 import styled from 'styled-components';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined, FileTextOutlined, CheckCircleOutlined, ClockCircleOutlined, PictureOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 const Container = styled.div`
   padding: 24px;
@@ -17,11 +19,38 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  background-color: #e0f2f1;
+  padding: 16px 24px;
+  border-radius: 8px;
+  border: 1px solid #b2dfdb;
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #2c7a75;
+    font-size: 24px;
+    font-weight: 600;
+  }
 `;
 
 const StyledCard = styled(Card)`
   margin-bottom: 24px;
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  .ant-card-body {
+    padding: 24px;
+  }
+
+  .ant-table-thead > tr > th {
+    background: #f5f5f5;
+    font-weight: 600;
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background: #f0f8f7;
+  }
 `;
 
 const ImagePreview = styled.img`
@@ -30,6 +59,18 @@ const ImagePreview = styled.img`
   object-fit: cover;
   border-radius: 8px;
   margin-top: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+`;
+
+const StatusTag = styled(Tag)`
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
 `;
 
 const BlogManagement = () => {
@@ -41,7 +82,7 @@ const BlogManagement = () => {
       id: 1,
       title: 'Lợi ích của việc bỏ thuốc lá',
       content: 'Nội dung bài viết về lợi ích của việc bỏ thuốc lá...',
-      image: '',
+      image: 'https://example.com/image1.jpg',
       tags: ['Sức khỏe', 'Bỏ thuốc'],
       status: 'Đã đăng',
       createdAt: '2024-03-31',
@@ -53,13 +94,21 @@ const BlogManagement = () => {
       title: 'Tiêu đề',
       dataIndex: 'title',
       key: 'title',
+      render: (text) => (
+        <Space>
+          <FileTextOutlined style={{ color: '#5FB8B3' }} />
+          <Text strong>{text}</Text>
+        </Space>
+      ),
     },
     {
       title: 'Hình ảnh',
       dataIndex: 'image',
       key: 'image',
       render: (image) => (
-        <ImagePreview src={image} alt="Blog thumbnail" />
+        <Tooltip title="Xem ảnh đại diện">
+          <ImagePreview src={image} alt="Blog thumbnail" />
+        </Tooltip>
       ),
     },
     {
@@ -67,7 +116,7 @@ const BlogManagement = () => {
       dataIndex: 'tags',
       key: 'tags',
       render: (tags) => (
-        <Space>
+        <Space wrap>
           {tags.map(tag => (
             <Tag key={tag} color="blue">{tag}</Tag>
           ))}
@@ -78,23 +127,43 @@ const BlogManagement = () => {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
+      render: (status) => (
+        <StatusTag color={status === 'Đã đăng' ? 'success' : 'processing'}>
+          {status === 'Đã đăng' ? <CheckCircleOutlined /> : <ClockCircleOutlined />} {status}
+        </StatusTag>
+      ),
     },
     {
       title: 'Ngày tạo',
       dataIndex: 'createdAt',
       key: 'createdAt',
+      render: (date) => dayjs(date).format('DD/MM/YYYY'),
     },
     {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            Sửa
-          </Button>
-          <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
-            Xóa
-          </Button>
+          <Tooltip title="Sửa bài viết">
+            <Button 
+              type="primary" 
+              icon={<EditOutlined />} 
+              onClick={() => handleEdit(record)}
+              size="small"
+            >
+              Sửa
+            </Button>
+          </Tooltip>
+          <Tooltip title="Xóa bài viết">
+            <Button 
+              danger 
+              icon={<DeleteOutlined />} 
+              onClick={() => handleDelete(record)}
+              size="small"
+            >
+              Xóa
+            </Button>
+          </Tooltip>
         </Space>
       ),
     },
@@ -112,6 +181,7 @@ const BlogManagement = () => {
       title: record.title,
       content: record.content,
       tags: record.tags,
+      image: [{ url: record.image }],
     });
     setIsModalVisible(true);
   };
@@ -120,6 +190,9 @@ const BlogManagement = () => {
     Modal.confirm({
       title: 'Xác nhận xóa',
       content: 'Bạn có chắc chắn muốn xóa bài viết này?',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
       onOk() {
         setPosts(posts.filter(post => post.id !== record.id));
         message.success('Xóa bài viết thành công!');
@@ -165,11 +238,15 @@ const BlogManagement = () => {
   return (
     <Container>
       <Header>
-        <Title level={2}>Quản lý Blog</Title>
+        <div className="header-title">
+          <FileTextOutlined />
+          <Title level={2} style={{ margin: 0 }}>Quản lý Blog</Title>
+        </div>
         <Button 
           type="primary" 
           icon={<PlusOutlined />}
           onClick={handleCreatePost}
+          size="large"
         >
           Viết bài mới
         </Button>
@@ -226,7 +303,7 @@ const BlogManagement = () => {
               }}
             >
               <div>
-                <PlusOutlined />
+                <PictureOutlined />
                 <div style={{ marginTop: 8 }}>Tải lên</div>
               </div>
             </Upload>
@@ -237,7 +314,7 @@ const BlogManagement = () => {
             label="Nội dung bài viết"
             rules={[{ required: true, message: 'Vui lòng nhập nội dung bài viết!' }]}
           >
-            <Input.TextArea rows={6} placeholder="Nhập nội dung bài viết..." />
+            <TextArea rows={6} placeholder="Nhập nội dung bài viết..." />
           </Form.Item>
 
           <Form.Item
@@ -255,7 +332,7 @@ const BlogManagement = () => {
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit">
-                {editingPost ? 'Cập nhật bài viết' : 'Đăng bài'}
+                {editingPost ? 'Cập nhật' : 'Đăng bài'}
               </Button>
               <Button onClick={() => {
                 setIsModalVisible(false);
