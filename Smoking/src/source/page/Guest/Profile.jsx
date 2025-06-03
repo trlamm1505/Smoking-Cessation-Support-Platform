@@ -812,278 +812,373 @@ const AddAchievementSection = styled.div`
 `;
 
 const Profile = () => {
-    const [isEditingIntro, setIsEditingIntro] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
+  const [isEditingIntro, setIsEditingIntro] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [accountForm, setAccountForm] = useState({
+    username: 'nguyenvana',
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [accountError, setAccountError] = useState('');
 
-    const [introText, setIntroText] = useState(
-        "Xin chào! Tôi đang trong hành trình cai thuốc lá và đã đạt được nhiều tiến bộ. Tôi tin rằng với sự hỗ trợ của cộng đồng, chúng ta có thể cùng nhau vượt qua thử thách này."
-    );
-    const [tempIntroText, setTempIntroText] = useState(introText);
+  const [introText, setIntroText] = useState(
+    "Xin chào! Tôi đang trong hành trình cai thuốc lá và đã đạt được nhiều tiến bộ. Tôi tin rằng với sự hỗ trợ của cộng đồng, chúng ta có thể cùng nhau vượt qua thử thách này."
+  );
+  const [tempIntroText, setTempIntroText] = useState(introText);
 
-    const [profileData, setProfileData] = useState({
-        name: 'Nguyễn Văn A',
-        isPremium: true,
-        premiumTitle: 'Thành viên Premium'
-    });
-    const [tempProfileData, setTempProfileData] = useState({ ...profileData });
+  const [profileData, setProfileData] = useState({
+    name: 'Nguyễn Văn A',
+    isPremium: true,
+    premiumTitle: 'Thành viên Premium'
+  });
+  const [tempProfileData, setTempProfileData] = useState({ ...profileData });
 
-    const [personalInfo, setPersonalInfo] = useState([
-        {
-            icon: <MailOutlined />,
-            label: 'Email',
-            value: 'nguyenvana@example.com',
-            key: 'email'
-        },
-        {
-            icon: <PhoneOutlined />,
-            label: 'Số điện thoại',
-            value: '0123456789',
-            key: 'phone'
-        },
-        {
-            icon: <UserOutlined />,
-            label: 'Tuổi',
-            value: '28',
-            key: 'age'
-        },
-        {
-            icon: <ManOutlined />,
-            label: 'Giới tính',
-            value: 'Nam',
-            key: 'gender'
-        },
-        {
-            icon: <UserOutlined />,
-            label: 'Nghề nghiệp',
-            value: 'Kỹ sư phần mềm',
-            key: 'job'
-        },
-        {
-            icon: <EnvironmentOutlined />,
-            label: 'Địa chỉ',
-            value: 'Số 123, Đường ABC, Quận Ba Đình, Hà Nội',
-            key: 'address'
-        },
-        {
-            icon: <HomeOutlined />,
-            label: 'Quê quán',
-            value: 'Nam Định, Việt Nam',
-            key: 'hometown'
-        },
-        {
-            icon: <CalendarOutlined />,
-            label: 'Ngày tham gia',
-            value: '01/01/2024',
-            key: 'joinDate'
-        }
-    ]);
+  const [personalInfo, setPersonalInfo] = useState([
+    {
+      icon: <MailOutlined />,
+      label: 'Email',
+      value: 'nguyenvana@example.com',
+      key: 'email'
+    },
+    {
+      icon: <PhoneOutlined />,
+      label: 'Số điện thoại',
+      value: '0123456789',
+      key: 'phone'
+    },
+    {
+      icon: <UserOutlined />,
+      label: 'Tuổi',
+      value: '28',
+      key: 'age'
+    },
+    {
+      icon: <ManOutlined />,
+      label: 'Giới tính',
+      value: 'Nam',
+      key: 'gender'
+    },
+    {
+      icon: <UserOutlined />,
+      label: 'Nghề nghiệp',
+      value: 'Kỹ sư phần mềm',
+      key: 'job'
+    },
+    {
+      icon: <EnvironmentOutlined />,
+      label: 'Địa chỉ',
+      value: 'Số 123, Đường ABC, Quận Ba Đình, Hà Nội',
+      key: 'address'
+    },
+    {
+      icon: <HomeOutlined />,
+      label: 'Quê quán',
+      value: 'Nam Định, Việt Nam',
+      key: 'hometown'
+    },
+    {
+      icon: <CalendarOutlined />,
+      label: 'Ngày tham gia',
+      value: '01/01/2024',
+      key: 'joinDate'
+    }
+  ]);
 
-    const [tempPersonalInfo, setTempPersonalInfo] = useState([...personalInfo]);
+  const [tempPersonalInfo, setTempPersonalInfo] = useState([...personalInfo]);
 
-    const handleSaveIntro = () => {
-        setIntroText(tempIntroText);
-        setIsEditingIntro(false);
-    };
+  const handleSaveIntro = () => {
+    setIntroText(tempIntroText);
+    setIsEditingIntro(false);
+  };
 
-    const handleCancelIntro = () => {
-        setTempIntroText(introText);
-        setIsEditingIntro(false);
-    };
+  const handleCancelIntro = () => {
+    setTempIntroText(introText);
+    setIsEditingIntro(false);
+  };
 
-    const handleOpenEditModal = () => {
-        setTempProfileData({ ...profileData });
-        setTempPersonalInfo([...personalInfo]);
-        setShowEditModal(true);
-    };
+  const handleOpenEditModal = () => {
+    setTempProfileData({ ...profileData });
+    setTempPersonalInfo([...personalInfo]);
+    setShowEditModal(true);
+  };
 
-    const handleSaveProfile = () => {
-        setProfileData({ ...tempProfileData });
-        setPersonalInfo([...tempPersonalInfo]);
-        setShowEditModal(false);
-    };
+  const handleSaveProfile = () => {
+    setProfileData({ ...tempProfileData });
+    setPersonalInfo([...tempPersonalInfo]);
+    setShowEditModal(false);
+  };
 
-    const handleCancelProfile = () => {
-        setTempProfileData({ ...profileData });
-        setTempPersonalInfo([...personalInfo]);
-        setShowEditModal(false);
-    };
+  const handleCancelProfile = () => {
+    setTempProfileData({ ...profileData });
+    setTempPersonalInfo([...personalInfo]);
+    setShowEditModal(false);
+  };
 
-    const handleInfoChange = (index, newValue) => {
-        const updated = [...tempPersonalInfo];
-        updated[index].value = newValue;
-        setTempPersonalInfo(updated);
-    };
+  const handleInfoChange = (index, newValue) => {
+    const updated = [...tempPersonalInfo];
+    updated[index].value = newValue;
+    setTempPersonalInfo(updated);
+  };
 
-    const handleFileUpload = (type) => {
-        // Xử lý upload file cho avatar hoặc cover photo
-        console.log(`Uploading ${type}`);
-    };
+  const handleFileUpload = (type) => {
+    // Xử lý upload file cho avatar hoặc cover photo
+    console.log(`Uploading ${type}`);
+  };
 
-    return (
-        <Container>
-            <ProfileHeader>
-                <HeaderButtons>
-                    <Button onClick={() => document.getElementById('coverInput').click()}>
-                        <CameraOutlined />
-                        Thay đổi ảnh bìa
-                    </Button>
-                    <FileInput
-                        id="coverInput"
-                        type="file"
-                        accept="image/*"
-                        onChange={() => handleFileUpload('cover')}
-                    />
-                    <Button onClick={handleOpenEditModal}>
-                        <EditOutlined />
-                        Chỉnh sửa profile
-                    </Button>
-                </HeaderButtons>
-                <ProfileContent>
-                    <AvatarContainer>
-                        <TeamOutlined style={{ fontSize: '48px', color: '#5FB8B3' }} />
-                        <div className="camera-icon" onClick={() => document.getElementById('avatarInput').click()}>
-                            <CameraOutlined />
-                        </div>
-                        <FileInput
-                            id="avatarInput"
-                            type="file"
-                            accept="image/*"
-                            onChange={() => handleFileUpload('avatar')}
-                        />
-                    </AvatarContainer>
-                    <UserName>{profileData.name}</UserName>
-                    <PremiumTag>
-                        <CrownOutlined />
-                        {profileData.premiumTitle}
-                    </PremiumTag>
-                </ProfileContent>
-            </ProfileHeader>
+  return (
+    <Container>
+      <ProfileHeader>
+        <HeaderButtons>
+          <Button onClick={() => document.getElementById('coverInput').click()}>
+            <CameraOutlined />
+            Thay đổi ảnh bìa
+          </Button>
+          <FileInput
+            id="coverInput"
+            type="file"
+            accept="image/*"
+            onChange={() => handleFileUpload('cover')}
+          />
+          <Button onClick={() => setShowAccountModal(true)}>
+            <UserOutlined />
+            Đổi mật khẩu
+          </Button>
+          <Button onClick={handleOpenEditModal}>
+            <EditOutlined />
+            Chỉnh sửa profile
+          </Button>
+        </HeaderButtons>
+        <ProfileContent>
+          <AvatarContainer>
+            <TeamOutlined style={{ fontSize: '48px', color: '#5FB8B3' }} />
+            <div className="camera-icon" onClick={() => document.getElementById('avatarInput').click()}>
+              <CameraOutlined />
+            </div>
+            <FileInput
+              id="avatarInput"
+              type="file"
+              accept="image/*"
+              onChange={() => handleFileUpload('avatar')}
+            />
+          </AvatarContainer>
+          <UserName>{profileData.name}</UserName>
+          <PremiumTag>
+            <CrownOutlined />
+            {profileData.premiumTitle}
+          </PremiumTag>
+        </ProfileContent>
+      </ProfileHeader>
 
-            <ContentGrid>
-                <Card>
-                    <EditableSection>
-                        <SectionTitle>Giới thiệu</SectionTitle>
-                        {!isEditingIntro && (
-                            <button
-                                className="edit-button"
-                                onClick={() => setIsEditingIntro(true)}
-                            >
-                                <EditOutlined />
-                                Sửa
-                            </button>
-                        )}
-                        {isEditingIntro ? (
-                            <>
-                                <EditableTextarea
-                                    value={tempIntroText}
-                                    onChange={(e) => setTempIntroText(e.target.value)}
-                                    placeholder="Viết giới thiệu về bản thân..."
-                                />
-                                <div className="edit-actions">
-                                    <button className="action-button save" onClick={handleSaveIntro}>
-                                        <SaveOutlined />
-                                        Lưu
-                                    </button>
-                                    <button className="action-button cancel" onClick={handleCancelIntro}>
-                                        <CloseOutlined />
-                                        Hủy
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <p>{introText}</p>
-                        )}
-                    </EditableSection>
-                </Card>
-
-                <Card>
-                    <SectionTitle>Thông tin cá nhân</SectionTitle>
-                    <InfoList>
-                        {personalInfo.map((info, index) => (
-                            <InfoItem key={index}>
-                                <div className="icon">{info.icon}</div>
-                                <div className="content">
-                                    <span className="label">{info.label}</span>
-                                    <span className="value">{info.value}</span>
-                                </div>
-                            </InfoItem>
-                        ))}
-                    </InfoList>
-                </Card>
-            </ContentGrid>
-
-            {showEditModal && (
-                <Modal onClick={(e) => e.target === e.currentTarget && handleCancelProfile()}>
-                    <ModalContent>
-                        <ModalHeader>
-                            <h2>Chỉnh sửa thông tin cá nhân</h2>
-                            <CloseButton onClick={handleCancelProfile}>
-                                <CloseOutlined />
-                            </CloseButton>
-                        </ModalHeader>
-
-                        <FormSection>
-                            <h3>
-                                <UserOutlined />
-                                Thông tin cơ bản
-                            </h3>
-                            <FormGrid>
-                                <FormField>
-                                    <label>Tên hiển thị</label>
-                                    <EditableInput
-                                        value={tempProfileData.name}
-                                        onChange={(e) => setTempProfileData({ ...tempProfileData, name: e.target.value })}
-                                        placeholder="Nhập tên hiển thị"
-                                    />
-                                </FormField>
-                                {tempPersonalInfo.filter(info => info.key !== 'joinDate').map((info, index) => (
-                                    <FormField key={index} className={info.key === 'address' ? 'full-width' : ''}>
-                                        <label>{info.label}</label>
-                                        {info.key === 'gender' ? (
-                                            <SelectInput
-                                                value={info.value}
-                                                onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
-                                            >
-                                                <option value="Nam">Nam</option>
-                                                <option value="Nữ">Nữ</option>
-                                                <option value="Khác">Khác</option>
-                                            </SelectInput>
-                                        ) : info.key === 'age' ? (
-                                            <EditableInput
-                                                type="number"
-                                                min="1"
-                                                max="100"
-                                                value={info.value}
-                                                onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
-                                                placeholder="Nhập tuổi"
-                                            />
-                                        ) : (
-                                            <EditableInput
-                                                value={info.value}
-                                                onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
-                                                placeholder={`Nhập ${info.label.toLowerCase()}`}
-                                            />
-                                        )}
-                                    </FormField>
-                                ))}
-                            </FormGrid>
-                        </FormSection>
-
-                        <ModalActions>
-                            <ActionButton className="secondary" onClick={handleCancelProfile}>
-                                <CloseOutlined />
-                                Hủy
-                            </ActionButton>
-                            <ActionButton className="primary" onClick={handleSaveProfile}>
-                                <SaveOutlined />
-                                Lưu thay đổi
-                            </ActionButton>
-                        </ModalActions>
-                    </ModalContent>
-                </Modal>
+      <ContentGrid>
+        <Card>
+          <EditableSection>
+            <SectionTitle>Giới thiệu</SectionTitle>
+            {!isEditingIntro && (
+              <button
+                className="edit-button"
+                onClick={() => setIsEditingIntro(true)}
+              >
+                <EditOutlined />
+                Sửa
+              </button>
             )}
-        </Container>
-    );
+            {isEditingIntro ? (
+              <>
+                <EditableTextarea
+                  value={tempIntroText}
+                  onChange={(e) => setTempIntroText(e.target.value)}
+                  placeholder="Viết giới thiệu về bản thân..."
+                />
+                <div className="edit-actions">
+                  <button className="action-button save" onClick={handleSaveIntro}>
+                    <SaveOutlined />
+                    Lưu
+                  </button>
+                  <button className="action-button cancel" onClick={handleCancelIntro}>
+                    <CloseOutlined />
+                    Hủy
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p>{introText}</p>
+            )}
+          </EditableSection>
+        </Card>
+
+        <Card>
+          <SectionTitle>Thông tin cá nhân</SectionTitle>
+          <InfoList>
+            {personalInfo.map((info, index) => (
+              <InfoItem key={index}>
+                <div className="icon">{info.icon}</div>
+                <div className="content">
+                  <span className="label">{info.label}</span>
+                  <span className="value">{info.value}</span>
+                </div>
+              </InfoItem>
+            ))}
+          </InfoList>
+        </Card>
+      </ContentGrid>
+
+      {showEditModal && (
+        <Modal onClick={(e) => e.target === e.currentTarget && handleCancelProfile()}>
+          <ModalContent>
+            <ModalHeader>
+              <h2>Chỉnh sửa thông tin cá nhân</h2>
+              <CloseButton onClick={handleCancelProfile}>
+                <CloseOutlined />
+              </CloseButton>
+            </ModalHeader>
+
+            <FormSection>
+              <h3>
+                <UserOutlined />
+                Thông tin cơ bản
+              </h3>
+              <FormGrid>
+                <FormField>
+                  <label>Tên hiển thị</label>
+                  <EditableInput
+                    value={tempProfileData.name}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, name: e.target.value })}
+                    placeholder="Nhập tên hiển thị"
+                  />
+                </FormField>
+                {tempPersonalInfo.filter(info => info.key !== 'joinDate').map((info, index) => (
+                  <FormField key={index} className={info.key === 'address' ? 'full-width' : ''}>
+                    <label>{info.label}</label>
+                    {info.key === 'gender' ? (
+                      <SelectInput
+                        value={info.value}
+                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
+                      >
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                      </SelectInput>
+                    ) : info.key === 'age' ? (
+                      <EditableInput
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={info.value}
+                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
+                        placeholder="Nhập tuổi"
+                      />
+                    ) : (
+                      <EditableInput
+                        value={info.value}
+                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
+                        placeholder={`Nhập ${info.label.toLowerCase()}`}
+                      />
+                    )}
+                  </FormField>
+                ))}
+              </FormGrid>
+            </FormSection>
+
+            <ModalActions>
+              <ActionButton className="secondary" onClick={handleCancelProfile}>
+                <CloseOutlined />
+                Hủy
+              </ActionButton>
+              <ActionButton className="primary" onClick={handleSaveProfile}>
+                <SaveOutlined />
+                Lưu thay đổi
+              </ActionButton>
+            </ModalActions>
+          </ModalContent>
+        </Modal>
+      )}
+
+      {showAccountModal && (
+        <Modal onClick={e => e.target === e.currentTarget && setShowAccountModal(false)}>
+          <ModalContent>
+            <ModalHeader>
+              <h2>Chỉnh sửa tài khoản & mật khẩu</h2>
+              <CloseButton onClick={() => setShowAccountModal(false)}>
+                <CloseOutlined />
+              </CloseButton>
+            </ModalHeader>
+            <FormSection>
+              <FormField className="full-width">
+                <label>Tài khoản đăng nhập</label>
+                <EditableInput
+                  type="text"
+                  value={accountForm.username}
+                  onChange={e => setAccountForm({ ...accountForm, username: e.target.value })}
+                  placeholder="Nhập tài khoản đăng nhập"
+                />
+              </FormField>
+              <FormField className="full-width">
+                <label>Mật khẩu cũ</label>
+                <EditableInput
+                  type="password"
+                  value={accountForm.oldPassword}
+                  onChange={e => setAccountForm({ ...accountForm, oldPassword: e.target.value })}
+                  placeholder="Nhập mật khẩu cũ"
+                />
+              </FormField>
+              <FormField className="full-width">
+                <label>Mật khẩu mới</label>
+                <EditableInput
+                  type="password"
+                  value={accountForm.newPassword}
+                  onChange={e => setAccountForm({ ...accountForm, newPassword: e.target.value })}
+                  placeholder="Nhập mật khẩu mới"
+                />
+              </FormField>
+              <FormField className="full-width">
+                <label>Xác nhận mật khẩu mới</label>
+                <EditableInput
+                  type="password"
+                  value={accountForm.confirmPassword}
+                  onChange={e => setAccountForm({ ...accountForm, confirmPassword: e.target.value })}
+                  placeholder="Nhập lại mật khẩu mới"
+                />
+              </FormField>
+              {accountError && <div style={{ color: 'red', marginTop: 8 }}>{accountError}</div>}
+            </FormSection>
+            <ModalActions>
+              <ActionButton className="secondary" onClick={() => setShowAccountModal(false)}>
+                <CloseOutlined />
+                Hủy
+              </ActionButton>
+              <ActionButton className="primary" onClick={() => {
+                // Validate
+                if (!accountForm.username) {
+                  setAccountError('Vui lòng nhập tài khoản đăng nhập.');
+                  return;
+                }
+                if (!accountForm.oldPassword) {
+                  setAccountError('Vui lòng nhập mật khẩu cũ.');
+                  return;
+                }
+                if (!accountForm.newPassword) {
+                  setAccountError('Vui lòng nhập mật khẩu mới.');
+                  return;
+                }
+                if (accountForm.newPassword !== accountForm.confirmPassword) {
+                  setAccountError('Mật khẩu mới và xác nhận không khớp.');
+                  return;
+                }
+                setAccountError('');
+                setShowAccountModal(false);
+                // Thực hiện lưu thông tin ở đây nếu cần
+              }}>
+                <SaveOutlined />
+                Lưu thay đổi
+              </ActionButton>
+            </ModalActions>
+          </ModalContent>
+        </Modal>
+      )}
+    </Container>
+  );
 };
 
 export default Profile; 

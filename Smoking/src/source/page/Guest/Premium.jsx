@@ -40,52 +40,82 @@ const PageHeader = styled.div`
 
 const PremiumCard = styled(Card)`
   height: 100%;
-  border-radius: 12px;
-  transition: all 0.3s;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
   
   ${props => props.featured && `
     transform: scale(1.05);
     border: 2px solid #5FB8B3;
+    box-shadow: 0 8px 24px rgba(95, 184, 179, 0.15);
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #5FB8B3, #4A90E2);
+    }
     
     .ant-card-head {
-      background: #5FB8B3;
-      border-radius: 12px 12px 0 0;
+      background: linear-gradient(135deg, #5FB8B3 0%, #4A90E2 100%);
+      border-radius: 16px 16px 0 0;
+      padding: 20px;
       
       .ant-card-head-title {
         color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
       }
     }
   `}
   
   &:hover {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
   }
   
   .price {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     color: #5FB8B3;
-    margin: 20px 0;
-    font-weight: bold;
-  }
-  
-  .duration {
-    color: #666;
-    font-size: 1rem;
+    margin: 24px 0;
+    font-weight: 700;
+    text-align: center;
+    
+    .duration {
+      color: #666;
+      font-size: 1rem;
+      font-weight: 400;
+    }
   }
   
   .feature-list {
-    margin: 20px 0;
+    margin: 24px 0;
+    padding: 0 16px;
     
     li {
-      margin: 10px 0;
+      margin: 16px 0;
       display: flex;
       align-items: center;
+      color: #2c3e50;
+      font-size: 1rem;
       
       .anticon {
         color: #5FB8B3;
-        margin-right: 10px;
+        margin-right: 12px;
+        font-size: 16px;
       }
     }
+  }
+
+  .ant-card-extra {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
   }
 `;
 
@@ -95,6 +125,92 @@ const StyledSteps = styled(Steps)`
   .ant-steps-item-process .ant-steps-item-icon {
     background-color: #5FB8B3;
     border-color: #5FB8B3;
+  }
+
+  .ant-steps-item-finish .ant-steps-item-icon {
+    border-color: #5FB8B3;
+    
+    .ant-steps-icon {
+      color: #5FB8B3;
+    }
+  }
+
+  .ant-steps-item-finish .ant-steps-item-tail::after {
+    background-color: #5FB8B3;
+  }
+`;
+
+const PaymentMethodCard = styled(Card)`
+  border-radius: 12px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  &.selected {
+    border-color: #5FB8B3;
+    background: rgba(95, 184, 179, 0.05);
+  }
+
+  .payment-icon {
+    font-size: 24px;
+    margin-right: 12px;
+    color: #5FB8B3;
+  }
+
+  .payment-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+`;
+
+const ConfirmationSection = styled.div`
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 24px;
+
+  h3 {
+    color: #2c3e50;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .label {
+      color: #666;
+    }
+
+    .value {
+      font-weight: 500;
+      color: #2c3e50;
+    }
+  }
+
+  .total-row {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid #eee;
+    font-weight: 600;
+    font-size: 1.1rem;
   }
 `;
 
@@ -271,8 +387,6 @@ const ActionButtons = styled.div`
   }
 `;
 
-
-
 const StyledAlert = styled(Alert)`
     margin-top: 20px;
     border-radius: 12px;
@@ -358,6 +472,7 @@ const Premium = () => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [form] = Form.useForm();
     const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
 
     const plans = [
         {
@@ -439,66 +554,65 @@ const Premium = () => {
         setIsChangeModalVisible(true);
     };
 
+    const handlePaymentMethodSelect = (method) => {
+        setSelectedPaymentMethod(method);
+        form.setFieldsValue({ paymentMethod: method.value });
+    };
+
     const steps = [
-        {
-            title: 'Thông tin cá nhân',
-            content: (
-                <Form.Item
-                    name="userInfo"
-                    rules={[{ required: true, message: 'Vui lòng điền thông tin!' }]}
-                >
-                    <Input.Group size="large">
-                        <Form.Item
-                            name="fullName"
-                            rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
-                        >
-                            <Input placeholder="Họ và tên" />
-                        </Form.Item>
-                        <Form.Item
-                            name="email"
-                            rules={[
-                                { required: true, message: 'Vui lòng nhập email!' },
-                                { type: 'email', message: 'Email không hợp lệ!' }
-                            ]}
-                        >
-                            <Input placeholder="Email" />
-                        </Form.Item>
-                        <Form.Item
-                            name="phone"
-                            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
-                        >
-                            <Input placeholder="Số điện thoại" />
-                        </Form.Item>
-                    </Input.Group>
-                </Form.Item>
-            )
-        },
         {
             title: 'Phương thức thanh toán',
             content: (
-                <Form.Item
-                    name="paymentMethod"
-                    rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán!' }]}
-                >
-                    <Radio.Group>
-                        {paymentMethods.map(method => (
-                            <Radio.Button key={method.value} value={method.value}>
-                                {method.label}
-                            </Radio.Button>
-                        ))}
-                    </Radio.Group>
-                </Form.Item>
+                <div>
+                    <p style={{ marginBottom: '16px', color: '#666' }}>
+                        Vui lòng chọn phương thức thanh toán phù hợp với bạn
+                    </p>
+                    {paymentMethods.map(method => (
+                        <PaymentMethodCard
+                            key={method.value}
+                            className={selectedPaymentMethod?.value === method.value ? 'selected' : ''}
+                            onClick={() => handlePaymentMethodSelect(method)}
+                        >
+                            <div className="payment-info">
+                                <div>
+                                    <DollarOutlined className="payment-icon" />
+                                    <span>{method.label}</span>
+                                </div>
+                                {selectedPaymentMethod?.value === method.value && (
+                                    <CheckOutlined style={{ color: '#5FB8B3' }} />
+                                )}
+                            </div>
+                        </PaymentMethodCard>
+                    ))}
+                </div>
             )
         },
         {
             title: 'Xác nhận',
             content: (
-                <div>
-                    <h3>Thông tin đăng ký:</h3>
-                    <p>Gói: {selectedPlan?.title}</p>
-                    <p>Giá: {selectedPlan?.price}đ/{selectedPlan?.duration}</p>
-                    <Tag color="green">Bạn sẽ được kích hoạt ngay sau khi thanh toán thành công</Tag>
-                </div>
+                <ConfirmationSection>
+                    <h3>Thông tin đăng ký</h3>
+                    <div className="info-row">
+                        <span className="label">Gói thành viên:</span>
+                        <span className="value">{selectedPlan?.title}</span>
+                    </div>
+                    <div className="info-row">
+                        <span className="label">Thời hạn:</span>
+                        <span className="value">{selectedPlan?.duration}</span>
+                    </div>
+                    <div className="info-row">
+                        <span className="label">Phương thức thanh toán:</span>
+                        <span className="value">{selectedPaymentMethod?.label}</span>
+                    </div>
+                    <div className="info-row total-row">
+                        <span className="label">Tổng thanh toán:</span>
+                        <span className="value">{selectedPlan?.price}đ</span>
+                    </div>
+                    <Tag color="green" style={{ marginTop: '16px', padding: '8px 16px' }}>
+                        <SafetyCertificateOutlined style={{ marginRight: '8px' }} />
+                        Bạn sẽ được kích hoạt ngay sau khi thanh toán thành công
+                    </Tag>
+                </ConfirmationSection>
             )
         }
     ];
@@ -675,15 +789,22 @@ const Premium = () => {
             </Row>
 
             <Modal
-                title="Đăng ký gói thành viên"
+                title={
+                    <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                        <CrownOutlined style={{ fontSize: '32px', color: '#5FB8B3', marginBottom: '16px' }} />
+                        <h2 style={{ margin: 0, color: '#2c3e50' }}>Đăng ký gói thành viên</h2>
+                    </div>
+                }
                 visible={isModalVisible}
                 onCancel={() => {
                     setIsModalVisible(false);
                     setCurrentStep(0);
                     form.resetFields();
+                    setSelectedPaymentMethod(null);
                 }}
                 footer={null}
                 width={700}
+                centered
             >
                 <Form form={form} layout="vertical">
                     <StyledSteps current={currentStep}>
@@ -694,20 +815,42 @@ const Premium = () => {
 
                     <div>{steps[currentStep].content}</div>
 
-                    <div style={{ marginTop: '24px', textAlign: 'right' }}>
+                    <div style={{ marginTop: '32px', textAlign: 'right' }}>
                         {currentStep > 0 && (
-                            <Button style={{ marginRight: '8px' }} onClick={handlePrev}>
+                            <Button 
+                                style={{ marginRight: '8px' }} 
+                                onClick={handlePrev}
+                                size="large"
+                            >
                                 Quay lại
                             </Button>
                         )}
                         {currentStep < steps.length - 1 && (
-                            <Button type="primary" onClick={handleNext}>
+                            <Button 
+                                type="primary" 
+                                onClick={handleNext}
+                                size="large"
+                                style={{ 
+                                    backgroundColor: '#5FB8B3',
+                                    borderColor: '#5FB8B3',
+                                    padding: '0 32px'
+                                }}
+                            >
                                 Tiếp tục
                             </Button>
                         )}
                         {currentStep === steps.length - 1 && (
-                            <Button type="primary" onClick={handlePayment}>
-                                Thanh toán
+                            <Button 
+                                type="primary" 
+                                onClick={handlePayment}
+                                size="large"
+                                style={{ 
+                                    backgroundColor: '#5FB8B3',
+                                    borderColor: '#5FB8B3',
+                                    padding: '0 32px'
+                                }}
+                            >
+                                Thanh toán ngay
                             </Button>
                         )}
                     </div>

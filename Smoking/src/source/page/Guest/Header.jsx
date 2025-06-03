@@ -86,30 +86,30 @@ const NavIcons = styled.div`
 `;
 
 const Header = () => {
-    return (
-        <HeaderContainer>
-            <Logo to="/guest/home">
-                <img src="/Images/logo.jpg" alt="SmokeFree" />
-                <span>SmokeFree</span>
-            </Logo>
+  return (
+    <HeaderContainer>
+      <Logo to="/guest/home">
+        <img src="/Images/logo.jpg" alt="SmokeFree" />
+        <span>SmokeFree</span>
+      </Logo>
 
-            <SearchBar
-                placeholder="Tìm kiếm..."
-                prefix={<SearchOutlined style={{ color: '#5FB8B3' }} />}
-            />
+      <SearchBar
+        placeholder="Tìm kiếm..."
+        prefix={<SearchOutlined style={{ color: '#5FB8B3' }} />}
+      />
 
-            <NavIcons>
-                <Link to="/guest/notifications">
-                    <Badge count={2} style={{ backgroundColor: '#5FB8B3' }}>
-                        <BellOutlined />
-                    </Badge>
-                </Link>
-                <Link to="/guest/profile">
-                    <UserOutlined />
-                </Link>
-            </NavIcons>
-        </HeaderContainer>
-    );
+      <NavIcons>
+        <Link to="/guest/premium-notice">
+          <Badge count={2} style={{ backgroundColor: '#5FB8B3' }}>
+            <BellOutlined />
+          </Badge>
+        </Link>
+        <Link to="/guest/profile">
+          <UserOutlined />
+        </Link>
+      </NavIcons>
+    </HeaderContainer>
+  );
 };
 
 export default Header; 

@@ -64,16 +64,9 @@ const UpgradePackages = () => {
         {packages.map((pkg) => {
           const isSelected = selectedPackage === pkg.id;
 
-          // useInView hook để theo dõi phần tử có trong viewport chưa
-          const { ref, inView } = useInView({
-            triggerOnce: true,
-            threshold: 0.3,
-          });
-
           return (
             <div
               key={pkg.id}
-              ref={ref}
               onClick={() => setSelectedPackage(pkg.id)}
               className={`cursor-pointer rounded-xl border-2 border-[#4da8a8] bg-white p-6 flex flex-col shadow-sm transition-shadow duration-300
   ${isSelected ? "shadow-lg" : "hover:shadow-md"}`}
@@ -97,39 +90,10 @@ const UpgradePackages = () => {
                   </li>
                 ))}
               </ul>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  alert(`Bạn đã chọn ${pkg.name}. Tiến hành thanh toán.`);
-                }}
-                className={`mt-6 self-start rounded-full bg-[#4da8a8] px-10 py-3 text-white font-semibold text-lg shadow-lg transition-all duration-500 ${inView ? "animate-heartBeat" : ""
-                  } cursor-pointer`}
-              >
-                Thanh toán ngay ♥
-              </button>
             </div>
           );
         })}
       </div>
-
-      {/* Thêm CSS animation heartbeat bằng Tailwind dạng @keyframes */}
-      <style>{`
-        @keyframes heartBeat {
-          0%, 100% {
-            transform: scale(1);
-          }
-          14%, 42% {
-            transform: scale(1.3);
-          }
-          28%, 70% {
-            transform: scale(1);
-          }
-        }
-        .animate-heartBeat {
-          animation: heartBeat 8s ease-in-out;
-        }
-      `}</style>
     </div>
   );
 };

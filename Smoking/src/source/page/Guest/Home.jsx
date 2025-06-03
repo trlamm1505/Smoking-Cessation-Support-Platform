@@ -170,16 +170,38 @@ const TimelineCard = styled(StyledCard)`
     }
 `;
 
-const AchievementCard = styled(StyledCard)`
-    .achievement-item {
+const LeaderboardCard = styled(StyledCard)`
+    .leaderboard-header {
         display: flex;
         align-items: center;
-        margin-bottom: 20px;
-        padding: 20px;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #f0f9f8;
+
+        .trophy-icon {
+            font-size: 24px;
+            color: #FFD700;
+            margin-right: 12px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+    }
+
+    .leaderboard-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        padding: 16px;
         background: #f8fffe;
-        border-radius: 16px;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        transition: all 0.3s ease;
         border: 1px solid transparent;
+        position: relative;
+        overflow: hidden;
 
         &:hover {
             background: white;
@@ -188,27 +210,89 @@ const AchievementCard = styled(StyledCard)`
             box-shadow: 0 4px 12px rgba(95, 184, 179, 0.15);
         }
 
-        .icon {
-            font-size: 28px;
-            color: #5FB8B3;
-            margin-right: 20px;
-            transition: all 0.3s ease;
+        &:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #5FB8B3;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        &:hover .icon {
-            transform: scale(1.2) rotate(10deg);
+        &:hover:before {
+            opacity: 1;
         }
 
-        .info {
+        .rank {
+            font-size: 24px;
+            font-weight: bold;
+            width: 40px;
+            text-align: center;
+            position: relative;
+            
+            &:after {
+                content: '';
+                position: absolute;
+                bottom: -4px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 20px;
+                height: 2px;
+                background: #5FB8B3;
+                border-radius: 2px;
+            }
+        }
+
+        .rank-1 { color: #FFD700; }
+        .rank-2 { color: #C0C0C0; }
+        .rank-3 { color: #CD7F32; }
+        .rank-other { color: #5FB8B3; }
+
+        .user-info {
             flex: 1;
+            margin-left: 16px;
         }
-    }
 
-    .ant-tag {
-        border: none;
-        padding: 6px 12px;
-        border-radius: 20px;
-        margin-top: 8px;
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #666;
+            font-size: 13px;
+            padding: 4px 8px;
+            background: rgba(95, 184, 179, 0.1);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+
+            &:hover {
+                background: rgba(95, 184, 179, 0.2);
+                transform: translateY(-2px);
+            }
+
+            .anticon {
+                color: #5FB8B3;
+                font-size: 14px;
+            }
+        }
     }
 
     .ant-btn {
@@ -218,6 +302,7 @@ const AchievementCard = styled(StyledCard)`
         font-size: 16px;
         border-radius: 10px;
         transition: all 0.3s ease;
+        margin-top: 24px;
         
         &:hover {
             background: #4ca29d;
@@ -236,16 +321,30 @@ const Home = () => {
         moneySaved: 1500000,
         healthImprovement: 35,
         nextMilestone: 30,
-        achievements: [
+        leaderboard: [
             {
-                title: '7 Ngày Không Hút Thuốc',
-                description: 'Hoàn thành thử thách 7 ngày đầu tiên',
-                date: '10/03/2024'
+                name: 'Nguyễn Văn A',
+                daysWithoutSmoking: 45,
+                moneySaved: 4500000,
+                cigarettesAvoided: 900
             },
             {
-                title: 'Tiết Kiệm 1 Triệu',
-                description: 'Tiết kiệm được 1 triệu đồng từ việc cai thuốc',
-                date: '12/03/2024'
+                name: 'Trần Thị B',
+                daysWithoutSmoking: 30,
+                moneySaved: 3000000,
+                cigarettesAvoided: 600
+            },
+            {
+                name: 'Lê Văn C',
+                daysWithoutSmoking: 25,
+                moneySaved: 2500000,
+                cigarettesAvoided: 500
+            },
+            {
+                name: 'Phạm Thị D',
+                daysWithoutSmoking: 20,
+                moneySaved: 2000000,
+                cigarettesAvoided: 400
             }
         ],
         recentActivities: [
@@ -362,25 +461,37 @@ const Home = () => {
                 </Col>
 
                 <Col xs={24} lg={8}>
-                    <AchievementCard title="Thành Tích Đạt Được">
-                        {userData.achievements.map((achievement, index) => (
-                            <div key={index} className="achievement-item">
-                                <TrophyOutlined className="icon" />
-                                <div className="info">
-                                    <Text strong>{achievement.title}</Text>
-                                    <br />
-                                    <Text type="secondary">{achievement.description}</Text>
-                                    <br />
-                                    <Tag color="#5FB8B3">
-                                        <CalendarOutlined /> {achievement.date}
-                                    </Tag>
+                    <LeaderboardCard title={
+                        <div className="leaderboard-header">
+                            <TrophyOutlined className="trophy-icon" />
+                            <span>Bảng Xếp Hạng</span>
+                        </div>
+                    }>
+                        {userData.leaderboard.map((user, index) => (
+                            <div key={index} className="leaderboard-item">
+                                <div className={`rank rank-${index < 3 ? index + 1 : 'other'}`}>
+                                    #{index + 1}
+                                </div>
+                                <div className="user-info">
+                                    <div className="user-name">{user.name}</div>
+                                    <div className="stats">
+                                        <div className="stat-item">
+                                            <ClockCircleOutlined /> {user.daysWithoutSmoking} ngày
+                                        </div>
+                                        <div className="stat-item">
+                                            <DollarOutlined /> {user.moneySaved.toLocaleString()}đ
+                                        </div>
+                                        <div className="stat-item">
+                                            <HeartOutlined /> {user.cigarettesAvoided} điếu
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}
-                        <Button type="primary" block style={{ marginTop: 16, background: '#5FB8B3', borderColor: '#5FB8B3' }}>
-                            Xem Tất Cả Thành Tích
+                        <Button type="primary" block>
+                            Xem Bảng Xếp Hạng Đầy Đủ
                         </Button>
-                    </AchievementCard>
+                    </LeaderboardCard>
                 </Col>
             </Row>
         </PageContainer>
