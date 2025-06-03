@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router';
 // import '../../CSS/Coach/CoachLayout.css'; // Remove CSS file import
-import { HomeOutlined, TeamOutlined, CalendarOutlined, MessageOutlined, BarChartOutlined, UserOutlined, LogoutOutlined, EditOutlined, WarningOutlined, ContainerOutlined } from '@ant-design/icons';
+import { HomeOutlined, TeamOutlined, CalendarOutlined, BarChartOutlined, UserOutlined, LogoutOutlined, EditOutlined, WarningOutlined, ContainerOutlined, ReadOutlined } from '@ant-design/icons';
 import CoachHeader from './CoachHeader';
 import { Menu, Modal, Button } from 'antd';
 
@@ -51,7 +51,7 @@ const CoachLayout = () => {
           {/*
           <li>
             <Link to="/coach/home" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/home') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+              isActive('/coach/home') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
             }`}>
               <HomeOutlined className="text-lg" />
               <span className="text-base">Bảng điều khiển</span>
@@ -60,7 +60,7 @@ const CoachLayout = () => {
           */}
           <li>
             <Link to="/coach/members" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/members') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+              isActive('/coach/members') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
             }`}>
               <TeamOutlined className="text-lg" />
               <span className="text-base">Khách hàng</span>
@@ -68,31 +68,31 @@ const CoachLayout = () => {
           </li>
            <li>
             <Link to="/coach/consultation" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/consultation') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+              isActive('/coach/consultation') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
             }`}>
               <CalendarOutlined className="text-lg" />
               <span className="text-base">Lịch tư vấn</span>
             </Link>
           </li>
           <li>
-            <Link to="/coach/messages" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/messages') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
-            }`}>
-              <MessageOutlined className="text-lg" />
-              <span className="text-base">Tin nhắn</span>
-            </Link>
-          </li>
-          <li>
             <Link to="/coach/statistics" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/statistics') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+              isActive('/coach/statistics') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
             }`}>
               <BarChartOutlined className="text-lg" />
               <span className="text-base">Thống kê</span>
             </Link>
           </li>
           <li>
+            <Link to="/coach/blog-view" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
+              isActive('/coach/blog-view') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
+            }`}>
+              <ReadOutlined className="text-lg" /> {/* Icon for Blog View */}
+              <span className="text-base">Xem Blog</span> {/* Link text */}
+            </Link>
+          </li>
+          <li>
             <Link to="/coach/blog" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/blog') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+              isActive('/coach/blog') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
             }`}>
               <EditOutlined className="text-lg" />
               <span className="text-base">Quản lý Blog</span>
@@ -100,7 +100,7 @@ const CoachLayout = () => {
           </li>
           <li>
             <Link to="/coach/profile" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/profile') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+              isActive('/coach/profile') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
             }`}>
               <UserOutlined className="text-lg" />
               <span className="text-base">Hồ sơ</span>
@@ -108,7 +108,7 @@ const CoachLayout = () => {
           </li>
           <li>
             <Link to="/coach/report" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/report') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+              isActive('/coach/report') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
             }`}>
               <WarningOutlined className="text-lg" />
               <span className="text-base">Báo cáo</span>
@@ -120,7 +120,7 @@ const CoachLayout = () => {
         <div className="p-4 border-t border-gray-200">
            <button 
               onClick={handleLogoutClick}
-              className="flex items-center space-x-3 p-3 rounded-md text-gray-700 hover:bg-gray-100 w-full text-left transition-colors"
+              className="flex items-center space-x-3 p-3 rounded-md text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3] w-full text-left transition-colors"
             >
              <LogoutOutlined className="text-lg" />
              <span className="text-base">Đăng xuất</span>

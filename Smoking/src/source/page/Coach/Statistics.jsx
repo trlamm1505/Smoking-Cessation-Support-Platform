@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Typography, Row, Col, Statistic } from 'antd';
 import styled from 'styled-components';
-import { UserOutlined, CalendarOutlined, SmileOutlined, LineChartOutlined } from '@ant-design/icons';
+import { UserOutlined, CalendarOutlined, SmileOutlined, LineChartOutlined, FileTextOutlined, BarChartOutlined } from '@ant-design/icons';
 // You might need charting libraries like Chart.js or Recharts here
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -12,6 +12,26 @@ const Container = styled.div`
   background: white;
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  background-color: #e0f2f1;
+  padding: 16px 24px;
+  border-radius: 8px;
+  border: 1px solid #b2dfdb;
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #2c7a75;
+    font-size: 24px;
+    font-weight: 600;
+  }
 `;
 
 const StyledCard = styled(Card)`
@@ -40,7 +60,15 @@ const Statistics = () => {
 
   return (
     <Container>
-      <Title level={2} style={{ marginBottom: 24 }}>Báo cáo và Thống kê</Title>
+      <Header>
+        <div className="header-title">
+          {/* Placeholder for Logo */}
+          {/* <img src="/path/to/your/logo.png" alt="Logo" style={{ height: '30px' }} /> */}
+          <BarChartOutlined /> {/* Icon for Statistics/Reports */}
+          <Title level={2} style={{ margin: 0 }}>Báo cáo và Thống kê</Title>
+        </div>
+        {/* Optional: Add buttons or other elements on the right side of the header */}
+      </Header>
 
       <div style={{ marginBottom: 24 }}>
         <Title level={3}>Tổng quan</Title>
