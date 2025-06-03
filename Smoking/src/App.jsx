@@ -13,16 +13,12 @@ import FAQWithImage from './source/page/Home/FAQWithImage'
 import { FaSquare } from 'react-icons/fa'
 import Home from './source/page/Home/Home'
 import AppRouter from './routes/AppRouter'
-function App() {
- 
 
+function App() {
   return (
     <>
-    <AppRouter/>
+      <AppRouter/>
     </>
-
-   
-    
   )
 }
 

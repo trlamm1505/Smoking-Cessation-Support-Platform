@@ -28,6 +28,14 @@ import ConsultationCoach from '../source/page/Coach/Consultation'
 import ReportPage from '../source/page/Coach/ReportPage'
 import NotificationsPage from '../source/page/Users/NotificationsPage'
 import CoachBlog from '../source/page/Coach/CoachBlog'
+import AdminLayout from '../source/page/Admin/AdminLayout'
+import Dashboard from '../source/page/Admin/Dashboard'
+import CommunityManagement from '../source/page/Admin/CommunityManagement'
+import BlogManagementAdmin from '../source/page/Admin/BlogManagement'
+import RevenueStatistics from '../source/page/Admin/RevenueStatistics'
+import AdminBlog from '../source/page/Admin/AdminBlog'
+import AdminCommunity from '../source/page/Admin/AdminCommunity'
+import AdminReports from '../source/page/Admin/AdminReports'
 
 // Guest Components
 import GuestHome from '../source/page/Guest/Home'
@@ -92,6 +100,18 @@ export default function AppRouter() {
         <Route path='blog' element={<BlogManagement />} />
         <Route path='report' element={<ReportPage />} />
         <Route path='blog-view' element={<CoachBlog />} />
+      </Route>
+
+      {/* Admin Routes */}
+      <Route path='admin' element={<AdminLayout />}>
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path='dashboard' element={<Dashboard />} />
+        <Route path='community-manage' element={<CommunityManagement />} />
+        <Route path='blog-manage' element={<BlogManagementAdmin />} />
+        <Route path='revenue' element={<RevenueStatistics />} />
+        <Route path='blog' element={<AdminBlog />} />
+        <Route path='community' element={<AdminCommunity />} />
+        <Route path='reports' element={<AdminReports />} />
       </Route>
 
       {/* Splats: TỨC LÀ NẾU KO THẤY TUYẾN ĐƯỜNG PHÙ HỢP THÌ SẼ TRẢ VỀ TRANG NÀY */}

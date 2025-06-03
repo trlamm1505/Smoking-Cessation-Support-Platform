@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 // import '../../CSS/Coach/CoachLayout.css'; // Remove CSS file import
 import { HomeOutlined, TeamOutlined, CalendarOutlined, BarChartOutlined, UserOutlined, LogoutOutlined, EditOutlined, WarningOutlined, ContainerOutlined, ReadOutlined } from '@ant-design/icons';
 import CoachHeader from './CoachHeader';
@@ -7,6 +7,7 @@ import { Menu, Modal, Button } from 'antd';
 
 const CoachLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
 
   const isActive = (path) => {
@@ -21,8 +22,8 @@ const CoachLayout = () => {
   // Handle actual logout after confirmation
   const handleConfirmLogout = () => {
     console.log('Logging out...');
-    // TODO: Implement actual logout logic here (e.g., clearing token, redirecting to login)
-    setIsLogoutModalVisible(false); // Close modal after logout
+    navigate('/');
+    setIsLogoutModalVisible(false);
   };
 
   const handleCancelLogout = () => {

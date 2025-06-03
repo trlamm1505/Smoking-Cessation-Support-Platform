@@ -1,4 +1,4 @@
- import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, Row, Col, Tag, Space, Typography, Modal } from 'antd';
 import { CalendarOutlined, EyeOutlined, ReadOutlined, UserOutlined as AntUserOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
@@ -80,7 +80,7 @@ const CategoryLabel = styled(Tag)`
 const ArticleTitle = styled.h3`
   font-size: 20px;
   line-height: 1.4;
-  margin: 0 0 12px 0;
+  margin: 0 0 12px 0;-
   color: rgba(0, 0, 0, 0.85);
   font-weight: 600;
 `;
@@ -218,57 +218,12 @@ const categories = [
 ];
 
 const articles = [
-    {
-        id: 1,
-        title: 'Top 10 Phương Pháp Cai Thuốc Lá Hiệu Quả Nhất',
-        category: 'methods',
-        coverImage: 'https://source.unsplash.com/random/800x400/?quit-smoking',
-        author: {
-            name: 'TS. Nguyễn Văn A',
-            avatar: 'https://source.unsplash.com/random/100x100/?doctor',
-            title: 'Chuyên gia cai nghiện'
-        },
-        views: '1520',
-        readTime: '8 phút đọc',
-        date: '15/03/2024',
-        excerpt: 'Khám phá những phương pháp cai thuốc lá được chứng minh hiệu quả bởi các chuyên gia y tế...',
-        content: 'Nội dung đầy đủ của bài viết Top 10 Phương Pháp Cai Thuốc Lá Hiệu Quả Nhất. Đây là phần sẽ hiển thị trong modal. Nó sẽ bao gồm chi tiết về từng phương pháp, lời khuyên từ chuyên gia, và các bước thực hiện. Mục tiêu là cung cấp đủ thông tin cho người đọc. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
-    },
-    {
-        id: 2,
-        title: 'Tác Hại của Thuốc Lá Đối Với Sức Khỏe Tim Mạch',
-        category: 'health',
-        coverImage: 'https://source.unsplash.com/random/800x400/?doctor',
-        author: {
-            name: 'PGS.TS Trần B',
-            avatar: 'https://source.unsplash.com/random/100x100/?professor',
-            title: 'Bác sĩ Tim mạch'
-        },
-        views: '2150',
-        readTime: '10 phút đọc',
-        date: '12/03/2024',
-        excerpt: 'Nghiên cứu mới nhất về ảnh hưởng của thuốc lá đối với hệ tim mạch và cách phòng ngừa...',
-        content: 'Nội dung đầy đủ của bài viết Tác Hại của Thuốc Lá Đối Với Sức Khỏe Tim Mạch. Bài viết này sẽ đi sâu vào cơ chế thuốc lá gây hại cho tim, các bệnh liên quan, và cách giảm thiểu rủi ro khi bỏ thuốc. Thông tin này rất quan trọng để người đọc hiểu rõ hơn. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-    },
-    {
-        id: 3,
-        title: 'Câu Chuyện Thành Công: Hành Trình Cai Thuốc Của Tôi',
-        category: 'success',
-        coverImage: 'https://source.unsplash.com/random/800x400/?healthy-food',
-        author: {
-            name: 'Lê Văn C',
-            avatar: 'https://source.unsplash.com/random/100x100/?person',
-            title: 'Người truyền cảm hứng'
-        },
-        views: '3300',
-        readTime: '12 phút đọc',
-        date: '10/03/2024',
-        excerpt: 'Chia sẻ từ người đã cai thuốc thành công sau 15 năm hút thuốc và những bài học quý giá...',
-        content: 'Nội dung đầy đủ của bài viết Câu Chuyện Thành Công: Hành Trình Cai Thuốc Của Tôi. Câu chuyện truyền cảm hứng này sẽ chia sẻ kinh nghiệm cá nhân, những khó khăn đã vượt qua, và những lợi ích đạt được sau khi bỏ thuốc. Đây là nguồn động lực lớn cho người đọc. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-    }
+    { id: 1, title: 'Top 10 Phương Pháp Cai Thuốc Lá Hiệu Quả Nhất', category: 'methods', coverImage: 'https://source.unsplash.com/random/800x400/?quit-smoking', author: { name: 'TS. Nguyễn Văn A', avatar: 'https://source.unsplash.com/random/100x100/?doctor', title: 'Chuyên gia cai nghiện' }, views: '1520', readTime: '8 phút đọc', date: '15/03/2024', excerpt: 'Khám phá những phương pháp cai thuốc lá được chứng minh hiệu quả bởi các chuyên gia y tế...', content: 'Nội dung đầy đủ của bài viết Top 10 Phương Pháp Cai Thuốc Lá Hiệu Quả Nhất. Đây là phần sẽ hiển thị trong modal. Nó sẽ bao gồm chi tiết về từng phương pháp, lời khuyên từ chuyên gia, và các bước thực hiện. Mục tiêu là cung cấp đủ thông tin cho người đọc. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.' },
+    { id: 2, title: 'Tác Hại của Thuốc Lá Đối Với Sức Khỏe Tim Mạch', category: 'health', coverImage: 'https://source.unsplash.com/random/800x400/?doctor', author: { name: 'PGS.TS Trần B', avatar: 'https://source.unsplash.com/random/100x100/?professor', title: 'Bác sĩ Tim mạch' }, views: '2150', readTime: '10 phút đọc', date: '12/03/2024', excerpt: 'Nghiên cứu mới nhất về ảnh hưởng của thuốc lá đối với hệ tim mạch và cách phòng ngừa...', content: 'Nội dung đầy đủ của bài viết Tác Hại của Thuốc Lá Đối Với Sức Khỏe Tim Mạch. Bài viết này sẽ đi sâu vào cơ chế thuốc lá gây hại cho tim, các bệnh liên quan, và cách giảm thiểu rủi ro khi bỏ thuốc. Thông tin này rất quan trọng để người đọc hiểu rõ hơn. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' },
+    { id: 3, title: 'Câu Chuyện Thành Công: Hành Trình Cai Thuốc Của Tôi', category: 'success', coverImage: 'https://source.unsplash.com/random/800x400/?healthy-food', author: { name: 'Lê Văn C', avatar: 'https://source.unsplash.com/random/100x100/?person', title: 'Người truyền cảm hứng' }, views: '3300', readTime: '12 phút đọc', date: '10/03/2024', excerpt: 'Chia sẻ từ người đã cai thuốc thành công sau 15 năm hút thuốc và những bài học quý giá...', content: 'Nội dung đầy đủ của bài viết Câu Chuyện Thành Công: Hành Trình Cai Thuốc Của Tôi. Câu chuyện truyền cảm hứng này sẽ chia sẻ kinh nghiệm cá nhân, những khó khăn đã vượt qua, và những lợi ích đạt được sau khi bỏ thuốc. Đây là nguồn động lực lớn cho người đọc. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' }
 ];
 
-const Blog = () => {
+const AdminBlog = () => {
     const [activeCategory, setActiveCategory] = useState('all');
     const [isArticleModalVisible, setIsArticleModalVisible] = useState(false);
     const [selectedArticle, setSelectedArticle] = useState(null);
@@ -329,12 +284,13 @@ const Blog = () => {
 
     return (
         <BlogContainer>
-            <Header>
+            {/* Removing the Header here as it will be provided by AdminLayout */}
+            {/* <Header>
                 <div className="header-title">
                     <ReadOutlined />
                     <Title level={2} style={{ margin: 0 }}>Blog Cai Thuốc Lá</Title>
                 </div>
-            </Header>
+            </Header> */}
 
             <CategoryContainer>
                 {categories.map(category => (
@@ -388,4 +344,4 @@ const Blog = () => {
     );
 };
 
-export default Blog;
+export default AdminBlog; 
