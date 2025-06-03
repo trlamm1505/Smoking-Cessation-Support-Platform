@@ -53,6 +53,7 @@ export default function AppRouter() {
         <Route path='consultation' element={<GuestConsultation />} />
         <Route path='blog' element={<GuestBlog />} />
         <Route path='premium' element={<GuestPremium />} />
+        <Route path='premium-notice' element={<RequirePremiumNotice />} />
         <Route path='progress' element={<RequirePremiumNotice />} />
         <Route path='plan' element={<RequirePremiumNotice />} />
         <Route path='smoking-tracker' element={<RequirePremiumNotice />} />

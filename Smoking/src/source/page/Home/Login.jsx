@@ -21,28 +21,6 @@ const AuthForm = () => {
           <form className="form">
             <h2 className="text-7xl font-bold text-[#4fd1c5] mb-[50px]">Đăng ký</h2>
 
-            {/* Mạng xã hội */}
-            <div className="flex justify-center gap-4 my-5">
-              <a
-                href="#"
-                className="w-[80px] h-[80px] flex items-center justify-center border border-gray-300 rounded-full text-[35px] font-bold hover:bg-gray-100 transition"
-              >
-                f
-              </a>
-              <a
-                href="#"
-                className="w-[80px] h-[80px] flex items-center justify-center border border-gray-300 rounded-full text-[35px] font-bold hover:bg-gray-100 transition"
-              >
-                G+
-              </a>
-              <a
-                href="#"
-                className="w-[80px] h-[80px] flex items-center justify-center border border-gray-300 rounded-full text-[35px] font-bold hover:bg-gray-100 transition"
-              >
-                in
-              </a>
-            </div>
-
             {/* Các trường nhập */}
             <div className="mt-10 flex flex-col items-center space-y-5">
               <input
@@ -60,6 +38,11 @@ const AuthForm = () => {
                 placeholder="Mật khẩu"
                 className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
               />
+              <input
+                type="password"
+                placeholder="Xác nhận lại mật khẩu"
+                className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+              />
 
               {/* Nút đăng ký */}
               <button className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6">
@@ -74,27 +57,6 @@ const AuthForm = () => {
         <div className="form-container sign-in-container ">
           <form className="form">
             <h2 className="text-7xl font-bold text-[#4fd1c5] mb-10">Đăng nhập </h2>
-            <div className="flex justify-center gap-5 ">
-              <a
-                href="#"
-                className="w-[80px] h-[80px] flex items-center justify-center border border-gray-300 rounded-full text-[30px] font-bold hover:bg-gray-100 transition"
-              >
-                f
-              </a>
-              <a
-                href="#"
-                className="w-[80px] h-[80px] flex items-center justify-center border border-gray-300 rounded-full text-[30px] font-bold hover:bg-gray-100 transition"
-              >
-                G+
-              </a>
-              <a
-                href="#"
-                className="w-[80px] h-[80px] flex items-center justify-center border border-gray-300 rounded-full text-[30px] font-bold hover:bg-gray-100 transition"
-              >
-                in
-              </a>
-            </div>
-
             <div className="mt-15 flex flex-col items-center space-y-5">
               <input
                 type="email"

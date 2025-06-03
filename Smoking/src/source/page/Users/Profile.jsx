@@ -814,6 +814,14 @@ const AddAchievementSection = styled.div`
 const Profile = () => {
   const [isEditingIntro, setIsEditingIntro] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [accountForm, setAccountForm] = useState({
+    username: 'nguyenvana',
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [accountError, setAccountError] = useState('');
 
   const [introText, setIntroText] = useState(
     "Xin chào! Tôi đang trong hành trình cai thuốc lá và đã đạt được nhiều tiến bộ. Tôi tin rằng với sự hỗ trợ của cộng đồng, chúng ta có thể cùng nhau vượt qua thử thách này."
@@ -933,6 +941,10 @@ const Profile = () => {
             accept="image/*"
             onChange={() => handleFileUpload('cover')}
           />
+          <Button onClick={() => setShowAccountModal(true)}>
+            <UserOutlined />
+            Đổi mật khẩu
+          </Button>
           <Button onClick={handleOpenEditModal}>
             <EditOutlined />
             Chỉnh sửa profile
@@ -1075,6 +1087,89 @@ const Profile = () => {
                 Hủy
               </ActionButton>
               <ActionButton className="primary" onClick={handleSaveProfile}>
+                <SaveOutlined />
+                Lưu thay đổi
+              </ActionButton>
+            </ModalActions>
+          </ModalContent>
+        </Modal>
+      )}
+
+      {showAccountModal && (
+        <Modal onClick={e => e.target === e.currentTarget && setShowAccountModal(false)}>
+          <ModalContent>
+            <ModalHeader>
+              <h2>Chỉnh sửa tài khoản & mật khẩu</h2>
+              <CloseButton onClick={() => setShowAccountModal(false)}>
+                <CloseOutlined />
+              </CloseButton>
+            </ModalHeader>
+            <FormSection>
+              <FormField className="full-width">
+                <label>Tài khoản đăng nhập</label>
+                <EditableInput
+                  type="text"
+                  value={accountForm.username}
+                  onChange={e => setAccountForm({ ...accountForm, username: e.target.value })}
+                  placeholder="Nhập tài khoản đăng nhập"
+                />
+              </FormField>
+              <FormField className="full-width">
+                <label>Mật khẩu cũ</label>
+                <EditableInput
+                  type="password"
+                  value={accountForm.oldPassword}
+                  onChange={e => setAccountForm({ ...accountForm, oldPassword: e.target.value })}
+                  placeholder="Nhập mật khẩu cũ"
+                />
+              </FormField>
+              <FormField className="full-width">
+                <label>Mật khẩu mới</label>
+                <EditableInput
+                  type="password"
+                  value={accountForm.newPassword}
+                  onChange={e => setAccountForm({ ...accountForm, newPassword: e.target.value })}
+                  placeholder="Nhập mật khẩu mới"
+                />
+              </FormField>
+              <FormField className="full-width">
+                <label>Xác nhận mật khẩu mới</label>
+                <EditableInput
+                  type="password"
+                  value={accountForm.confirmPassword}
+                  onChange={e => setAccountForm({ ...accountForm, confirmPassword: e.target.value })}
+                  placeholder="Nhập lại mật khẩu mới"
+                />
+              </FormField>
+              {accountError && <div style={{ color: 'red', marginTop: 8 }}>{accountError}</div>}
+            </FormSection>
+            <ModalActions>
+              <ActionButton className="secondary" onClick={() => setShowAccountModal(false)}>
+                <CloseOutlined />
+                Hủy
+              </ActionButton>
+              <ActionButton className="primary" onClick={() => {
+                // Validate
+                if (!accountForm.username) {
+                  setAccountError('Vui lòng nhập tài khoản đăng nhập.');
+                  return;
+                }
+                if (!accountForm.oldPassword) {
+                  setAccountError('Vui lòng nhập mật khẩu cũ.');
+                  return;
+                }
+                if (!accountForm.newPassword) {
+                  setAccountError('Vui lòng nhập mật khẩu mới.');
+                  return;
+                }
+                if (accountForm.newPassword !== accountForm.confirmPassword) {
+                  setAccountError('Mật khẩu mới và xác nhận không khớp.');
+                  return;
+                }
+                setAccountError('');
+                setShowAccountModal(false);
+                // Thực hiện lưu thông tin ở đây nếu cần
+              }}>
                 <SaveOutlined />
                 Lưu thay đổi
               </ActionButton>

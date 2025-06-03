@@ -4,21 +4,15 @@ import { ExclamationCircleOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router';
 
-// Hiệu ứng rung cho icon
-const shake = keyframes`
-  0% { transform: scale(1) rotate(0deg);}
-  20% { transform: scale(1.1) rotate(-10deg);}
-  40% { transform: scale(1.2) rotate(10deg);}
-  60% { transform: scale(1.1) rotate(-6deg);}
-  80% { transform: scale(1.05) rotate(4deg);}
-  100% { transform: scale(1) rotate(0deg);}
+const shine = keyframes`
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
 `;
 
-// Hiệu ứng sáng cho nút
-const glow = keyframes`
-  0% { box-shadow: 0 0 0 0 #5FB8B3; }
-  70% { box-shadow: 0 0 16px 8px #5FB8B3; }
-  100% { box-shadow: 0 0 0 0 #5FB8B3; }
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 `;
 
 const FullScreenContainer = styled.div`
@@ -27,66 +21,103 @@ const FullScreenContainer = styled.div`
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #e6f7f6 0%, #f0f9f8 100%);
+  background: #e8f4f3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  animation: ${fadeIn} 0.6s ease-out;
+`;
+
+const ContentWrapper = styled.div`
+  background: white;
+  padding: 48px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(95, 184, 179, 0.1);
+  text-align: center;
+  max-width: 480px;
+  width: 90%;
+  animation: ${fadeIn} 0.6s ease-out 0.2s both;
+  border: 1px solid #E3F6F5;
 `;
 
 const IconWrapper = styled.div`
   font-size: 72px;
-  color: #faad14;
+  color: #5FB8B3;
   margin-bottom: 32px;
-  animation: ${shake} 1.2s infinite;
+  animation: ${shine} 2s infinite;
+  filter: drop-shadow(0 4px 8px rgba(95, 184, 179, 0.2));
+`;
+
+const Title = styled.h1`
+  font-size: 2rem;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 `;
 
 const Message = styled.div`
-  font-size: 1.6rem;
-  color: #333;
+  font-size: 1.1rem;
+  color: #444;
   text-align: center;
-  margin-bottom: 40px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  margin-bottom: 32px;
+  line-height: 1.6;
+  font-weight: 400;
 `;
 
 const AnimatedButton = styled(Button)`
-  font-size: 1.2rem;
-  padding: 0 36px;
-  height: 56px;
-  border-radius: 28px;
-  background: linear-gradient(90deg, #5FB8B3 0%, #4A90E2 100%);
+  font-size: 1rem;
+  padding: 0 32px;
+  height: 48px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #5FB8B3 0%, #70C1BC 100%);
   border: none;
-  animation: ${glow} 2s infinite;
-  box-shadow: 0 4px 24px rgba(95, 184, 179, 0.15);
+  box-shadow: 0 2px 8px rgba(95, 184, 179, 0.2);
+  transition: all 0.3s ease;
 
   a {
-    color: #fff;
+    color: white;
     font-weight: 600;
     text-decoration: none;
-    display: block;
-    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: 100%;
+    gap: 8px;
   }
 
   &:hover {
-    background: linear-gradient(90deg, #4A90E2 0%, #5FB8B3 100%);
-    filter: brightness(1.1);
+    background: linear-gradient(135deg, #70C1BC 0%, #5FB8B3 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(95, 184, 179, 0.3);
+  }
+
+  &:active {
+    transform: translateY(1px);
   }
 `;
 
 const RequirePremiumNotice = () => (
   <FullScreenContainer>
-    <IconWrapper>
-      <ExclamationCircleOutlined />
-    </IconWrapper>
-    <Message>
-      Bạn không thể sử dụng dịch vụ này.<br />
-      Vui lòng đăng ký để sử dụng.
-    </Message>
-    <AnimatedButton type="primary" size="large">
-      <Link to="/guest/premium">Đăng ký gói thành viên</Link>
-    </AnimatedButton>
+    <ContentWrapper>
+      <IconWrapper>
+        <ExclamationCircleOutlined />
+      </IconWrapper>
+      <Title>
+        <span>Yêu Cầu Tài Khoản Premium</span>
+      </Title>
+      <Message>
+        Để sử dụng tính năng này, bạn cần nâng cấp lên tài khoản Premium.
+        Hãy đăng ký ngay để trải nghiệm đầy đủ các tính năng hữu ích.
+      </Message>
+      <AnimatedButton type="primary" size="large">
+        <Link to="/guest/premium">Nâng Cấp Premium Ngay</Link>
+      </AnimatedButton>
+    </ContentWrapper>
   </FullScreenContainer>
 );
 
