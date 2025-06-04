@@ -41,7 +41,10 @@ const AuthForm = () => {
     });
     const data = await response.json();
     if (response.ok) {
-      navigate('/guest/home');
+      setIsSignUp(false); // Chuyển sang form đăng nhập
+      setLoginData({ email: registerData.email, password: '' }); // Điền sẵn email
+      setRegisterData({ name: '', email: '', password: '', confirmPassword: '' }); // Reset form đăng ký
+      alert('Đăng ký thành công! Vui lòng đăng nhập.');
     } else {
       alert(data.message || 'Đăng ký thất bại!');
     }
