@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Card, Row, Col, Typography, Avatar, Button, Rate, Tag, Modal, Form, DatePicker, TimePicker, Input, message, Select } from 'antd';
 import { MessageOutlined, CalendarOutlined, ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
-import ReviewList from './components/ReviewList';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -11,43 +10,50 @@ const { Option } = Select;
 
 const PageContainer = styled.div`
   padding: 24px;
+  background: linear-gradient(135deg, #e6f7f6 0%, #f0f9f8 100%);
+  min-height: 100vh;
 
   .page-title {
     margin-bottom: 24px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    background-color: #e0f2f1; /* Light blue-green background */
-    padding: 16px 24px; /* Add some padding */
-    border-radius: 8px; /* Rounded corners */
-    border: 1px solid #b2dfdb; /* Subtle border */
-    font-size: 24px;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.85);
-
+    gap: 16px;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    
     .anticon {
-      color: #2c7a75; /* Darker shade for icon */
-      font-size: 24px;
+      color: #5FB8B3;
+      font-size: 28px;
+      animation: shine 2s infinite;
     }
-
-    h1 {
-      font-size: 24px; /* Ensure title size is consistent */
-      font-weight: 600; /* Ensure title weight is consistent */
-      color: rgba(0, 0, 0, 0.85); /* Ensure title color is consistent */
-      margin: 0; /* Remove default margin */
+    @keyframes shine {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    h1, .ant-typography {
+      font-size: 32px;
+      font-weight: 600;
+      color: #222;
+      margin: 0;
+      text-transform: none;
     }
   }
 `;
 
 const CoachCard = styled(Card)`
-  margin-bottom: 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: all 0.3s;
-
+  margin-bottom: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  background: white;
+  border: none;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(95, 184, 179, 0.12);
   }
 
   .ant-card-body {
@@ -175,7 +181,7 @@ const Consultation = () => {
             successRate: '92%',
             specialties: ['Tư vấn tâm lý', 'Liệu pháp thay thế', 'Quản lý stress'],
             availability: true,
-            availableTime: ['09:00', '10:00', '14:00', '15:00', '16:00'],
+            availableTime: ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
         },
         {
             id: 2,
@@ -188,7 +194,7 @@ const Consultation = () => {
             successRate: '95%',
             specialties: ['CBT Therapy', 'Meditation', 'Cai nghiện'],
             availability: true,
-            availableTime: ['09:30', '10:30', '13:30', '14:30', '15:30'],
+            availableTime: ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
         }
     ];
 
@@ -219,8 +225,8 @@ const Consultation = () => {
 
     // Function to update appointment status
     const updateAppointmentStatus = (appointmentId, status, meetLink = null) => {
-        setUserAppointments(prev => prev.map(appointment => 
-            appointment.id === appointmentId 
+        setUserAppointments(prev => prev.map(appointment =>
+            appointment.id === appointmentId
                 ? { ...appointment, status, meetLink }
                 : appointment
         ));
@@ -238,7 +244,7 @@ const Consultation = () => {
     const handleModalOk = () => {
         form.validateFields().then((values) => {
             console.log('Booking values:', values);
-            
+
             // Add new appointment to userAppointments
             const newAppointment = {
                 id: userAppointments.length + 1,
@@ -250,7 +256,7 @@ const Consultation = () => {
                 topic: values.topic,
                 notes: values.notes
             };
-            
+
             setUserAppointments(prev => [...prev, newAppointment]);
             message.success('Đặt lịch tư vấn thành công!');
             setIsModalVisible(false);
@@ -299,8 +305,8 @@ const Consultation = () => {
     return (
         <PageContainer>
             <div className="page-title">
-                <CalendarOutlined />
-                <Title level={1} style={{ margin: 0 }}>Đặt lịch tư vấn</Title>
+                <MessageOutlined />
+                <Title level={1} style={{ margin: 0 }}>Đặt Lịch Tư Vấn</Title>
             </div>
 
             <Row gutter={[16, 16]}>
@@ -430,11 +436,15 @@ const Consultation = () => {
                             label="Chọn giờ tư vấn"
                             rules={[{ required: true, message: 'Vui lòng chọn giờ!' }]}
                         >
-                            <TimePicker
+                            <Select
                                 style={{ width: '100%' }}
-                                format="HH:mm"
                                 placeholder="Chọn giờ tư vấn"
-                            />
+                                disabled={!selectedCoach}
+                            >
+                                {selectedCoach && selectedCoach.availableTime.map((time, idx) => (
+                                    <Option key={time + idx} value={time}>{time}</Option>
+                                ))}
+                            </Select>
                         </Form.Item>
 
                         <Form.Item

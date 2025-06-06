@@ -10,23 +10,38 @@ const PageContainer = styled.div`
   padding: 32px;
   max-width: 1200px;
   margin: 0 auto;
-  background: #f8f9fa;
-  min-height: calc(100vh - 64px);
+  background: linear-gradient(135deg, #e6f7f6 0%, #f0f9f8 100%);
+  min-height: 100vh;
 `;
 
 const PageHeader = styled.div`
   text-align: center;
   margin-bottom: 40px;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  border: none;
   
   .main-title {
     color: #2c3e50;
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
     
     .icon {
       color: #5FB8B3;
       margin-right: 16px;
+      font-size: 32px;
+      animation: shine 2s infinite;
+    }
+    @keyframes shine {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); }
     }
   }
   
@@ -484,7 +499,7 @@ const Premium = () => {
                 'Hỗ trợ qua email',
                 'Tham gia cộng đồng',
                 'Các tài liệu hướng dẫn'
-            ]   
+            ]
         },
         {
             title: 'Nâng Cao',
@@ -817,8 +832,8 @@ const Premium = () => {
 
                     <div style={{ marginTop: '32px', textAlign: 'right' }}>
                         {currentStep > 0 && (
-                            <Button 
-                                style={{ marginRight: '8px' }} 
+                            <Button
+                                style={{ marginRight: '8px' }}
                                 onClick={handlePrev}
                                 size="large"
                             >
@@ -826,11 +841,11 @@ const Premium = () => {
                             </Button>
                         )}
                         {currentStep < steps.length - 1 && (
-                            <Button 
-                                type="primary" 
+                            <Button
+                                type="primary"
                                 onClick={handleNext}
                                 size="large"
-                                style={{ 
+                                style={{
                                     backgroundColor: '#5FB8B3',
                                     borderColor: '#5FB8B3',
                                     padding: '0 32px'
@@ -840,11 +855,11 @@ const Premium = () => {
                             </Button>
                         )}
                         {currentStep === steps.length - 1 && (
-                            <Button 
-                                type="primary" 
+                            <Button
+                                type="primary"
                                 onClick={handlePayment}
                                 size="large"
-                                style={{ 
+                                style={{
                                     backgroundColor: '#5FB8B3',
                                     borderColor: '#5FB8B3',
                                     padding: '0 32px'

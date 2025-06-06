@@ -79,14 +79,14 @@ const Sidebar = () => {
             icon: <HomeOutlined />
         },
         {
-            path: '/users/progress',
-            name: 'Tiến Trình Cai Thuốc',
-            icon: <LineChartOutlined />
-        },
-        {
             path: '/users/plan',
             name: 'Kế Hoạch Cai Thuốc',
             icon: <CalendarOutlined />
+        },
+        {
+            path: '/users/schedule',
+            name: 'Lịch Trình Chi Tiết',
+            icon: <ScheduleOutlined />
         },
         {
             path: '/users/smoking-tracker',
@@ -94,10 +94,13 @@ const Sidebar = () => {
             icon: <SmileOutlined />
         },
         {
-            path: '/users/schedule',
-            name: 'Lịch Trình Chi Tiết',
-            icon: <ScheduleOutlined />
+            path: '/users/progress',
+            name: 'Tiến Trình Cai Thuốc',
+            icon: <LineChartOutlined />
         },
+        
+        
+        
         {
             path: '/users/achievements',
             name: 'Thành Tích',
