@@ -5,16 +5,18 @@ import Header from './Header'
 
 const UserLayout = () => {
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100" style={{ paddingTop: 72 }}>
             {/* Header */}
             <Header />
 
             <div className="flex">
                 {/* Sidebar */}
-                <Sidebar />
+                <div style={{ position: 'fixed', top: 72, left: 0, height: 'calc(100vh - 72px)', width: 240, zIndex: 1000 }}>
+                    <Sidebar />
+                </div>
 
                 {/* Main Content */}
-                <main className="flex-1 p-8">
+                <main className="flex-1 p-8" style={{ marginLeft: 240 }}>
                     <Outlet />
                 </main>
             </div>

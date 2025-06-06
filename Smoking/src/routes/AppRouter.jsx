@@ -26,7 +26,6 @@ import Statistics from '../source/page/Coach/Statistics'
 import BlogManagement from '../source/page/Coach/BlogManagement'
 import ConsultationCoach from '../source/page/Coach/Consultation'
 import ReportPage from '../source/page/Coach/ReportPage'
-import NotificationsPage from '../source/page/Users/NotificationsPage'
 import CoachBlog from '../source/page/Coach/CoachBlog'
 import AdminLayout from '../source/page/Admin/AdminLayout'
 import Dashboard from '../source/page/Admin/Dashboard'
@@ -86,7 +85,6 @@ export default function AppRouter() {
         <Route path='community' element={<Community />} />
         <Route path='blog' element={<Blog />} />
         <Route path='reviews' element={<UserReviews />} />
-        <Route path='notifications' element={<NotificationsPage />} />
       </Route>
 
       {/* Coach Routes */}

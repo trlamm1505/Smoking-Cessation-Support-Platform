@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Form, InputNumber, Select, Button, Typography, TimePicker, Space, Table, DatePicker } from 'antd';
+import { Card, Form, InputNumber, Select, Button, Typography, TimePicker, Space, Table, DatePicker, Input } from 'antd';
 import { PlusOutlined, SaveOutlined, ClockCircleOutlined, EnvironmentOutlined, DollarOutlined, SmileOutlined, CalendarOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
@@ -181,169 +181,171 @@ const PageContainer = styled.div`
 `;
 
 const SmokingTrackerPage = () => {
-    const [form] = Form.useForm();
-    const [entries, setEntries] = useState([]);
+  const [form] = Form.useForm();
+  const [entries, setEntries] = useState([]);
+  const [maxCigarettesPerDay, setMaxCigarettesPerDay] = useState(20);
+  const [pricePerPack, setPricePerPack] = useState(30000);
 
-    const onFinish = (values) => {
-        const newEntry = {
-            ...values,
-            id: Date.now(),
-            date: new Date().toLocaleDateString()
-        };
-        setEntries([...entries, newEntry]);
-        form.resetFields();
+  const onFinish = (values) => {
+    const newEntry = {
+      ...values,
+      id: Date.now(),
+      date: new Date().toLocaleDateString()
     };
+    setEntries([...entries, newEntry]);
+    form.resetFields();
+  };
 
-    const columns = [
-        {
-            title: 'Ngày',
-            dataIndex: 'date',
-            key: 'date',
-        },
-        {
-            title: 'Số điếu',
-            dataIndex: 'cigaretteCount',
-            key: 'cigaretteCount',
-        },
-        {
-            title: 'Thời điểm',
-            dataIndex: 'timeOfDay',
-            key: 'timeOfDay',
-            render: (time) => time?.format('HH:mm') || '-',
-        },
-        {
-            title: 'Địa điểm',
-            dataIndex: 'location',
-            key: 'location',
-            render: (location) => {
-                const locations = {
-                    home: 'Tại nhà',
-                    work: 'Nơi làm việc',
-                    social: 'Gặp bạn bè',
-                    stress: 'Lúc căng thẳng',
-                    other: 'Khác'
-                };
-                return locations[location] || location;
-            },
-        },
-        {
-            title: 'Chi phí (VND)',
-            dataIndex: 'price',
-            key: 'price',
-            render: (price) => price?.toLocaleString() || '0',
-        },
-    ];
+  const columns = [
+    {
+      title: 'Ngày ghi nhận',
+      dataIndex: 'date',
+      key: 'date',
+    },
+    {
+      title: 'Số điếu',
+      dataIndex: 'cigaretteCount',
+      key: 'cigaretteCount',
+    },
+    {
+      title: 'Chi phí tiết kiệm (VND)',
+      dataIndex: 'price',
+      key: 'price',
+      render: (price) => price?.toLocaleString() || '0',
+    },
+    {
+      title: 'Mức độ thèm thuốc',
+      dataIndex: 'cravingLevel',
+      key: 'cravingLevel',
+      render: (level) => {
+        if (level === '1') return '1 - Không thèm';
+        if (level === '3') return '3 - Bình thường';
+        if (level === '5') return '5 - Rất thèm';
+        return level;
+      }
+    },
+    {
+      title: 'Tâm trạng',
+      dataIndex: 'mood',
+      key: 'mood',
+      render: (mood) => {
+        if (mood === 'good') return 'Tốt';
+        if (mood === 'normal') return 'Bình thường';
+        if (mood === 'stress') return 'Căng thẳng';
+        if (mood === 'sad') return 'Buồn';
+        return mood;
+      }
+    },
+    {
+      title: 'Ghi chú sức khỏe hôm nay',
+      dataIndex: 'healthNote',
+      key: 'healthNote',
+    },
+  ];
 
-    const totalCigarettes = entries.reduce((sum, entry) => sum + (entry.cigaretteCount || 0), 0);
-    const totalCost = entries.reduce((sum, entry) => sum + (entry.price || 0), 0);
+  const totalCigarettes = entries.reduce((sum, entry) => sum + (entry.cigaretteCount || 0), 0);
+  const totalCost = entries.reduce((sum, entry) => sum + (entry.price || 0), 0);
+  const savedCost = Math.max(0, (maxCigarettesPerDay * pricePerPack) - totalCost);
 
-    return (
-        <PageContainer>
-            <Title level={2} className="page-title">
-                <SmileOutlined />
-                Ghi Nhận Thói Quen Hút Thuốc
-            </Title>
+  return (
+    <PageContainer>
+      <Title level={2} className="page-title">
+        <SmileOutlined />
+        Ghi Nhận Thói Quen Hút Thuốc
+      </Title>
 
-            <div className="stats-cards">
-                <div className="stat-card">
-                    <div className="stat-title">Tổng số điếu hôm nay</div>
-                    <div className="stat-value">{totalCigarettes} điếu</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-title">Chi phí hôm nay</div>
-                    <div className="stat-value">{totalCost.toLocaleString()} VND</div>
-                </div>
-            </div>
+      <Card title="Thêm Ghi Nhận Mới" className="tracker-form-card">
+        <Form
+          form={form}
+          name="smoking_tracker"
+          onFinish={onFinish}
+          layout="vertical"
+        >
+          <Form.Item
+            name="cigaretteCount"
+            label={
+              <Space>
+                <PlusOutlined />
+                <span>Số điếu thuốc</span>
+              </Space>
+            }
+            rules={[{ required: true, message: 'Vui lòng nhập số điếu!' }]}
+          >
+            <InputNumber min={1} placeholder="Nhập số điếu" style={{ width: '100%' }} />
+          </Form.Item>
 
-            <Card title="Thêm Ghi Nhận Mới" className="tracker-form-card">
-                <Form
-                    form={form}
-                    name="smoking_tracker"
-                    onFinish={onFinish}
-                    layout="vertical"
-                >
-                    <Form.Item
-                        name="cigaretteCount"
-                        label={
-                            <Space>
-                                <PlusOutlined />
-                                <span>Số điếu thuốc</span>
-                            </Space>
-                        }
-                        rules={[{ required: true, message: 'Vui lòng nhập số điếu!' }]}
-                    >
-                        <InputNumber min={1} placeholder="Nhập số điếu" style={{ width: '100%' }} />
-                    </Form.Item>
+          <Form.Item
+            name="price"
+            label={
+              <Space>
+                <DollarOutlined />
+                <span>Chi phí tiết kiệm (VND)</span>
+              </Space>
+            }
+            rules={[{ required: true, message: 'Vui lòng nhập chi phí tiết kiệm!' }]}
+          >
+            <InputNumber
+              min={0}
+              step={1000}
+              style={{ width: '100%' }}
+              placeholder="Nhập chi phí tiết kiệm"
+              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              parser={(value) => value.replace(/\D/g, '')}
+            />
+          </Form.Item>
 
-                    <Form.Item
-                        name="timeOfDay"
-                        label={
-                            <Space>
-                                <ClockCircleOutlined />
-                                <span>Thời điểm</span>
-                            </Space>
-                        }
-                        rules={[{ required: true, message: 'Vui lòng chọn thời điểm!' }]}
-                    >
-                        <TimePicker format="HH:mm" style={{ width: '100%' }} />
-                    </Form.Item>
+          <Form.Item
+            name="cravingLevel"
+            label={<span>🔥 Mức độ thèm thuốc</span>}
+            rules={[{ required: true, message: 'Vui lòng chọn mức độ thèm thuốc!' }]}
+          >
+            <Select placeholder="Chọn mức độ thèm thuốc">
+              <Option value="1">1 - Không thèm</Option>
+              <Option value="2">2</Option>
+              <Option value="3">3 - Bình thường</Option>
+              <Option value="4">4</Option>
+              <Option value="5">5 - Rất thèm</Option>
+            </Select>
+          </Form.Item>
 
-                    <Form.Item
-                        name="location"
-                        label={
-                            <Space>
-                                <EnvironmentOutlined />
-                                <span>Địa điểm</span>
-                            </Space>
-                        }
-                        rules={[{ required: true, message: 'Vui lòng chọn địa điểm!' }]}
-                    >
-                        <Select placeholder="Chọn địa điểm">
-                            <Option value="home">Tại nhà</Option>
-                            <Option value="work">Nơi làm việc</Option>
-                            <Option value="social">Gặp bạn bè</Option>
-                            <Option value="stress">Lúc căng thẳng</Option>
-                            <Option value="other">Khác</Option>
-                        </Select>
-                    </Form.Item>
+          <Form.Item
+            name="mood"
+            label={<span>😊 Tâm trạng của bạn</span>}
+            rules={[{ required: true, message: 'Vui lòng chọn tâm trạng!' }]}
+          >
+            <Select placeholder="Chọn tâm trạng">
+              <Option value="good">Tốt</Option>
+              <Option value="normal">Bình thường</Option>
+              <Option value="stress">Căng thẳng</Option>
+              <Option value="sad">Buồn</Option>
+            </Select>
+          </Form.Item>
 
-                    <Form.Item
-                        name="price"
-                        label={
-                            <Space>
-                                <DollarOutlined />
-                                <span>Giá mỗi bao (VND)</span>
-                            </Space>
-                        }
-                        rules={[{ required: true, message: 'Vui lòng nhập giá!' }]}
-                    >
-                        <InputNumber
-                            min={0}
-                            step={1000}
-                            style={{ width: '100%' }}
-                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
-                        />
-                    </Form.Item>
+          <Form.Item
+            name="healthNote"
+            label={<span>🩺 Ghi chú về tình trạng sức khỏe hôm nay</span>}
+          >
+            <Input.TextArea rows={2} placeholder="Nhập ghi chú về sức khỏe hôm nay..." />
+          </Form.Item>
 
-                    <Form.Item>
-                        <Button type="primary" htmlType="submit" icon={<SaveOutlined />} block>
-                            Lưu ghi nhận
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Card>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" icon={<SaveOutlined />} block>
+              Lưu ghi nhận
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
 
-            <Card title="Lịch Sử Ghi Nhận" className="history-card">
-                <Table
-                    columns={columns}
-                    dataSource={entries}
-                    rowKey="id"
-                    pagination={{ pageSize: 10 }}
-                />
-            </Card>
-        </PageContainer>
-    );
+      <Card title="Lịch Sử Ghi Nhận" className="history-card">
+        <Table
+          columns={columns}
+          dataSource={entries}
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
+    </PageContainer>
+  );
 };
 
 export default SmokingTrackerPage; 

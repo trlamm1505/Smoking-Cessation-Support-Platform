@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router'
+import { NavLink } from 'react-router-dom'
 import { HomeOutlined, LineChartOutlined, CalendarOutlined, TrophyOutlined, TeamOutlined, MessageOutlined, FileTextOutlined, CrownOutlined, SmileOutlined, ScheduleOutlined, StarOutlined, LogoutOutlined } from '@ant-design/icons'
 import styled from 'styled-components'
 
@@ -19,22 +19,25 @@ const MenuList = styled.div`
     flex-direction: column;
 `;
 
-const MenuItem = styled(Link)`
+const MenuItem = styled(NavLink)`
     display: flex;
     align-items: center;
     padding: 12px 24px;
     color: #666;
     text-decoration: none;
+    border-radius: 8px;
     transition: all 0.3s;
 
     &:hover, &.active {
         color: #5FB8B3;
-        background: #f0f9f8;
+        background: #e6f7f6;
+        font-weight: 600;
     }
 
     .anticon {
         font-size: 20px;
         margin-right: 12px;
+        transition: color 0.3s;
     }
 
     span {
@@ -61,6 +64,7 @@ const LogoutButton = styled.button`
     cursor: pointer;
     transition: all 0.3s;
     outline: none;
+    border-radius: 8px;
     &:hover {
         color: #ff4d4f;
         background: #fff1f0;
@@ -142,7 +146,7 @@ const Sidebar = () => {
         <SidebarContainer>
             <MenuList>
                 {menuItems.map((item, index) => (
-                    <MenuItem to={item.path} key={index} activeClassName="active">
+                    <MenuItem to={item.path} key={index} className={({ isActive }) => isActive ? 'active' : ''}>
                         {item.icon}
                         <span>{item.name}</span>
                     </MenuItem>

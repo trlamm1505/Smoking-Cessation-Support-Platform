@@ -3,6 +3,7 @@ import { Input, Badge } from 'antd';
 import { SearchOutlined, BellOutlined, UserOutlined } from '@ant-design/icons';
 import { Link } from 'react-router';
 import styled from 'styled-components';
+import Notification from './Notification';
 
 const HeaderContainer = styled.header`
   background: white;
@@ -11,6 +12,11 @@ const HeaderContainer = styled.header`
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1100;
 `;
 
 const Logo = styled(Link)`
@@ -86,6 +92,8 @@ const NavIcons = styled.div`
 `;
 
 const Header = () => {
+  const [notiOpen, setNotiOpen] = React.useState(false);
+
   return (
     <HeaderContainer>
       <Logo to="/users/home">
@@ -99,15 +107,28 @@ const Header = () => {
       />
 
       <NavIcons>
-        <Link to="/users/notifications">
+        <button
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            position: 'relative',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+          onClick={() => setNotiOpen((open) => !open)}
+          aria-label="Thông báo"
+        >
           <Badge count={2} style={{ backgroundColor: '#5FB8B3' }}>
-            <BellOutlined />
+            <BellOutlined style={{ color: notiOpen ? '#5FB8B3' : '#666' }} />
           </Badge>
-        </Link>
+        </button>
         <Link to="/users/profile">
           <UserOutlined />
         </Link>
       </NavIcons>
+      <Notification visible={notiOpen} onClose={() => setNotiOpen(false)} />
     </HeaderContainer>
   );
 };
