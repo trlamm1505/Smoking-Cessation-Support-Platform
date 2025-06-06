@@ -3,14 +3,13 @@ import React, { useState } from 'react';
 // import { Typography, Card, Form, Input, Button, Table, Space, Modal, message, Rate, Select, Option } from 'antd';
 import styled from 'styled-components';
 // Keep icons if needed
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, StarOutlined } from '@ant-design/icons';
 
 // Define basic styled components
 const Container = styled.div`
   padding: 24px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  background: linear-gradient(135deg, #e6f7f6 0%, #f0f9f8 100%);
+  min-height: 100vh;
 `;
 
 const Header = styled.div`
@@ -20,17 +19,40 @@ const Header = styled.div`
   margin-bottom: 24px;
 `;
 
-const StyledCard = styled.div` /* Changed from Card to div */
-  margin-bottom: 24px;
-  border-radius: 12px;
-  padding: 24px; /* Add padding like Card */
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+const TitleRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  .anticon {
+    color: #5FB8B3;
+    font-size: 28px;
+    animation: shine 2s infinite;
+  }
+  @keyframes shine {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.1) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
 `;
 
-const Title = styled.h2` /* Simple Title */
-  font-size: 1.5em;
+const StyledCard = styled.div`
+  margin-bottom: 24px;
+  border-radius: 16px;
+  padding: 24px;
+  background: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(95, 184, 179, 0.12);
+  }
+`;
+
+const Title = styled.h2`
+  font-size: 32px;
   margin: 0;
+  font-weight: 600;
+  color: #222;
 `;
 
 const Button = styled.button` /* Simple Button */
@@ -140,7 +162,7 @@ export default UserReviews;
 // Start rebuilding the component without Ant Design
 const UserReviews = () => {
     // Keep state for reviews and coaches for review
-     const [reviews, setReviews] = useState([
+    const [reviews, setReviews] = useState([
         {
             id: 1,
             coachName: 'Huấn luyện viên A',
@@ -180,15 +202,15 @@ const UserReviews = () => {
         setIsModalVisible(true);
     };
 
-     // Handle form input changes
+    // Handle form input changes
     const handleFormChange = (e) => {
         const { name, value } = e.target;
-         setReviewFormData({ ...reviewFormData, [name]: value });
+        setReviewFormData({ ...reviewFormData, [name]: value });
     };
 
     // Handle rating change (basic for now, need custom component for stars)
     const handleRatingChange = (value) => {
-         setReviewFormData({ ...reviewFormData, rating: value });
+        setReviewFormData({ ...reviewFormData, rating: value });
     };
 
     const handleSubmitReview = () => {
@@ -314,11 +336,15 @@ const UserReviews = () => {
     return (
         <Container>
             <Header>
-                <Title>Đánh giá của tôi</Title>
+                <TitleRow>
+                    <StarOutlined />
+                    <Title>Đánh Giá Của Tôi</Title>
+                </TitleRow>
                 <Button
+                    type="primary"
                     onClick={handleCreateReview}
                 >
-                    Viết đánh giá mới
+                    <PlusOutlined /> Viết đánh giá mới
                 </Button>
             </Header>
 
@@ -332,28 +358,28 @@ const UserReviews = () => {
                 onClose={handleCancelModal}
                 title="Viết đánh giá mới"
             >
-                 {/* Form items for review */}
-                 <div>
-                     {/* Coach Select (basic implementation) */}
-                     <label htmlFor="coachId">Chọn Huấn luyện viên:</label><br/>
-                     <select name="coachId" id="coachId" value={reviewFormData.coachId} onChange={handleFormChange} style={{ marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} required>
-                         <option value="">-- Chọn huấn luyện viên --</option>
-                         {coachesForReview.map(coach => (
-                             <option key={coach.id} value={coach.id}>{coach.name}</option>
-                         ))}
-                     </select><br/>
+                {/* Form items for review */}
+                <div>
+                    {/* Coach Select (basic implementation) */}
+                    <label htmlFor="coachId">Chọn Huấn luyện viên:</label><br />
+                    <select name="coachId" id="coachId" value={reviewFormData.coachId} onChange={handleFormChange} style={{ marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} required>
+                        <option value="">-- Chọn huấn luyện viên --</option>
+                        {coachesForReview.map(coach => (
+                            <option key={coach.id} value={coach.id}>{coach.name}</option>
+                        ))}
+                    </select><br />
 
-                     {/* Rating Input (basic number input, needs custom component for stars) */}
-                     <label htmlFor="rating">Số sao (1-5):</label><br/>
-                     <input type="number" name="rating" id="rating" value={reviewFormData.rating} onChange={handleFormChange} min="1" max="5" style={{ marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} required /><br/>
+                    {/* Rating Input (basic number input, needs custom component for stars) */}
+                    <label htmlFor="rating">Số sao (1-5):</label><br />
+                    <input type="number" name="rating" id="rating" value={reviewFormData.rating} onChange={handleFormChange} min="1" max="5" style={{ marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} required /><br />
 
-                     {/* Comment TextArea */}
-                     <label htmlFor="comment">Nội dung đánh giá:</label><br/>
-                     <textarea name="comment" id="comment" value={reviewFormData.comment} onChange={handleFormChange} rows="4" placeholder="Chia sẻ trải nghiệm của bạn..." style={{ marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }} required></textarea><br/>
+                    {/* Comment TextArea */}
+                    <label htmlFor="comment">Nội dung đánh giá:</label><br />
+                    <textarea name="comment" id="comment" value={reviewFormData.comment} onChange={handleFormChange} rows="4" placeholder="Chia sẻ trải nghiệm của bạn..." style={{ marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }} required></textarea><br />
 
-                     <button onClick={handleSubmitReview} style={{ marginRight: '10px', padding: '10px 15px', backgroundColor: '#1890ff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Gửi đánh giá</button>
-                     <button onClick={handleCancelModal} style={{ padding: '10px 15px', backgroundColor: '#ccc', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Hủy</button>
-                 </div>
+                    <button onClick={handleSubmitReview} style={{ marginRight: '10px', padding: '10px 15px', backgroundColor: '#1890ff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Gửi đánh giá</button>
+                    <button onClick={handleCancelModal} style={{ padding: '10px 15px', backgroundColor: '#ccc', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Hủy</button>
+                </div>
             </CustomModal>
 
             {/* Remove Custom Delete Confirmation Modal */}

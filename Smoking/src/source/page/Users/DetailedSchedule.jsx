@@ -4,7 +4,8 @@ import {
     CheckCircleOutlined,
     CloseCircleOutlined,
     CalendarOutlined,
-    BarChartOutlined
+    BarChartOutlined,
+    ScheduleOutlined
 } from '@ant-design/icons';
 import styled from 'styled-components';
 import dayjs from 'dayjs';
@@ -558,7 +559,7 @@ const DetailedSchedule = () => {
     return (
         <PageContainer>
             <Title level={2} className="page-title">
-                <CalendarOutlined />
+                <ScheduleOutlined style={{ color: '#5FB8B3', fontSize: 32, marginRight: 12, verticalAlign: 'middle' }} />
                 Nhiệm Vụ Hôm Nay
             </Title>
 
