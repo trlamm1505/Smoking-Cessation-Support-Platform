@@ -14,7 +14,28 @@ const AuthForm = () => {
     email: '',
     password: ''
   });
+
+  // State for custom notification
+  const [notification, setNotification] = useState({
+    visible: false,
+    message: '',
+    type: '' // 'success' or 'error'
+  });
+
   const navigate = useNavigate();
+
+  // Function to show notification
+  const showNotification = (message, type) => {
+    setNotification({
+      visible: true,
+      message: message,
+      type: type
+    });
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      setNotification({ ...notification, visible: false });
+    }, 3000);
+  };
 
   useEffect(() => {
     if (window.location.hash === '#signup') {
@@ -44,12 +65,15 @@ const AuthForm = () => {
       setIsSignUp(false); // Chuyển sang form đăng nhập
       setLoginData({ email: registerData.email, password: '' }); // Điền sẵn email
       setRegisterData({ name: '', email: '', password: '', confirmPassword: '' }); // Reset form đăng ký
-      alert('Đăng ký thành công! Vui lòng đăng nhập.');
+      // Use custom notification for success
+      showNotification('Đăng ký thành công! Vui lòng đăng nhập.', 'success');
     } else {
-      alert(data.message || 'Đăng ký thất bại!');
+      // Use custom notification for failure
+      showNotification(data.message || 'Đăng ký thất bại!', 'error');
     }
   } catch (error) {
-    alert('Lỗi kết nối server!');
+    // Use custom notification for error
+    showNotification('Lỗi kết nối server!', 'error');
   }
 };
 
@@ -67,21 +91,72 @@ const AuthForm = () => {
       if (response.ok) {
         const data = await response.json();
         if (!data.user?.isPremium) {
-          navigate('/guest/home');
+          // Show notification first
+          showNotification('Đăng nhập thành công!', 'success');
+          // Then navigate after a short delay to allow notification to be seen
+          setTimeout(() => {
+            navigate('/guest/home');
+          }, 1000);
         } else {
           // Nếu đã mua gói, chuyển hướng sang trang khác nếu muốn
           // navigate('/premium/home');
+          showNotification('Đăng nhập thành công!', 'success');
         }
       } else {
-        alert('Đăng nhập thất bại!');
+        // Use custom notification for failure
+        showNotification('Đăng nhập thất bại!', 'error');
       }
     } catch (error) {
-      alert('Lỗi kết nối server!');
+      // Use custom notification for error
+      showNotification('Lỗi kết nối server!', 'error');
     }
   };
 
   return (
     <div className="auth-container">
+
+      {/* Custom Notification Display */}
+      {notification.visible && (
+        <div
+          className={`notification ${notification.type}`}
+          style={{
+            position: 'fixed', // Position as an overlay
+            top: '20px', // Distance from the top
+            left: '20px', // Distance from the left
+            zIndex: 1000, // Ensure it's above other content
+            padding: '15px 20px', // Add padding
+            borderRadius: '8px', // Rounded corners
+            backgroundColor: notification.type === 'success' ? '#e9ffe9' : '#ffe9e9', // Light green for success, light red for error
+            border: `1px solid ${notification.type === 'success' ? '#a3e9a3' : '#e9a3a3'}`, // Matching border color
+            color: '#333', // Text color
+            display: 'flex', // Use flexbox for content alignment
+            alignItems: 'center', // Center items vertically
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)', // Add a subtle shadow
+          }}
+        >
+          <div className="notification-content" style={{ display: 'flex', alignItems: 'center' }}>
+             {/* Placeholder for success/error icon */}
+            {notification.type === 'success' && <span style={{ marginRight: '10px', color: 'green', fontSize: '1.2em' }}>✅</span>}
+            {notification.type === 'error' && <span style={{ marginRight: '10px', color: 'red', fontSize: '1.2em' }}>❌</span>}
+            <span style={{ fontSize: '1em' }}>{notification.message}</span>
+          </div>
+          {/* Close button */}
+          <button
+            onClick={() => setNotification({ ...notification, visible: false })}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '1.5em', // Make close button a bit larger
+              cursor: 'pointer',
+              marginLeft: '20px', // Increase space from text
+              color: '#aaa', // Color for the close button
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div
         className={`auth-box ${isSignUp ? 'right-panel-active' : ''}`}
         id="authBox"
