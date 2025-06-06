@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Card, List, Typography, Button, message, InputNumber, Space, Calendar, Modal, Badge } from 'antd';
+import { Card, List, Typography, Button, message, InputNumber, Space, Calendar, Modal, Badge, Steps } from 'antd';
 import {
     CheckCircleOutlined,
     CloseCircleOutlined,
     CalendarOutlined,
     BarChartOutlined,
-    ScheduleOutlined
+    ScheduleOutlined,
+    CheckOutlined
 } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -223,6 +224,183 @@ const PageContainer = styled.div`
         }
     }
 `;
+
+const StepsCustomStyle = createGlobalStyle`
+  .ant-steps-item-process .ant-steps-icon {
+    background: linear-gradient(135deg, #5FB8B3 60%, #70C1BC 100%);
+    color: #fff !important;
+    box-shadow: 0 4px 16px rgba(95,184,179,0.15);
+    border: none;
+  }
+  .ant-steps-item-process .ant-steps-icon > .ant-steps-icon-dot {
+    background: transparent !important;
+  }
+`;
+
+// Custom Step Bar Styles (đẹp mắt, spacing đều, line chuyển màu, responsive)
+const StepBarWrapper = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #f8fdfc;
+  border-radius: 16px 16px 0 0;
+  padding: 32px 32px 0 32px;
+  gap: 0;
+  @media (max-width: 700px) {
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 8px 0 8px;
+  }
+`;
+const StepItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 120px;
+  position: relative;
+  z-index: 1;
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 27px;
+    left: 54px;
+    right: -50%;
+    height: 4px;
+    background: ${({ status }) => status === 'done' ? 'linear-gradient(90deg, #5FB8B3 60%, #70C1BC 100%)' : '#e3f6f5'};
+    border-radius: 2px;
+    z-index: 0;
+    @media (max-width: 700px) {
+      display: none;
+    }
+  }
+`;
+const StepNumber = styled.div`
+  font-size: 2.2rem;
+  font-weight: 800;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  box-shadow: ${({ current }) => current ? '0 6px 24px rgba(95,184,179,0.18)' : 'none'};
+  background: ${({ current, done }) =>
+        current ? 'linear-gradient(135deg, #5FB8B3 60%, #70C1BC 100%)'
+            : done ? '#fff' : '#f3f3f3'};
+  color: ${({ current, done }) =>
+        current ? '#fff'
+            : done ? '#5FB8B3' : '#bdbdbd'};
+  border-radius: ${({ current }) => current ? '12px' : '50%'};
+  border: ${({ current, done }) =>
+        current ? 'none'
+            : done ? '2px solid #5FB8B3' : '2px solid #e3f6f5'};
+  transition: all 0.3s;
+  position: relative;
+  z-index: 2;
+`;
+const StepTitle = styled.div`
+  font-size: ${({ current }) => current ? '1.25rem' : '1.08rem'};
+  font-weight: ${({ current }) => current ? 800 : 600};
+  color: ${({ current, done }) =>
+        current ? '#222'
+            : done ? '#5FB8B3' : '#bdbdbd'};
+  margin-bottom: 2px;
+  text-align: center;
+  letter-spacing: 0.01em;
+`;
+const StepDesc = styled.div`
+  font-size: 0.98rem;
+  color: ${({ current, done }) =>
+        current ? '#666'
+            : done ? '#5FB8B3bb' : '#bdbdbd'};
+  margin-bottom: 0;
+  text-align: center;
+  min-height: 36px;
+`;
+
+const StyledSteps = styled(Steps)`
+  .ant-steps-item-icon,
+  .ant-steps-item-process .ant-steps-item-icon,
+  .ant-steps-item-finish .ant-steps-item-icon,
+  .ant-steps-item-wait .ant-steps-item-icon {
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden !important;
+    background-clip: padding-box !important;
+  }
+  .ant-steps-item-process .ant-steps-item-icon {
+    position: relative !important;
+  }
+  .ant-steps-item-process .ant-steps-item-icon::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5FB8B3, #85BB47);
+    z-index: 0;
+  }
+  .ant-steps-item-process .ant-steps-icon {
+    position: relative;
+    z-index: 1;
+    color: #fff !important;
+  }
+  .ant-steps-item-icon {
+    background: white;
+    border: 2px solid #e8e8e8;
+    font-size: 20px;
+    transition: all 0.4s;
+  }
+  .ant-steps-item-finish .ant-steps-item-icon {
+    background: #fff;
+    border-color: #5FB8B3;
+    color: #5FB8B3;
+  }
+  .ant-steps-item-wait .ant-steps-item-icon {
+    background: #f5f7f7;
+    color: #bdbdbd;
+    border: 2px solid #e8f4f3;
+  }
+  .ant-steps-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  .ant-steps-item-description {
+    font-size: 14px;
+    color: #666;
+    max-width: 150px;
+  }
+  .ant-steps-item-tail::after {
+    background: #e8e8e8;
+    height: 2px;
+  }
+  .ant-steps-item-finish .ant-steps-item-tail::after {
+    background: linear-gradient(90deg, #5FB8B3, #85BB47);
+  }
+`;
+
+function CustomStepBar({ phases, currentPhase }) {
+    return (
+        <StepBarWrapper>
+            {phases.map((phase, idx) => {
+                let status = idx < currentPhase ? 'done' : idx === currentPhase ? 'current' : 'upcoming';
+                return (
+                    <StepItem key={phase.title} status={status}>
+                        <StepNumber current={idx === currentPhase} done={idx < currentPhase}>{idx + 1}</StepNumber>
+                        <StepTitle current={idx === currentPhase} done={idx < currentPhase}>{phase.title}</StepTitle>
+                        <StepDesc current={idx === currentPhase} done={idx < currentPhase}>{phase.description}</StepDesc>
+                    </StepItem>
+                );
+            })}
+        </StepBarWrapper>
+    );
+}
 
 const DetailedSchedule = () => {
     const [tasks, setTasks] = useState([
@@ -556,12 +734,45 @@ const DetailedSchedule = () => {
         );
     };
 
+    const phases = [
+        { title: 'Chuẩn bị', description: 'Lập kế hoạch và chuẩn bị tâm lý', duration: 7 },
+        { title: 'Giảm dần', description: 'Giảm số lượng điếu thuốc', duration: 7 },
+        { title: 'Cai hoàn toàn', description: 'Ngừng hút thuốc', duration: 7 },
+        { title: 'Duy trì', description: 'Duy trì thói quen không hút thuốc', duration: 7 }
+    ];
+    const planStartDate = dayjs().startOf('day'); // Giả sử bắt đầu từ hôm nay
+    const daysPassed = dayjs().diff(planStartDate, 'day');
+    let currentPhase = 2; // Giai đoạn số 3: Cai hoàn toàn
+    let phaseStartDay = 0;
+    for (let i = 0; i < phases.length; i++) {
+        phaseStartDay += phases[i].duration;
+        if (daysPassed < phaseStartDay) {
+            // currentPhase = i;
+            break;
+        }
+    }
+    const phaseOrder = phases.map((p, idx) => `${idx + 1}. ${p.title}`);
+
     return (
         <PageContainer>
+            <StepsCustomStyle />
             <Title level={2} className="page-title">
                 <ScheduleOutlined style={{ color: '#5FB8B3', fontSize: 32, marginRight: 12, verticalAlign: 'middle' }} />
-                Nhiệm Vụ Hôm Nay
+                Lịch Trình Chi Tiết
             </Title>
+
+            {/* Giai đoạn cai thuốc */}
+            <Card style={{ marginBottom: 24, borderRadius: 12, border: '1px solid #E3F6F5', boxShadow: '0 2px 8px rgba(95,184,179,0.07)', padding: 0 }}>
+                <StyledSteps current={currentPhase}>
+                    {phases.map(phase => (
+                        <Steps.Step
+                            key={phase.title}
+                            title={<div>{phase.title}<div style={{ fontSize: 13, color: '#888', fontWeight: 400, marginTop: 2 }}>{phase.duration} ngày</div></div>}
+                            description={phase.description}
+                        />
+                    ))}
+                </StyledSteps>
+            </Card>
 
             <Card className="schedule-card">
                 <List

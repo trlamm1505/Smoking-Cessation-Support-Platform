@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Row, Col, Typography, Progress, Tag, Tooltip } from 'antd';
-import { TrophyOutlined, CalendarOutlined, DollarOutlined, HeartOutlined, FireOutlined, StarOutlined } from '@ant-design/icons';
+import { TrophyOutlined, CalendarOutlined, DollarOutlined, HeartOutlined, FireOutlined, StarOutlined, LockOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 const { Title, Text } = Typography;
@@ -93,20 +93,20 @@ const AchievementCard = styled(Card)`
     &:hover {
       transform: translateY(-5px);
       background: ${props => {
-        if (!props.unlocked) return '#f0f0f0';
-        switch (props.type) {
-            case 'time':
-                return 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 50%, #91d5ff 100%)';
-            case 'money':
-                return 'linear-gradient(135deg, #f6ffed 0%, #b7eb8f 50%, #95de64 100%)';
-            case 'health':
-                return 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 50%, #ffa39e 100%)';
-            case 'challenge':
-                return 'linear-gradient(135deg, #fff7e6 0%, #ffd591 50%, #ffc069 100%)';
-            default:
-                return 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 50%, #91d5ff 100%)';
-        }
-    }};
+    if (!props.unlocked) return '#f0f0f0';
+    switch (props.type) {
+      case 'time':
+        return 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 50%, #91d5ff 100%)';
+      case 'money':
+        return 'linear-gradient(135deg, #f6ffed 0%, #b7eb8f 50%, #95de64 100%)';
+      case 'health':
+        return 'linear-gradient(135deg, #fff1f0 0%, #ffccc7 50%, #ffa39e 100%)';
+      case 'challenge':
+        return 'linear-gradient(135deg, #fff7e6 0%, #ffd591 50%, #ffc069 100%)';
+      default:
+        return 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 50%, #91d5ff 100%)';
+    }
+  }};
     }
 
     .anticon {
@@ -169,161 +169,153 @@ const AchievementCard = styled(Card)`
 `;
 
 const Achievements = () => {
-    // Mock data - trong thực tế sẽ lấy từ API/database
-    const achievements = {
-        smokingFree: [
-            {
-                id: 1,
-                title: '24 Giờ Đầu Tiên',
-                description: 'Không hút thuốc trong 24 giờ đầu tiên',
-                icon: <CalendarOutlined />,
-                unlocked: true,
-                date: '2024-03-15',
-                progress: 100
-            },
-            {
-                id: 2,
-                title: '3 Ngày Kiên Trì',
-                description: 'Không hút thuốc trong 3 ngày liên tiếp',
-                icon: <CalendarOutlined />,
-                unlocked: true,
-                date: '2024-03-18',
-                progress: 100
-            },
-            {
-                id: 3,
-                title: 'Tuần Đầu Thành Công',
-                description: 'Hoàn thành 7 ngày không hút thuốc',
-                icon: <CalendarOutlined />,
-                unlocked: false,
-                progress: 70
-            }
-        ],
-        moneySaved: [
-            {
-                id: 4,
-                title: 'Tiết Kiệm 100K',
-                description: 'Tiết kiệm được 100.000 VND',
-                icon: <DollarOutlined />,
-                unlocked: true,
-                date: '2024-03-16',
-                progress: 100
-            },
-            {
-                id: 5,
-                title: 'Tiết Kiệm 500K',
-                description: 'Tiết kiệm được 500.000 VND',
-                icon: <DollarOutlined />,
-                unlocked: false,
-                progress: 60
-            }
-        ],
-        health: [
-            {
-                id: 6,
-                title: 'Hơi Thở Tươi Mới',
-                description: 'Cải thiện hơi thở sau 48 giờ',
-                icon: <HeartOutlined />,
-                unlocked: true,
-                date: '2024-03-17',
-                progress: 100
-            },
-            {
-                id: 7,
-                title: 'Tim Mạch Khỏe Mạnh',
-                description: 'Nhịp tim và huyết áp cải thiện',
-                icon: <HeartOutlined />,
-                unlocked: true,
-                date: '2024-03-17',
-                progress: 100
-            }
-        ],
-        challenges: [
-            {
-                id: 8,
-                title: 'Vượt Qua Cám Dỗ',
-                description: 'Từ chối thuốc lá trong tình huống căng thẳng',
-                icon: <FireOutlined />,
-                unlocked: true,
-                date: '2024-03-19',
-                progress: 100
-            },
-            {
-                id: 9,
-                title: 'Người Truyền Cảm Hứng',
-                description: 'Chia sẻ câu chuyện với cộng đồng',
-                icon: <StarOutlined />,
-                unlocked: false,
-                progress: 0
-            }
-        ]
-    };
+  // Mock data - trong thực tế sẽ lấy từ API/database
+  const achievements = {
+    smokingFree: [
+      {
+        id: 1,
+        title: '24 Giờ Đầu Tiên',
+        description: 'Không hút thuốc trong 24 giờ đầu tiên',
+        icon: <CalendarOutlined />,
+        unlocked: true,
+        date: '2024-03-15',
+        progress: 100
+      },
+      {
+        id: 2,
+        title: '3 Ngày Kiên Trì',
+        description: 'Không hút thuốc trong 3 ngày liên tiếp',
+        icon: <CalendarOutlined />,
+        unlocked: true,
+        date: '2024-03-18',
+        progress: 100
+      },
+      {
+        id: 3,
+        title: 'Tuần Đầu Thành Công',
+        description: 'Hoàn thành 7 ngày không hút thuốc',
+        icon: <CalendarOutlined />,
+        unlocked: false,
+        progress: 70
+      }
+    ],
+    moneySaved: [
+      {
+        id: 4,
+        title: 'Tiết Kiệm 100K',
+        description: 'Tiết kiệm được 100.000 VND',
+        icon: <DollarOutlined />,
+        unlocked: true,
+        date: '2024-03-16',
+        progress: 100
+      },
+      {
+        id: 5,
+        title: 'Tiết Kiệm 500K',
+        description: 'Tiết kiệm được 500.000 VND',
+        icon: <DollarOutlined />,
+        unlocked: false,
+        progress: 60
+      }
+    ],
+    health: [
+      {
+        id: 6,
+        title: 'Hơi Thở Tươi Mới',
+        description: 'Cải thiện hơi thở sau 48 giờ',
+        icon: <HeartOutlined />,
+        unlocked: true,
+        date: '2024-03-17',
+        progress: 100
+      },
+      {
+        id: 7,
+        title: 'Tim Mạch Khỏe Mạnh',
+        description: 'Nhịp tim và huyết áp cải thiện',
+        icon: <HeartOutlined />,
+        unlocked: true,
+        date: '2024-03-17',
+        progress: 100
+      }
+    ],
+    challenges: [
+      {
+        id: 8,
+        title: 'Vượt Qua Cám Dỗ',
+        description: 'Từ chối thuốc lá trong tình huống căng thẳng',
+        icon: <FireOutlined />,
+        unlocked: true,
+        date: '2024-03-19',
+        progress: 100
+      },
+      {
+        id: 9,
+        title: 'Người Truyền Cảm Hứng',
+        description: 'Chia sẻ câu chuyện với cộng đồng',
+        icon: <StarOutlined />,
+        unlocked: false,
+        progress: 0
+      }
+    ]
+  };
 
-    const getIconClassName = (iconType) => {
-        switch (iconType.type.render.displayName) {
-            case 'CalendarOutlined': return 'calendar';
-            case 'DollarOutlined': return 'dollar';
-            case 'HeartOutlined': return 'heart';
-            case 'FireOutlined': return 'fire';
-            case 'StarOutlined': return 'star';
-            default: return '';
-        }
-    };
+  const getIconClassName = (iconType) => {
+    switch (iconType.type.render.displayName) {
+      case 'CalendarOutlined': return 'calendar';
+      case 'DollarOutlined': return 'dollar';
+      case 'HeartOutlined': return 'heart';
+      case 'FireOutlined': return 'fire';
+      case 'StarOutlined': return 'star';
+      default: return '';
+    }
+  };
 
-    const renderAchievementSection = (title, items, icon) => (
-        <AchievementCard title={<><TrophyOutlined /> {title}</>}>
-            <Row gutter={[24, 24]}>
-                {items.map(achievement => (
-                    <Col xs={24} sm={12} md={8} lg={6} key={achievement.id}>
-                        <Tooltip
-                            title={achievement.unlocked ? `Đạt được vào: ${achievement.date}` : `Hoàn thành: ${achievement.progress}%`}
-                            placement="top"
-                        >
-                            <div className="achievement-badge" unlocked={achievement.unlocked}>
-                                <span className={`anticon ${getIconClassName(achievement.icon)}`}>
-                                    {achievement.icon}
-                                </span>
-                                <div className="badge-title">{achievement.title}</div>
-                                <div className="badge-description">{achievement.description}</div>
-                                {!achievement.unlocked && (
-                                    <div className="progress-info">
-                                        <Progress
-                                            percent={achievement.progress}
-                                            size="small"
-                                            strokeColor={{
-                                                '0%': '#5FB8B3',
-                                                '100%': '#70C1BC',
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                                {achievement.unlocked && (
-                                    <div className="badge-date">
-                                        <CalendarOutlined />
-                                        {achievement.date}
-                                    </div>
-                                )}
-                            </div>
-                        </Tooltip>
-                    </Col>
-                ))}
-            </Row>
-        </AchievementCard>
-    );
+  const renderAchievementSection = (title, items, icon) => (
+    <AchievementCard title={<><TrophyOutlined /> {title}</>}>
+      <Row gutter={[24, 24]}>
+        {items.map(achievement => (
+          <Col xs={24} sm={12} md={8} lg={6} key={achievement.id}>
+            <Tooltip
+              title={achievement.unlocked ? `Đạt được vào: ${achievement.date}` : `Hoàn thành: ${achievement.progress}%`}
+              placement="top"
+            >
+              <div className="achievement-badge" unlocked={achievement.unlocked} style={!achievement.unlocked ? { position: 'relative', filter: 'grayscale(1)', opacity: 0.3 } : {}}>
+                {!achievement.unlocked && (
+                  <LockOutlined style={{ position: 'absolute', top: 8, right: 8, fontSize: 22, color: '#888', zIndex: 2, background: 'white', borderRadius: '50%' }} />
+                )}
+                <span className={`anticon ${getIconClassName(achievement.icon)}`}
+                  style={!achievement.unlocked ? { filter: 'grayscale(1)', opacity: 0.7 } : {}}>
+                  {achievement.icon}
+                </span>
+                <div className="badge-title">{achievement.title}</div>
+                <div className="badge-description">{achievement.description}</div>
+                {achievement.unlocked && (
+                  <div className="badge-date">
+                    <CalendarOutlined />
+                    {achievement.date}
+                  </div>
+                )}
+              </div>
+            </Tooltip>
+          </Col>
+        ))}
+      </Row>
+    </AchievementCard>
+  );
 
-    return (
-        <PageContainer>
-            <Title level={2} className="page-title">
-                <TrophyOutlined />
-                Thành Tích Cai Thuốc
-            </Title>
+  return (
+    <PageContainer>
+      <Title level={2} className="page-title">
+        <TrophyOutlined />
+        Thành Tích Cai Thuốc
+      </Title>
 
-            {renderAchievementSection('Thời Gian Không Hút Thuốc', achievements.smokingFree)}
-            {renderAchievementSection('Tiết Kiệm', achievements.moneySaved)}
-            {renderAchievementSection('Sức Khỏe', achievements.health)}
-            {renderAchievementSection('Thử Thách', achievements.challenges)}
-        </PageContainer>
-    );
+      {renderAchievementSection('Thời Gian Không Hút Thuốc', achievements.smokingFree)}
+      {renderAchievementSection('Tiết Kiệm', achievements.moneySaved)}
+      {renderAchievementSection('Sức Khỏe', achievements.health)}
+      {renderAchievementSection('Thử Thách', achievements.challenges)}
+    </PageContainer>
+  );
 };
 
 export default Achievements; 

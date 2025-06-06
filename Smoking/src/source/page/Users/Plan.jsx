@@ -238,14 +238,6 @@ const Plan = () => {
         { value: 'smell', label: 'Loại bỏ mùi thuốc' }
     ];
 
-    const cigaretteTypes = [
-        'Thuốc lá điếu thông thường',
-        'Thuốc lá light',
-        'Thuốc lá điện tử',
-        'Thuốc lá cuốn tay',
-        'Khác'
-    ];
-
     const onFinish = (values) => {
         console.log('Plan data:', values);
         setPlanData(values);
@@ -313,15 +305,19 @@ const Plan = () => {
                             </Col>
                             <Col span={8}>
                                 <Form.Item
-                                    name="cigaretteType"
-                                    label="Loại thuốc lá"
-                                    rules={[{ required: true, message: 'Vui lòng chọn loại thuốc lá!' }]}
+                                    name="cigaretteCost"
+                                    label="Chi phí thuốc (VNĐ/ngày)"
+                                    rules={[{ required: true, message: 'Vui lòng nhập chi phí thuốc mỗi ngày!' }]}
                                 >
-                                    <Select placeholder="Chọn loại thuốc lá">
-                                        {cigaretteTypes.map(type => (
-                                            <Option key={type} value={type}>{type}</Option>
-                                        ))}
-                                    </Select>
+                                    <InputNumber
+                                        min={0}
+                                        max={1000000}
+                                        placeholder="Ví dụ: 30000"
+                                        style={{ width: '100%' }}
+                                        formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/\D/g, '')}
+                                        addonAfter="VNĐ"
+                                    />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -404,121 +400,6 @@ const Plan = () => {
                                             </Form.Item>
                                         </Col>
                                     </Row>
-
-                                    {/* Mục tiêu */}
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <span style={{ color: '#ff4d4f', marginRight: '4px' }}>*</span>
-                                        <span style={{ color: '#000000' }}>Mục tiêu số ngày không hút</span>
-                                    </div>
-
-                                    <Form.Item
-                                        name="goalType"
-                                        rules={[{ required: true, message: 'Vui lòng chọn loại mục tiêu!' }]}
-                                        style={{ marginBottom: '16px' }}
-                                    >
-                                        <Radio.Group>
-                                            <Space direction="vertical" style={{ width: '100%' }}>
-                                                <Radio value="temporary" style={{ color: '#000000' }}>
-                                                    Cai thuốc trong thời gian nhất định
-                                                </Radio>
-                                                <Radio value="permanent" style={{ color: '#000000' }}>
-                                                    Cai thuốc vĩnh viễn
-                                                </Radio>
-                                            </Space>
-                                        </Radio.Group>
-                                    </Form.Item>
-
-                                    <Form.Item
-                                        noStyle
-                                        shouldUpdate={(prevValues, currentValues) =>
-                                            prevValues.goalType !== currentValues.goalType
-                                        }
-                                    >
-                                        {({ getFieldValue }) => {
-                                            const goalType = getFieldValue('goalType');
-                                            return goalType === 'temporary' ? (
-                                                <Form.Item
-                                                    name="goalDays"
-                                                    rules={[{ required: true, message: 'Vui lòng nhập số ngày!' }]}
-                                                >
-                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                        <Input
-                                                            type="number"
-                                                            min={1}
-                                                            placeholder="2"
-                                                            style={{
-                                                                width: '100%',
-                                                                height: '40px',
-                                                                borderRadius: '6px'
-                                                            }}
-                                                        />
-                                                        <span style={{
-                                                            marginLeft: '8px',
-                                                            color: '#000000',
-                                                            fontSize: '14px'
-                                                        }}>
-                                                            ngày
-                                                        </span>
-                                                    </div>
-                                                </Form.Item>
-                                            ) : (
-                                                <div style={{
-                                                    background: 'rgba(255,255,255,0.15)',
-                                                    padding: '16px',
-                                                    borderRadius: '8px',
-                                                    marginBottom: '24px',
-                                                    border: '1px solid rgba(255,255,255,0.2)'
-                                                }}>
-                                                    <div style={{
-                                                        color: '#000000',
-                                                        fontSize: '15px',
-                                                        fontWeight: '500',
-                                                        textAlign: 'center',
-                                                        marginBottom: '8px'
-                                                    }}>
-                                                        🎯 Quyết tâm cai thuốc vĩnh viễn
-                                                    </div>
-                                                    <div style={{
-                                                        color: '#000000',
-                                                        fontSize: '14px',
-                                                        textAlign: 'center',
-                                                        lineHeight: '1.5'
-                                                    }}>
-                                                        Đây là một quyết định tuyệt vời cho sức khỏe và cuộc sống của bạn.
-                                                        Hãy kiên định với mục tiêu này!
-                                                    </div>
-                                                </div>
-                                            );
-                                        }}
-                                    </Form.Item>
-
-                                    <div style={{ marginBottom: '16px', marginTop: '24px' }}>
-                                        <span style={{ color: '#000000' }}>Phần thưởng cá nhân</span>
-                                    </div>
-                                    <Form.Item name="personalReward">
-                                        <Input.TextArea
-                                            placeholder="Ví dụ: Mua điện thoại mới, đi du lịch..."
-                                            style={{
-                                                width: '100%',
-                                                minHeight: '120px',
-                                                borderRadius: '6px',
-                                                resize: 'none',
-                                                padding: '12px'
-                                            }}
-                                        />
-                                        <div style={{
-                                            marginTop: '8px',
-                                            color: '#000000',
-                                            fontSize: '14px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px',
-                                            opacity: 0.85
-                                        }}>
-                                            <BulbOutlined />
-                                            Hãy đặt một phần thưởng xứng đáng để tạo động lực cho bản thân
-                                        </div>
-                                    </Form.Item>
                                 </Col>
                             </Row>
                         </div>
@@ -633,7 +514,7 @@ const Plan = () => {
                         }}>
                             <p>• Thời gian hút: {planData.smokingYears} năm</p>
                             <p>• Số lượng: {planData.cigarettesPerDay} điếu/ngày</p>
-                            <p>• Loại thuốc lá: {planData.cigaretteType}</p>
+                            <p>• Chi phí thuốc: {planData.cigaretteCost ? planData.cigaretteCost.toLocaleString() + ' VNĐ/ngày' : ''}</p>
                             {planData.healthIssues && (
                                 <p>• Vấn đề sức khỏe: {planData.healthIssues}</p>
                             )}
@@ -669,22 +550,7 @@ const Plan = () => {
                                 marginBottom: '16px',
                                 color: '#2c7a75'
                             }}>
-                                {planData.goalType === 'permanent' ? (
-                                    <>
-                                        <div style={{ fontSize: '16px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span>🎯</span>
-                                            <span>Cai thuốc vĩnh viễn</span>
-                                        </div>
-                                        <div style={{ marginTop: '8px', fontSize: '14px', fontStyle: 'italic' }}>
-                                            Bạn đã chọn một mục tiêu tuyệt vời cho sức khỏe và cuộc sống!
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div style={{ fontSize: '16px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <span>📅</span>
-                                        <span>Cai thuốc trong {planData.goalDays} ngày</span>
-                                    </div>
-                                )}
+                                {/* Đã bỏ phần hiển thị mục tiêu số ngày không hút */}
                             </div>
                             <div style={{ color: '#444' }}>
                                 <p>• Ngày bắt đầu: {planData.startDate?.format('DD/MM/YYYY')}</p>

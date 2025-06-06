@@ -458,8 +458,7 @@ const Progress = () => {
             </StyledSteps>
           </StyledCard>
         </Col>
-
-        <Col span={6}>
+        <Col span={12}>
           <StatisticCard delay="0.2s">
             <div className="icon-wrapper">
               <ClockCircleOutlined />
@@ -471,8 +470,7 @@ const Progress = () => {
             />
           </StatisticCard>
         </Col>
-
-        <Col span={6}>
+        <Col span={12}>
           <StatisticCard delay="0.3s">
             <div className="icon-wrapper">
               <DollarOutlined />
@@ -481,31 +479,6 @@ const Progress = () => {
               title="Tiền tiết kiệm được"
               value={750000}
               suffix="VND"
-            />
-          </StatisticCard>
-        </Col>
-
-        <Col span={6}>
-          <StatisticCard delay="0.4s">
-            <div className="icon-wrapper">
-              <CheckCircleOutlined />
-            </div>
-            <Statistic
-              title="Điếu thuốc đã bỏ"
-              value={300}
-            />
-          </StatisticCard>
-        </Col>
-
-        <Col span={6}>
-          <StatisticCard delay="0.5s">
-            <div className="icon-wrapper">
-              <TrophyOutlined />
-            </div>
-            <Statistic
-              title="Sức khỏe phục hồi"
-              value={75}
-              suffix="%"
             />
           </StatisticCard>
         </Col>
@@ -558,16 +531,6 @@ const Progress = () => {
           </StyledCard>
         </Col>
       </Row>
-
-      <StyledCard delay="0.8s">
-        <Row justify="center">
-          <Col>
-            <UpdateButton type="primary" size="large" icon={<CheckCircleOutlined />}>
-              Cập nhật tiến độ hôm nay
-            </UpdateButton>
-          </Col>
-        </Row>
-      </StyledCard>
     </ProgressContainer>
   );
 };

@@ -374,7 +374,7 @@ const Home = () => {
             </WelcomeTitle>
 
             <Row gutter={[24, 24]}>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={12}>
                     <StatisticCard>
                         <ClockCircleOutlined className="icon" />
                         <Statistic
@@ -384,7 +384,7 @@ const Home = () => {
                         />
                     </StatisticCard>
                 </Col>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={12}>
                     <StatisticCard>
                         <DollarOutlined className="icon" />
                         <Statistic
@@ -392,26 +392,6 @@ const Home = () => {
                             value={userData.moneySaved}
                             suffix="đ"
                             formatter={value => `${value.toLocaleString()}`}
-                        />
-                    </StatisticCard>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <StatisticCard>
-                        <HeartOutlined className="icon" />
-                        <Statistic
-                            title="Sức Khỏe Cải Thiện"
-                            value={userData.healthImprovement}
-                            suffix="%"
-                        />
-                    </StatisticCard>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <StatisticCard>
-                        <TrophyOutlined className="icon" />
-                        <Statistic
-                            title="Điếu Thuốc Đã Tránh"
-                            value={userData.cigarettesAvoided}
-                            suffix="điếu"
                         />
                     </StatisticCard>
                 </Col>

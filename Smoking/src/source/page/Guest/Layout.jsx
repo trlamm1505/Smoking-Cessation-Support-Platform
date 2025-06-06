@@ -8,6 +8,7 @@ const LayoutContainer = styled.div`
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    padding-top: 83px;
 `;
 
 const MainContent = styled.main`
@@ -26,8 +27,10 @@ const Layout = () => {
         <LayoutContainer>
             <Header />
             <ContentWrapper>
-                <Sidebar />
-                <MainContent>
+                <div style={{ position: 'fixed', top: 72, left: 0, height: 'calc(100vh - 72px)', width: 250, zIndex: 1000 }}>
+                    <Sidebar />
+                </div>
+                <MainContent style={{ marginLeft: 250 }}>
                     <Outlet />
                 </MainContent>
             </ContentWrapper>
