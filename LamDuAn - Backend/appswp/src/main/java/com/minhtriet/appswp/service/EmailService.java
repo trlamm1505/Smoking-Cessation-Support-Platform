@@ -1,13 +1,12 @@
 package com.minhtriet.appswp.service;
 
-import com.minhtriet.appswp.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 /**
- * Service gửi email xác thực đăng ký tài khoản & gửi OTP quên mật khẩu.
+ * Service chuyên gửi email xác thực tài khoản & gửi OTP đặt lại mật khẩu cho user.
  */
 @Service
 public class EmailService {
@@ -16,44 +15,46 @@ public class EmailService {
     private JavaMailSender mailSender;
 
     /**
-     * Gửi email xác thực tài khoản (khi đăng ký) với đường link chứa token xác nhận.
-     * @param user User tạm (chưa xác thực)
-     * @param token Mã token xác thực
+     * Gửi email xác thực tài khoản cho user mới đăng ký.
+     * Gửi kèm đường link xác thực (chứa token).
+     * @param toEmail  Email người nhận (user đăng ký)
+     * @param fullName Tên người dùng
+     * @param token    Chuỗi token xác thực (đính vào link)
      */
-    public void sendVerificationEmail(User user, String token) {
+    public void sendVerificationEmail(String toEmail, String fullName, String token) {
         String subject = "Xác thực tài khoản của bạn";
         String verificationUrl = "http://localhost:8080/api/auth/verify?token=" + token;
-        String content = "Xin chào " + user.getUsername() + ",\n"
+        String content = "Xin chào " + fullName + ",\n\n"
                 + "Vui lòng nhấn vào link dưới đây để xác thực tài khoản:\n"
-                + verificationUrl;
+                + verificationUrl + "\n\n"
+                + "Trân trọng,\nĐội ngũ hỗ trợ";
 
+        // Tạo message và gửi
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(user.getEmail());
+        message.setTo(toEmail);
         message.setSubject(subject);
         message.setText(content);
-
         mailSender.send(message);
     }
 
     /**
-     * Gửi mã OTP (4 số) đặt lại mật khẩu về email user.
-     * @param email Email nhận OTP
-     * @param otp   Mã OTP (4 số)
+     * Gửi mã OTP (4 số) tới email người dùng để xác thực đổi mật khẩu.
+     * @param toEmail Email user yêu cầu đặt lại mật khẩu
+     * @param otp     Chuỗi mã OTP (4 số)
      */
-    public void sendPasswordResetOtpEmail(String email, String otp) {
-        String subject = "Mã OTP xác nhận đổi mật khẩu";
-        String content = "Xin chào,\n"
-                + "Mã OTP xác nhận đổi mật khẩu của bạn là: " + otp + "\n"
-                + "Mã chỉ có hiệu lực trong 10 phút.\n"
-                + "Nếu không phải bạn yêu cầu, hãy bỏ qua email này.";
+    public void sendOtpResetPassword(String toEmail, String otp) {
+        String subject = "Mã OTP xác thực đặt lại mật khẩu";
+        String content = "Bạn vừa yêu cầu đổi mật khẩu tài khoản trên hệ thống.\n"
+                + "Mã OTP của bạn là: " + otp + "\n"
+                + "Mã này có hiệu lực trong 10 phút.\n"
+                + "Nếu bạn không gửi yêu cầu này, hãy bỏ qua email.\n\n"
+                + "Trân trọng,\nĐội ngũ hỗ trợ";
 
+        // Tạo message và gửi
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
+        message.setTo(toEmail);
         message.setSubject(subject);
         message.setText(content);
-
         mailSender.send(message);
     }
-
-    // (Có thể xóa hàm cũ sendPasswordResetEmail vì không cần đường link nữa)
 }

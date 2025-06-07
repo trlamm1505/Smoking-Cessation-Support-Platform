@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import '../../CSS/Login.css';
 import { useNavigate } from 'react-router-dom';
 
-const AuthForm = () => {
+const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false)
   const [registerData, setRegisterData] = useState({
     name: '',
@@ -15,158 +15,275 @@ const AuthForm = () => {
     password: ''
   });
 
-  // State for custom notification
+  // Notification
   const [notification, setNotification] = useState({
     visible: false,
     message: '',
     type: '' // 'success' or 'error'
   });
 
+  // Quên mật khẩu - tích hợp tất cả vào đây!
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1); // 1: Nhập email & mật khẩu mới, 2: Nhập OTP
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [otp, setOtp] = useState('');
+
   const navigate = useNavigate();
 
-  // Function to show notification
+  // Notification display helper
   const showNotification = (message, type) => {
-    setNotification({
-      visible: true,
-      message: message,
-      type: type
-    });
-    // Auto-hide after 3 seconds
-    setTimeout(() => {
-      setNotification({ ...notification, visible: false });
-    }, 3000);
+    setNotification({ visible: true, message, type });
+    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 3000);
   };
 
   useEffect(() => {
-    if (window.location.hash === '#signup') {
-      setIsSignUp(true);
-    }
+    if (window.location.hash === '#signup') setIsSignUp(true);
   }, []);
 
+  // Đăng ký
   const handleRegister = async (e) => {
-  e.preventDefault();
-  const password = registerData.password.trim();
-  const confirmPassword = registerData.confirmPassword.trim();
-
-  // Lưu ý: Đã kiểm tra confirm ở frontend, vẫn cần gửi cho backend.
-  try {
-    const response = await fetch('http://localhost:8080/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fullName: registerData.name,          // Đổi name -> fullName
-        email: registerData.email,
-        password: password,
-        confirmPassword: confirmPassword      // Thêm trường này!
-      })
-    });
-    const data = await response.json();
-    if (response.ok) {
-      setIsSignUp(false); // Chuyển sang form đăng nhập
-      setLoginData({ email: registerData.email, password: '' }); // Điền sẵn email
-      setRegisterData({ name: '', email: '', password: '', confirmPassword: '' }); // Reset form đăng ký
-      // Use custom notification for success
-      showNotification('Đăng ký thành công! Vui lòng đăng nhập.', 'success');
-    } else {
-      // Use custom notification for failure
-      showNotification(data.message || 'Đăng ký thất bại!', 'error');
+    e.preventDefault();
+    if (registerData.password !== registerData.confirmPassword) {
+      showNotification('Mật khẩu xác nhận không khớp.', 'error');
+      return;
     }
-  } catch (error) {
-    // Use custom notification for error
-    showNotification('Lỗi kết nối server!', 'error');
-  }
-};
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: registerData.name,
+          email: registerData.email,
+          password: registerData.password,
+          confirmPassword: registerData.confirmPassword
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setIsSignUp(false);
+        setLoginData({ email: registerData.email, password: '' });
+        setRegisterData({ name: '', email: '', password: '', confirmPassword: '' });
+        showNotification('Đăng ký thành công! Vui lòng kiểm tra email xác thực.', 'success');
+      } else {
+        showNotification(data.message || 'Đăng ký thất bại!', 'error');
+      }
+    } catch (error) {
+      showNotification('Lỗi kết nối server!', 'error');
+    }
+  };
 
+  // Đăng nhập
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: loginData.email,
-          password: loginData.password
-        })
+        body: JSON.stringify(loginData)
       });
+      const data = await response.json();
       if (response.ok) {
-        const data = await response.json();
-        if (!data.user?.isPremium) {
-          // Show notification first
-          showNotification('Đăng nhập thành công!', 'success');
-          // Then navigate after a short delay to allow notification to be seen
-          setTimeout(() => {
-            navigate('/guest/home');
-          }, 1000);
-        } else {
-          // Nếu đã mua gói, chuyển hướng sang trang khác nếu muốn
-          // navigate('/premium/home');
-          showNotification('Đăng nhập thành công!', 'success');
-        }
+        showNotification('Đăng nhập thành công!', 'success');
+        setTimeout(() => navigate('/guest/home'), 1000);
       } else {
-        // Use custom notification for failure
-        showNotification('Đăng nhập thất bại!', 'error');
+        showNotification(data.message || 'Đăng nhập thất bại!', 'error');
       }
     } catch (error) {
-      // Use custom notification for error
       showNotification('Lỗi kết nối server!', 'error');
     }
   };
 
+  // QUÊN MẬT KHẨU – BƯỚC 1: GỬI OTP
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    if (!forgotEmail || !forgotNewPassword || !forgotConfirmPassword) {
+      showNotification('Vui lòng nhập đủ thông tin.', 'error');
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      showNotification('Mật khẩu xác nhận không khớp.', 'error');
+      return;
+    }
+    try {
+      const res = await fetch('http://localhost:8080/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: forgotEmail,
+          newPassword: forgotNewPassword
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setForgotStep(2);
+        showNotification('OTP đã gửi về email. Nhập mã để xác nhận.', 'success');
+      } else {
+        showNotification(data.message || 'Gửi OTP thất bại!', 'error');
+      }
+    } catch (err) {
+      showNotification('Lỗi kết nối server!', 'error');
+    }
+  };
+
+  // QUÊN MẬT KHẨU – BƯỚC 2: XÁC NHẬN OTP
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    if (!otp || otp.length !== 4) {
+      showNotification('Vui lòng nhập đủ mã OTP 4 số.', 'error');
+      return;
+    }
+    try {
+      const res = await fetch('http://localhost:8080/api/auth/reset-password-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: forgotEmail,
+          otp: otp
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showNotification('Đổi mật khẩu thành công!', 'success');
+        setTimeout(() => {
+          setShowForgotPassword(false);
+          setForgotStep(1);
+          setForgotEmail('');
+          setForgotNewPassword('');
+          setForgotConfirmPassword('');
+          setOtp('');
+        }, 1500);
+      } else {
+        showNotification(data.message || 'OTP không đúng hoặc đã hết hạn!', 'error');
+      }
+    } catch (err) {
+      showNotification('Lỗi kết nối server!', 'error');
+    }
+  };
+
+  // Giao diện
   return (
     <div className="auth-container">
 
-      {/* Custom Notification Display */}
+      {/* Notification */}
       {notification.visible && (
-        <div
-          className={`notification ${notification.type}`}
-          style={{
-            position: 'fixed', // Position as an overlay
-            top: '20px', // Distance from the top
-            left: '20px', // Distance from the left
-            zIndex: 1000, // Ensure it's above other content
-            padding: '15px 20px', // Add padding
-            borderRadius: '8px', // Rounded corners
-            backgroundColor: notification.type === 'success' ? '#e9ffe9' : '#ffe9e9', // Light green for success, light red for error
-            border: `1px solid ${notification.type === 'success' ? '#a3e9a3' : '#e9a3a3'}`, // Matching border color
-            color: '#333', // Text color
-            display: 'flex', // Use flexbox for content alignment
-            alignItems: 'center', // Center items vertically
-            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)', // Add a subtle shadow
-          }}
-        >
+        <div className={`notification ${notification.type}`} style={{
+          position: 'fixed', top: '20px', left: '20px', zIndex: 1000,
+          padding: '15px 20px', borderRadius: '8px',
+          backgroundColor: notification.type === 'success' ? '#e9ffe9' : '#ffe9e9',
+          border: `1px solid ${notification.type === 'success' ? '#a3e9a3' : '#e9a3a3'}`,
+          color: '#333', display: 'flex', alignItems: 'center',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+        }}>
           <div className="notification-content" style={{ display: 'flex', alignItems: 'center' }}>
-             {/* Placeholder for success/error icon */}
             {notification.type === 'success' && <span style={{ marginRight: '10px', color: 'green', fontSize: '1.2em' }}>✅</span>}
             {notification.type === 'error' && <span style={{ marginRight: '10px', color: 'red', fontSize: '1.2em' }}>❌</span>}
             <span style={{ fontSize: '1em' }}>{notification.message}</span>
           </div>
-          {/* Close button */}
-          <button
-            onClick={() => setNotification({ ...notification, visible: false })}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '1.5em', // Make close button a bit larger
-              cursor: 'pointer',
-              marginLeft: '20px', // Increase space from text
-              color: '#aaa', // Color for the close button
-            }}
-          >
+          <button onClick={() => setNotification(prev => ({ ...prev, visible: false }))}
+            style={{ background: 'none', border: 'none', fontSize: '1.5em', cursor: 'pointer', marginLeft: '20px', color: '#aaa' }}>
             ×
           </button>
         </div>
       )}
 
-      <div
-        className={`auth-box ${isSignUp ? 'right-panel-active' : ''}`}
-        id="authBox"
-      >
+      {/* QUÊN MẬT KHẨU – MODAL 2 BƯỚC */}
+      {showForgotPassword && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            background: 'rgba(0,0,0,0.3)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+          onClick={() => {
+            setShowForgotPassword(false);
+            setForgotStep(1);
+            setForgotEmail('');
+            setForgotNewPassword('');
+            setForgotConfirmPassword('');
+            setOtp('');
+          }}
+        >
+          <div
+            style={{
+              background: '#fff', padding: 32, borderRadius: 16, minWidth: 350,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.2)', position: 'relative'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-2xl font-bold mb-4">Quên mật khẩu</h3>
+            {forgotStep === 1 ? (
+              <form onSubmit={handleForgotSubmit}>
+                <input
+                  type="email"
+                  className="w-full h-[50px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none mb-4"
+                  placeholder="Nhập email đăng ký"
+                  value={forgotEmail}
+                  onChange={e => setForgotEmail(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  className="w-full h-[50px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none mb-4"
+                  placeholder="Nhập mật khẩu mới"
+                  value={forgotNewPassword}
+                  onChange={e => setForgotNewPassword(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  className="w-full h-[50px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none mb-4"
+                  placeholder="Xác nhận mật khẩu mới"
+                  value={forgotConfirmPassword}
+                  onChange={e => setForgotConfirmPassword(e.target.value)}
+                  required
+                />
+                <button type="submit" className="w-full bg-[#4fd1c5] text-white font-semibold rounded-full px-8 py-3">
+                  Gửi OTP xác nhận
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleOtpSubmit}>
+                <div className="mb-4">
+                  <label htmlFor="otp" className="font-bold">Nhập mã OTP (4 số):</label>
+                  <input
+                    id="otp"
+                    type="text"
+                    maxLength={4}
+                    className="w-full h-[50px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none mt-2"
+                    placeholder="Nhập mã OTP"
+                    value={otp}
+                    onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    required
+                  />
+                </div>
+                <button type="submit" className="w-full bg-[#4fd1c5] text-white font-semibold rounded-full px-8 py-3">
+                  Xác nhận OTP & Đổi mật khẩu
+                </button>
+              </form>
+            )}
+            <button
+              onClick={() => {
+                setShowForgotPassword(false);
+                setForgotStep(1);
+                setForgotEmail('');
+                setForgotNewPassword('');
+                setForgotConfirmPassword('');
+                setOtp('');
+              }}
+              style={{ position: 'absolute', top: 8, right: 16, fontSize: 24, color: '#aaa', border: 'none', background: 'none', cursor: 'pointer' }}
+              aria-label="Đóng"
+            >×</button>
+          </div>
+        </div>
+      )}
+
+      {/* Giao diện chính */}
+      <div className={`auth-box ${isSignUp ? 'right-panel-active' : ''}`} id="authBox">
         {/* Form Đăng ký */}
         <div className="form-container sign-up-container ">
           <form className="form" onSubmit={handleRegister}>
             <h2 className="text-7xl font-bold text-[#4fd1c5] mb-[50px]">Đăng ký</h2>
-
-            {/* Các trường nhập */}
             <div className="mt-10 flex flex-col items-center space-y-5">
               <input
                 type="text"
@@ -196,15 +313,12 @@ const AuthForm = () => {
                 value={registerData.confirmPassword}
                 onChange={e => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
               />
-
-              {/* Nút đăng ký */}
               <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6">
                 ĐĂNG KÝ
               </button>
             </div>
           </form>
         </div>
-
 
         {/* Form Đăng nhập */}
         <div className="form-container sign-in-container ">
@@ -228,23 +342,21 @@ const AuthForm = () => {
               <a
                 href="#"
                 className="text-xl text-black-500 underline block"
+                onClick={e => { e.preventDefault(); setShowForgotPassword(true); }}
               >
                 Quên mật khẩu?
               </a>
               <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6 ">
                 ĐĂNG NHẬP
               </button>
-
             </div>
-
-
           </form>
         </div>
 
-        {/* Phần Overlay */}
+        {/* Overlay */}
         <div className="overlay-container">
           <div className="overlay">
-            <div className="overlay-panel overlay-left  ">
+            <div className="overlay-panel overlay-left">
               <h2 className="text-5xl font-bold mb-3">Chào mừng trở lại!</h2>
               <p className="mb-5 text-center px-6 text-xl mt-5">
                 Để tiếp tục kết nối với chúng tôi, vui lòng đăng nhập bằng thông tin cá nhân
@@ -255,7 +367,6 @@ const AuthForm = () => {
               >
                 ĐĂNG NHẬP
               </button>
-
             </div>
             <div className="overlay-panel overlay-right">
               <h2 className="text-5xl font-bold mb-3">Xin chào bạn mới!</h2>
@@ -268,7 +379,6 @@ const AuthForm = () => {
               >
                 ĐĂNG KÝ
               </button>
-
             </div>
           </div>
         </div>
@@ -277,4 +387,4 @@ const AuthForm = () => {
   )
 }
 
-export default AuthForm
+export default Login

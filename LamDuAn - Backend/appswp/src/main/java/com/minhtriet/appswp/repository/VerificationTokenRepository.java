@@ -6,16 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 /**
- * Repository thao tác với bảng VerificationToken.
- * - Dùng cho cả xác thực email (register) & quên mật khẩu OTP.
+ * Repository thao tác với bảng VerificationToken (token xác thực email hoặc OTP).
  */
 public interface VerificationTokenRepository extends JpaRepository<VerificationToken, Long> {
-    // Tìm token xác thực email (loại EMAIL_VERIFICATION)
+    // Tìm token xác thực bằng mã token
     Optional<VerificationToken> findByToken(String token);
 
-    // Tìm OTP quên mật khẩu (loại PASSWORD_RESET)
-    Optional<VerificationToken> findByEmailAndOtpAndType(String email, String otp, String type);
-
-    // Tìm token hiện tại (ví dụ, tìm để xóa token cũ trước khi tạo mới)
+    // === Thêm hàm tìm OTP cho đặt lại mật khẩu ===
     Optional<VerificationToken> findByEmailAndType(String email, String type);
 }
