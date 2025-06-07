@@ -216,4 +216,26 @@ public class UserService {
         emailService.sendPasswordResetEmail(user, token);
     }
 
+    public boolean resetPassword(String token, String newPasswordHash) {
+        Optional<VerificationToken> vtOpt = tokenRepository.findByToken(token);
+        if (vtOpt.isEmpty()) return false;
+        VerificationToken vt = vtOpt.get();
+
+        // Kiểm tra loại token và hạn
+        if (!"PASSWORD_RESET".equals(vt.getType()) ||
+                vt.getExpiryDate().isBefore(LocalDateTime.now())) {
+            tokenRepository.delete(vt);
+            return false;
+        }
+
+        User user = userRepository.findByEmail(vt.getEmail());
+        if (user == null) return false;
+
+        user.setPasswordHash(newPasswordHash);
+        userRepository.save(user);
+
+        tokenRepository.delete(vt); // Xóa token sau khi dùng
+        return true;
+    }
+
 }

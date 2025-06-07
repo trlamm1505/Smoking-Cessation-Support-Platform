@@ -206,4 +206,35 @@ public class AuthAPI {
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody Map<String, String> req) {
+        String email = req.get("email");
+        userService.sendPasswordResetToken(email);
+        // Không tiết lộ email có tồn tại hay không!
+        return ResponseEntity.ok(Map.of("success", true, "message", "Nếu email hợp lệ, link đặt lại mật khẩu đã được gửi."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, Object>> resetPassword(@RequestBody ResetPasswordRequest req) {
+        boolean success = userService.resetPassword(req.getToken(), req.getNewPassword());
+        if (success) {
+            return ResponseEntity.ok(Map.of("success", true, "message", "Đổi mật khẩu thành công!"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Token không hợp lệ hoặc đã hết hạn."));
+        }
+    }
+
+    // DTO cho request đặt lại mật khẩu
+    public static class ResetPasswordRequest {
+        private String token;
+        private String newPassword;
+
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
+        public String getNewPassword() { return newPassword; }
+        public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
+    }
+
+
 }

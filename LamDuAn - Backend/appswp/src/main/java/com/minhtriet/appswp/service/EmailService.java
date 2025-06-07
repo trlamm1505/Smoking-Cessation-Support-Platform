@@ -35,4 +35,20 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    public void sendPasswordResetEmail(User user, String token) {
+        String subject = "Đặt lại mật khẩu tài khoản của bạn";
+        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
+        String content = "Xin chào " + user.getUsername() + ",\n"
+                + "Vui lòng nhấn vào link dưới đây để đặt lại mật khẩu (hạn dùng 1 giờ):\n"
+                + resetUrl;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(user.getEmail());
+        message.setSubject(subject);
+        message.setText(content);
+
+        mailSender.send(message);
+    }
+
 }
