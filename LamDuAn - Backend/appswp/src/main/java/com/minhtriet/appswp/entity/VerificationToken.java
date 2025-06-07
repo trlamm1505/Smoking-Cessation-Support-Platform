@@ -35,5 +35,8 @@ public class VerificationToken {
     @Column(nullable = false)
     private LocalDateTime expiryDate; // Thời gian hết hạn token
 
+    @Column(nullable = false)
+    private String type; // "EMAIL_VERIFICATION" hoặc "PASSWORD_RESET"
+
     // Không còn @OneToOne với User nữa vì user chưa có trong DB
 }
