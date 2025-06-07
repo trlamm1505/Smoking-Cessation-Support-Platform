@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../CSS/Login.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -38,6 +38,10 @@ const Login = () => {
   const [forgotOtp, setForgotOtp] = useState('');
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the redirect path from location state or default to home
+  const from = location.state?.from?.pathname || '/';
 
   // Hiển thị thông báo
   const showNotification = (message, type) => {
@@ -125,7 +129,7 @@ const Login = () => {
       const data = await response.json();
       if (response.ok && data.success) {
         showNotification('Đăng nhập thành công!', 'success');
-        setTimeout(() => navigate('/guest/home'), 1000);
+        handleLoginSuccess(data);
       } else {
         showNotification(data.message || 'Đăng nhập thất bại!', 'error');
       }
@@ -200,6 +204,40 @@ const Login = () => {
     } catch (err) {
       showNotification('Lỗi kết nối server!', 'error');
     }
+  };
+
+  // Handle successful login
+  const handleLoginSuccess = (userData) => {
+    // Store authentication data
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('userRole', userData.role);
+    localStorage.setItem('userId', userData.id);
+    
+    // Redirect based on role
+    switch(userData.role) {
+      case 'admin':
+        navigate('/admin/dashboard');
+        break;
+      case 'coach':
+        navigate('/coach/home');
+        break;
+      case 'user':
+        navigate('/users/home');
+        break;
+      default:
+        navigate('/');
+    }
+  };
+
+  // Handle successful registration
+  const handleRegisterSuccess = (userData) => {
+    // Store authentication data
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('userRole', userData.role);
+    localStorage.setItem('userId', userData.id);
+    
+    // Redirect to user home after registration
+    navigate('/users/home');
   };
 
   // ======= Giao diện =======
