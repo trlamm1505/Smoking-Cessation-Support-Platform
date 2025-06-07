@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -197,4 +198,22 @@ public class UserService {
     public List<User> getUsersByCoachId(Long coachId) {
         return userRepository.findByCoachId(coachId);
     }
+
+
+    public void sendPasswordResetToken(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) return; // Không trả lời email có hay không
+
+        String token = UUID.randomUUID().toString();
+        VerificationToken vt = new VerificationToken();
+        vt.setToken(token);
+        vt.setEmail(user.getEmail());
+        vt.setUserInfo(""); // Không cần lưu info user
+        vt.setExpiryDate(LocalDateTime.now().plusHours(1)); // 1h hết hạn
+        vt.setType("PASSWORD_RESET");
+        tokenRepository.save(vt);
+
+        emailService.sendPasswordResetEmail(user, token);
+    }
+
 }
