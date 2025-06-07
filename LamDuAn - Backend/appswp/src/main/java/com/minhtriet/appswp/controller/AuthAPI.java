@@ -1,6 +1,10 @@
 package com.minhtriet.appswp.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.minhtriet.appswp.entity.User;
+import com.minhtriet.appswp.entity.VerificationToken;
+import com.minhtriet.appswp.repository.VerificationTokenRepository;
+import com.minhtriet.appswp.repository.UserRepository;
 import com.minhtriet.appswp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -16,7 +21,16 @@ public class AuthAPI {
     @Autowired
     private UserService userService;
 
-    // API Đăng ký
+    @Autowired
+    private VerificationTokenRepository tokenRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    // ===== ĐĂNG KÝ có gửi mail xác thực =====
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody RegisterRequest request) {
         Map<String, Object> response = new HashMap<>();
@@ -29,32 +43,26 @@ public class AuthAPI {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // Kiểm tra mật khẩu và xác nhận mật khẩu
+            // Kiểm tra mật khẩu xác nhận
             if (!request.getPassword().equals(request.getConfirmPassword())) {
                 response.put("success", false);
                 response.put("message", "Mật khẩu xác nhận không khớp");
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // Tạo user mới
+            // Tạo user mới với enabled=false (chưa xác thực)
             User newUser = new User();
             newUser.setFullName(request.getFullName());
             newUser.setEmail(request.getEmail());
-            newUser.setPasswordHash(request.getPassword()); // Trong thực tế nên hash password
-            newUser.setUsername(request.getEmail()); // Dùng email làm username
+            newUser.setPasswordHash(request.getPassword()); // Nên hash!
+            newUser.setUsername(request.getEmail());
             newUser.setRole("member");
 
-            User savedUser = userService.createNewUser(newUser);
+            // Gửi mail xác thực, lưu user tạm vào VerificationToken
+            userService.registerUserWithVerification(newUser);
 
             response.put("success", true);
-            response.put("message", "Đăng ký thành công");
-            response.put("user", Map.of(
-                    "id", savedUser.getUserId(),
-                    "fullName", savedUser.getFullName(),
-                    "email", savedUser.getEmail(),
-                    "role", savedUser.getRole()
-            ));
-
+            response.put("message", "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!");
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -64,13 +72,63 @@ public class AuthAPI {
         }
     }
 
-    // API Đăng nhập
+    // ======= Xác thực tài khoản qua email =======
+    @GetMapping("/verify")
+    public ResponseEntity<Map<String, Object>> verifyUser(@RequestParam("token") String token) {
+        Map<String, Object> response = new HashMap<>();
+
+        Optional<VerificationToken> tokenOpt = tokenRepository.findByToken(token);
+
+        if (tokenOpt.isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Token không hợp lệ hoặc đã được xác thực!");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        VerificationToken verificationToken = tokenOpt.get();
+
+        // Kiểm tra token hết hạn
+        if (verificationToken.getExpiryDate().isBefore(java.time.LocalDateTime.now())) {
+            tokenRepository.delete(verificationToken);
+            response.put("success", false);
+            response.put("message", "Token đã hết hạn!");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            // Deserialize user từ userInfo (JSON)
+            User user = objectMapper.readValue(verificationToken.getUserInfo(), User.class);
+
+            // Kiểm tra lại email đã tồn tại chưa (phòng double click hoặc tấn công)
+            if (userRepository.existsByEmail(user.getEmail())) {
+                response.put("success", false);
+                response.put("message", "Tài khoản này đã được xác thực trước đó!");
+                tokenRepository.delete(verificationToken); // Xóa luôn token thừa
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            user.setEnabled(true); // Đánh dấu đã xác thực
+            userRepository.save(user); // Lưu user vào DB
+
+            tokenRepository.delete(verificationToken); // Xóa token
+
+            response.put("success", true);
+            response.put("message", "Xác thực tài khoản thành công! Bạn đã có thể đăng nhập.");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Xác thực thất bại: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // ========== Đăng nhập ==========
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            // Tìm user theo email
             User user = userService.getUserByEmail(request.getEmail());
 
             if (user == null) {
@@ -79,14 +137,19 @@ public class AuthAPI {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // Kiểm tra mật khẩu (trong thực tế nên so sánh hash)
+            // Chỉ cho login khi đã xác thực
+            if (!user.isEnabled()) {
+                response.put("success", false);
+                response.put("message", "Tài khoản chưa được xác thực qua email!");
+                return ResponseEntity.badRequest().body(response);
+            }
+
             if (!user.getPasswordHash().equals(request.getPassword())) {
                 response.put("success", false);
                 response.put("message", "Mật khẩu không đúng");
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // Cập nhật thời gian đăng nhập cuối
             userService.updateLastLoginDate(user.getUserId());
 
             response.put("success", true);
@@ -108,17 +171,15 @@ public class AuthAPI {
         }
     }
 
-    // Class cho request đăng ký
+    // ======= DTO cho request đăng ký =======
     public static class RegisterRequest {
         private String fullName;
         private String email;
         private String password;
         private String confirmPassword;
 
-        // Constructors
         public RegisterRequest() {}
 
-        // Getters and Setters
         public String getFullName() { return fullName; }
         public void setFullName(String fullName) { this.fullName = fullName; }
 
@@ -132,15 +193,13 @@ public class AuthAPI {
         public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
     }
 
-    // Class cho request đăng nhập
+    // ======= DTO cho request đăng nhập =======
     public static class LoginRequest {
         private String email;
         private String password;
 
-        // Constructors
         public LoginRequest() {}
 
-        // Getters and Setters
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
 

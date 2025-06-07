@@ -53,22 +53,22 @@ public class User {
     private LocalDate subscriptionEndDate;
 
     @Column(name = "CoachID")
-    private Long coachId;
+    private long coachId;
 
     @Column(name = "Role", nullable = false, length = 255)
     private String role = "member"; // Default value
 
+    @Column(name = "Enabled", nullable = false)
+    private boolean enabled = false; // Thêm trường này để xác thực email
+
     @PrePersist
     protected void onCreate() {
-        // Tự động set thời gian đăng ký khi tạo user mới
         if (registrationDate == null) {
             registrationDate = LocalDateTime.now();
         }
-        // Đảm bảo role luôn có giá trị mặc định
         if (role == null || role.trim().isEmpty()) {
             role = "member";
         }
-        // THÊM MỚI: Nếu username null, dùng email làm username
         if (username == null || username.trim().isEmpty()) {
             username = email;
         }

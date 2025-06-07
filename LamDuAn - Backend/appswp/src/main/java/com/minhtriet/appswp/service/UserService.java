@@ -1,42 +1,114 @@
 package com.minhtriet.appswp.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.minhtriet.appswp.entity.User;
+import com.minhtriet.appswp.entity.VerificationToken;
 import com.minhtriet.appswp.repository.UserRepository;
+import com.minhtriet.appswp.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
     @Autowired
     UserRepository userRepository;
 
-    // Lấy danh sách tất cả users
+    @Autowired
+    VerificationTokenRepository tokenRepository;
+
+    @Autowired
+    EmailService emailService;
+
+    @Autowired
+    private ObjectMapper objectMapper; // Jackson để serialize/deserialize User
+
+    // ======== ĐĂNG KÝ: CHỈ LƯU TOKEN, GỬI EMAIL XÁC THỰC =========
+    /**
+     * Đăng ký user mới: KHÔNG lưu User vào DB, chỉ lưu tạm vào VerificationToken,
+     * gửi email xác thực.
+     */
+    public void registerUserWithVerification(User user) {
+        // 1. Check username/email đã tồn tại chưa (vẫn check trong bảng User)
+        if (isUsernameExists(user.getUsername()) || isEmailExists(user.getEmail())) {
+            throw new IllegalArgumentException("Username or Email already exists!");
+        }
+        // 2. Serialize toàn bộ user thành JSON, lưu vào VerificationToken
+        user.setEnabled(false); // trạng thái chưa kích hoạt
+        user.setRegistrationDate(LocalDateTime.now());
+        String userJson;
+        try {
+            userJson = objectMapper.writeValueAsString(user);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Cannot serialize user data", e);
+        }
+
+        // 3. Tạo token xác thực
+        String token = java.util.UUID.randomUUID().toString();
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(token);
+        verificationToken.setEmail(user.getEmail());
+        verificationToken.setUserInfo(userJson); // Lưu user JSON vào token
+        verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24));
+        tokenRepository.save(verificationToken);
+
+        // 4. Gửi mail xác thực
+        emailService.sendVerificationEmail(user, token);
+    }
+
+    /**
+     * Xác thực email: Khi user click link xác thực, lấy thông tin user từ VerificationToken,
+     * lưu vào bảng User, xóa token khỏi DB.
+     */
+    public boolean verifyUserRegistration(String token) {
+        Optional<VerificationToken> opt = tokenRepository.findByToken(token);
+        if (opt.isEmpty()) return false;
+        VerificationToken vt = opt.get();
+
+        // Kiểm tra token có hết hạn không
+        if (vt.getExpiryDate() != null && vt.getExpiryDate().isBefore(LocalDateTime.now())) {
+            tokenRepository.delete(vt); // Xóa luôn token hết hạn
+            return false;
+        }
+
+        try {
+            // Deserialize user từ JSON
+            User user = objectMapper.readValue(vt.getUserInfo(), User.class);
+            user.setEnabled(true); // Đã xác thực
+            userRepository.save(user);
+        } catch (Exception e) {
+            return false;
+        }
+
+        // Xóa token sau khi xác thực thành công
+        tokenRepository.delete(vt);
+        return true;
+    }
+
+    // ================== CÁC HÀM CRUD KHÁC ==================
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // Lấy user theo ID
     public User getUserById(Long id) {
         return userRepository.findById(id).orElse(null);
     }
 
-    // Tạo user mới - CẢI THIỆN để phù hợp với đăng ký
+    // Nếu muốn vẫn giữ createNewUser cho admin tạo user không cần xác thực, thì để lại hàm này
     public User createNewUser(User user) {
-        // Đảm bảo username không null (sẽ được set trong @PrePersist nếu null)
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
             user.setUsername(user.getEmail());
         }
         return userRepository.save(user);
     }
 
-    // Cập nhật user theo id - CẢI THIỆN để tránh ghi đè những field không cần thiết
     public User updateUserById(Long id, User updatedUser) {
         return userRepository.findById(id)
                 .map(user -> {
-                    // CHỈ cập nhật những field được phép thay đổi
                     if (updatedUser.getUsername() != null && !updatedUser.getUsername().trim().isEmpty()) {
                         user.setUsername(updatedUser.getUsername());
                     }
@@ -55,7 +127,7 @@ public class UserService {
                     if (updatedUser.getSubscriptionEndDate() != null) {
                         user.setSubscriptionEndDate(updatedUser.getSubscriptionEndDate());
                     }
-                    if (updatedUser.getCoachId() != null) {
+                    if (updatedUser.getCoachId() != 0) {
                         user.setCoachId(updatedUser.getCoachId());
                     }
                     if (updatedUser.getRole() != null && !updatedUser.getRole().trim().isEmpty()) {
@@ -67,7 +139,6 @@ public class UserService {
                 .orElse(null);
     }
 
-    // Xóa user theo id
     public boolean deleteUserById(Long id) {
         return userRepository.findById(id)
                 .map(user -> {
@@ -77,32 +148,26 @@ public class UserService {
                 .orElse(false);
     }
 
-    // Tìm user theo username
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
-    // Tìm user theo email - QUAN TRỌNG cho đăng nhập
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    // Lấy danh sách users theo role
     public List<User> getUsersByRole(String role) {
         return userRepository.findByRole(role);
     }
 
-    // Kiểm tra username đã tồn tại chưa - QUAN TRỌNG cho đăng ký
     public boolean isUsernameExists(String username) {
         return userRepository.existsByUsername(username);
     }
 
-    // Kiểm tra email đã tồn tại chưa - QUAN TRỌNG cho đăng ký
     public boolean isEmailExists(String email) {
         return userRepository.existsByEmail(email);
     }
 
-    // Cập nhật last login date - QUAN TRỌNG cho đăng nhập
     public void updateLastLoginDate(Long userId) {
         userRepository.findById(userId)
                 .ifPresent(user -> {
@@ -111,7 +176,6 @@ public class UserService {
                 });
     }
 
-    // THÊM MỚI: Cập nhật mật khẩu (cho chức năng đổi mật khẩu sau này)
     public boolean updatePassword(Long userId, String newPasswordHash) {
         return userRepository.findById(userId)
                 .map(user -> {
@@ -122,17 +186,14 @@ public class UserService {
                 .orElse(false);
     }
 
-    // THÊM MỚI: Validate email format (có thể dùng cho validation)
     public boolean isValidEmail(String email) {
         return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     }
 
-    // Lấy danh sách users có coach
     public List<User> getUsersWithCoach() {
         return userRepository.findByCoachIdIsNotNull();
     }
 
-    // Lấy danh sách users theo coach ID
     public List<User> getUsersByCoachId(Long coachId) {
         return userRepository.findByCoachId(coachId);
     }
