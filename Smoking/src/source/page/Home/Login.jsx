@@ -1,38 +1,45 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import '../../CSS/Login.css';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  // Đăng ký
   const [registerData, setRegisterData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
+  const [registerStep, setRegisterStep] = useState(1); // 1: Nhập info, 2: Nhập OTP
+  const [registerOtp, setRegisterOtp] = useState('');
+  const [registeringEmail, setRegisteringEmail] = useState('');
+
+  // Đăng nhập
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
   });
 
-  // Notification
+  // Thông báo
   const [notification, setNotification] = useState({
     visible: false,
     message: '',
-    type: '' // 'success' or 'error'
+    type: ''
   });
 
-  // Quên mật khẩu - tích hợp tất cả vào đây!
+  // Quên mật khẩu
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [forgotStep, setForgotStep] = useState(1); // 1: Nhập email & mật khẩu mới, 2: Nhập OTP
+  const [forgotStep, setForgotStep] = useState(1); // 1: nhập info, 2: nhập OTP
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotNewPassword, setForgotNewPassword] = useState('');
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
-  const [otp, setOtp] = useState('');
+  const [forgotOtp, setForgotOtp] = useState('');
 
   const navigate = useNavigate();
 
-  // Notification display helper
+  // Hiển thị thông báo
   const showNotification = (message, type) => {
     setNotification({ visible: true, message, type });
     setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 3000);
@@ -42,7 +49,8 @@ const Login = () => {
     if (window.location.hash === '#signup') setIsSignUp(true);
   }, []);
 
-  // Đăng ký
+  // ======= Đăng ký 2 bước =======
+  // Bước 1: Gửi info -> gửi OTP về email
   const handleRegister = async (e) => {
     e.preventDefault();
     if (registerData.password !== registerData.confirmPassword) {
@@ -50,7 +58,7 @@ const Login = () => {
       return;
     }
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
+      const res = await fetch('http://localhost:8080/api/auth/register-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -60,12 +68,11 @@ const Login = () => {
           confirmPassword: registerData.confirmPassword
         })
       });
-      const data = await response.json();
-      if (response.ok) {
-        setIsSignUp(false);
-        setLoginData({ email: registerData.email, password: '' });
-        setRegisterData({ name: '', email: '', password: '', confirmPassword: '' });
-        showNotification('Đăng ký thành công! Vui lòng kiểm tra email xác thực.', 'success');
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showNotification(data.message || 'OTP đã gửi về email. Vui lòng nhập mã xác nhận.', 'success');
+        setRegisteringEmail(registerData.email);
+        setRegisterStep(2);
       } else {
         showNotification(data.message || 'Đăng ký thất bại!', 'error');
       }
@@ -74,7 +81,39 @@ const Login = () => {
     }
   };
 
-  // Đăng nhập
+  // Bước 2: Xác thực OTP
+  const handleRegisterOtp = async (e) => {
+    e.preventDefault();
+    if (!registerOtp || registerOtp.length !== 4) {
+      showNotification('Vui lòng nhập đủ mã OTP 4 số.', 'error');
+      return;
+    }
+    try {
+      const res = await fetch('http://localhost:8080/api/auth/register-verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: registeringEmail,
+          otp: registerOtp
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showNotification(data.message || 'Đăng ký thành công! Bạn có thể đăng nhập.', 'success');
+        setRegisterStep(1);
+        setIsSignUp(false);
+        setRegisterData({ name: '', email: '', password: '', confirmPassword: '' });
+        setRegisterOtp('');
+        setRegisteringEmail('');
+      } else {
+        showNotification(data.message || 'OTP không đúng hoặc đã hết hạn!', 'error');
+      }
+    } catch (error) {
+      showNotification('Lỗi kết nối server!', 'error');
+    }
+  };
+
+  // ======= Đăng nhập =======
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -84,7 +123,7 @@ const Login = () => {
         body: JSON.stringify(loginData)
       });
       const data = await response.json();
-      if (response.ok) {
+      if (response.ok && data.success) {
         showNotification('Đăng nhập thành công!', 'success');
         setTimeout(() => navigate('/guest/home'), 1000);
       } else {
@@ -95,7 +134,8 @@ const Login = () => {
     }
   };
 
-  // QUÊN MẬT KHẨU – BƯỚC 1: GỬI OTP
+  // ======= Quên mật khẩu 2 bước =======
+  // Bước 1: Gửi OTP về email
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
     if (!forgotEmail || !forgotNewPassword || !forgotConfirmPassword) {
@@ -116,9 +156,9 @@ const Login = () => {
         })
       });
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data.success) {
         setForgotStep(2);
-        showNotification('OTP đã gửi về email. Nhập mã để xác nhận.', 'success');
+        showNotification(data.message || 'OTP đã gửi về email. Nhập mã để xác nhận.', 'success');
       } else {
         showNotification(data.message || 'Gửi OTP thất bại!', 'error');
       }
@@ -127,10 +167,10 @@ const Login = () => {
     }
   };
 
-  // QUÊN MẬT KHẨU – BƯỚC 2: XÁC NHẬN OTP
+  // Bước 2: Nhập OTP xác thực đổi mật khẩu
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
-    if (!otp || otp.length !== 4) {
+    if (!forgotOtp || forgotOtp.length !== 4) {
       showNotification('Vui lòng nhập đủ mã OTP 4 số.', 'error');
       return;
     }
@@ -140,19 +180,19 @@ const Login = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: forgotEmail,
-          otp: otp
+          otp: forgotOtp
         })
       });
       const data = await res.json();
-      if (res.ok) {
-        showNotification('Đổi mật khẩu thành công!', 'success');
+      if (res.ok && data.success) {
+        showNotification(data.message || 'Đổi mật khẩu thành công!', 'success');
         setTimeout(() => {
           setShowForgotPassword(false);
           setForgotStep(1);
           setForgotEmail('');
           setForgotNewPassword('');
           setForgotConfirmPassword('');
-          setOtp('');
+          setForgotOtp('');
         }, 1500);
       } else {
         showNotification(data.message || 'OTP không đúng hoặc đã hết hạn!', 'error');
@@ -162,10 +202,9 @@ const Login = () => {
     }
   };
 
-  // Giao diện
+  // ======= Giao diện =======
   return (
     <div className="auth-container">
-
       {/* Notification */}
       {notification.visible && (
         <div className={`notification ${notification.type}`} style={{
@@ -188,7 +227,7 @@ const Login = () => {
         </div>
       )}
 
-      {/* QUÊN MẬT KHẨU – MODAL 2 BƯỚC */}
+      {/* Quên mật khẩu 2 bước */}
       {showForgotPassword && (
         <div
           style={{
@@ -201,7 +240,7 @@ const Login = () => {
             setForgotEmail('');
             setForgotNewPassword('');
             setForgotConfirmPassword('');
-            setOtp('');
+            setForgotOtp('');
           }}
         >
           <div
@@ -252,8 +291,8 @@ const Login = () => {
                     maxLength={4}
                     className="w-full h-[50px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none mt-2"
                     placeholder="Nhập mã OTP"
-                    value={otp}
-                    onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    value={forgotOtp}
+                    onChange={e => setForgotOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
                     required
                   />
                 </div>
@@ -269,7 +308,7 @@ const Login = () => {
                 setForgotEmail('');
                 setForgotNewPassword('');
                 setForgotConfirmPassword('');
-                setOtp('');
+                setForgotOtp('');
               }}
               style={{ position: 'absolute', top: 8, right: 16, fontSize: 24, color: '#aaa', border: 'none', background: 'none', cursor: 'pointer' }}
               aria-label="Đóng"
@@ -278,81 +317,110 @@ const Login = () => {
         </div>
       )}
 
-      {/* Giao diện chính */}
+      {/* Đăng ký 2 bước */}
       <div className={`auth-box ${isSignUp ? 'right-panel-active' : ''}`} id="authBox">
-        {/* Form Đăng ký */}
-        <div className="form-container sign-up-container ">
-          <form className="form" onSubmit={handleRegister}>
-            <h2 className="text-7xl font-bold text-[#4fd1c5] mb-[50px]">Đăng ký</h2>
-            <div className="mt-10 flex flex-col items-center space-y-5">
+        {/* Đăng ký step 1 */}
+        {isSignUp && registerStep === 1 && (
+          <div className="form-container sign-up-container ">
+            <form className="form" onSubmit={handleRegister}>
+              <h2 className="text-7xl font-bold text-[#4fd1c5] mb-[50px]">Đăng ký</h2>
+              <div className="mt-10 flex flex-col items-center space-y-5">
+                <input
+                  type="text"
+                  placeholder="Họ và tên"
+                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+                  value={registerData.name}
+                  onChange={e => setRegisterData({ ...registerData, name: e.target.value })}
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+                  value={registerData.email}
+                  onChange={e => setRegisterData({ ...registerData, email: e.target.value })}
+                />
+                <input
+                  type="password"
+                  placeholder="Mật khẩu"
+                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+                  value={registerData.password}
+                  onChange={e => setRegisterData({ ...registerData, password: e.target.value })}
+                />
+                <input
+                  type="password"
+                  placeholder="Xác nhận lại mật khẩu"
+                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+                  value={registerData.confirmPassword}
+                  onChange={e => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                />
+                <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6">
+                  GỬI OTP XÁC NHẬN
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+        {/* Đăng ký step 2 */}
+        {isSignUp && registerStep === 2 && (
+          <div className="form-container sign-up-container">
+            <form className="form" onSubmit={handleRegisterOtp}>
+              <h2 className="text-4xl font-bold text-[#4fd1c5] mb-[20px]">Nhập mã OTP đã gửi về email</h2>
               <input
                 type="text"
-                placeholder="Họ và tên"
-                className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                value={registerData.name}
-                onChange={e => setRegisterData({ ...registerData, name: e.target.value })}
+                maxLength={4}
+                className="w-[250px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none mb-4 text-center text-2xl tracking-widest"
+                placeholder="OTP (4 số)"
+                value={registerOtp}
+                onChange={e => setRegisterOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                required
               />
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                value={registerData.email}
-                onChange={e => setRegisterData({ ...registerData, email: e.target.value })}
-              />
-              <input
-                type="password"
-                placeholder="Mật khẩu"
-                className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                value={registerData.password}
-                onChange={e => setRegisterData({ ...registerData, password: e.target.value })}
-              />
-              <input
-                type="password"
-                placeholder="Xác nhận lại mật khẩu"
-                className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                value={registerData.confirmPassword}
-                onChange={e => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
-              />
-              <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6">
-                ĐĂNG KÝ
+              <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-4 mt-3">
+                XÁC NHẬN ĐĂNG KÝ
               </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Form Đăng nhập */}
-        <div className="form-container sign-in-container ">
-          <form className="form" onSubmit={handleLogin}>
-            <h2 className="text-7xl font-bold text-[#4fd1c5] mb-10">Đăng nhập </h2>
-            <div className="mt-15 flex flex-col items-center space-y-5">
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                value={loginData.email}
-                onChange={e => setLoginData({ ...loginData, email: e.target.value })}
-              />
-              <input
-                type="password"
-                placeholder="Mật khẩu"
-                className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                value={loginData.password}
-                onChange={e => setLoginData({ ...loginData, password: e.target.value })}
-              />
-              <a
-                href="#"
-                className="text-xl text-black-500 underline block"
-                onClick={e => { e.preventDefault(); setShowForgotPassword(true); }}
+              <button
+                type="button"
+                onClick={() => { setRegisterStep(1); setRegisterOtp(''); }}
+                className="mt-3 text-gray-500 underline text-base"
               >
-                Quên mật khẩu?
-              </a>
-              <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6 ">
-                ĐĂNG NHẬP
+                Nhập lại thông tin đăng ký
               </button>
-            </div>
-          </form>
-        </div>
-
+            </form>
+          </div>
+        )}
+        {/* Đăng nhập */}
+        {!isSignUp && (
+          <div className="form-container sign-in-container ">
+            <form className="form" onSubmit={handleLogin}>
+              <h2 className="text-7xl font-bold text-[#4fd1c5] mb-10">Đăng nhập </h2>
+              <div className="mt-15 flex flex-col items-center space-y-5">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+                  value={loginData.email}
+                  onChange={e => setLoginData({ ...loginData, email: e.target.value })}
+                />
+                <input
+                  type="password"
+                  placeholder="Mật khẩu"
+                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+                  value={loginData.password}
+                  onChange={e => setLoginData({ ...loginData, password: e.target.value })}
+                />
+                <a
+                  href="#"
+                  className="text-xl text-black-500 underline block"
+                  onClick={e => { e.preventDefault(); setShowForgotPassword(true); }}
+                >
+                  Quên mật khẩu?
+                </a>
+                <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6 ">
+                  ĐĂNG NHẬP
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
         {/* Overlay */}
         <div className="overlay-container">
           <div className="overlay">
@@ -362,7 +430,7 @@ const Login = () => {
                 Để tiếp tục kết nối với chúng tôi, vui lòng đăng nhập bằng thông tin cá nhân
               </p>
               <button
-                onClick={() => setIsSignUp(false)}
+                onClick={() => { setIsSignUp(false); setRegisterStep(1); setRegisterOtp(''); }}
                 className="border border-white text-white text-xl font-semibold rounded-full px-20 py-5 mt-6 bg-transparent hover:bg-white hover:text-[#4fd1c5] transition"
               >
                 ĐĂNG NHẬP
@@ -385,6 +453,6 @@ const Login = () => {
       </div>
     </div>
   )
-}
+};
 
-export default Login
+export default Login;
