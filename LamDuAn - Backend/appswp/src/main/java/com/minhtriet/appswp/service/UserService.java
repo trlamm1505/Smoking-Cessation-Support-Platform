@@ -8,6 +8,7 @@ import com.minhtriet.appswp.repository.UserRepository;
 import com.minhtriet.appswp.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -28,17 +29,18 @@ public class UserService {
     private ObjectMapper objectMapper; // Jackson để serialize/deserialize User
 
     // ======== ĐĂNG KÝ: CHỈ LƯU TOKEN, GỬI EMAIL XÁC THỰC =========
+
     /**
      * Đăng ký user mới: KHÔNG lưu User vào DB, chỉ lưu tạm vào VerificationToken,
      * gửi email xác thực.
      */
     public void registerUserWithVerification(User user) {
-        // 1. Check username/email đã tồn tại chưa (vẫn check trong bảng User)
+        // 1. Kiểm tra username/email đã tồn tại chưa (vẫn check trong bảng User)
         if (isUsernameExists(user.getUsername()) || isEmailExists(user.getEmail())) {
             throw new IllegalArgumentException("Username or Email already exists!");
         }
         // 2. Serialize toàn bộ user thành JSON, lưu vào VerificationToken
-        user.setEnabled(false); // trạng thái chưa kích hoạt
+        user.setEnabled(false); // Trạng thái chưa kích hoạt
         user.setRegistrationDate(LocalDateTime.now());
         String userJson;
         try {
@@ -47,14 +49,15 @@ public class UserService {
             throw new RuntimeException("Cannot serialize user data", e);
         }
 
-        // 3. Tạo token xác thực
-        String token = java.util.UUID.randomUUID().toString();
+        // 3. Tạo token xác thực email
+        String token = UUID.randomUUID().toString();
         VerificationToken verificationToken = new VerificationToken();
-        verificationToken.setToken(token);
-        verificationToken.setEmail(user.getEmail());
-        verificationToken.setUserInfo(userJson); // Lưu user JSON vào token
-        verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24));
-        tokenRepository.save(verificationToken);
+        verificationToken.setToken(token);                           // Mã token
+        verificationToken.setEmail(user.getEmail());                 // Email người đăng ký
+        verificationToken.setUserInfo(userJson);                     // Lưu user JSON vào token
+        verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // Token sống 24h
+        verificationToken.setType("EMAIL_VERIFICATION");             // *** QUAN TRỌNG: loại xác thực ***
+        tokenRepository.save(verificationToken);                     // Lưu vào DB
 
         // 4. Gửi mail xác thực
         emailService.sendVerificationEmail(user, token);
@@ -68,6 +71,9 @@ public class UserService {
         Optional<VerificationToken> opt = tokenRepository.findByToken(token);
         if (opt.isEmpty()) return false;
         VerificationToken vt = opt.get();
+
+        // Chỉ xử lý token loại xác thực email, bỏ qua các loại khác
+        if (!"EMAIL_VERIFICATION".equals(vt.getType())) return false;
 
         // Kiểm tra token có hết hạn không
         if (vt.getExpiryDate() != null && vt.getExpiryDate().isBefore(LocalDateTime.now())) {
@@ -199,23 +205,30 @@ public class UserService {
         return userRepository.findByCoachId(coachId);
     }
 
-
+    // ========== QUÊN MẬT KHẨU: Gửi token qua email ==========
+    /**
+     * Gửi token reset mật khẩu cho email nếu tồn tại. (Không báo lỗi nếu không có user!)
+     */
     public void sendPasswordResetToken(String email) {
         User user = userRepository.findByEmail(email);
-        if (user == null) return; // Không trả lời email có hay không
+        if (user == null) return; // Không trả lời email có hay không (bảo mật)
 
         String token = UUID.randomUUID().toString();
         VerificationToken vt = new VerificationToken();
-        vt.setToken(token);
-        vt.setEmail(user.getEmail());
-        vt.setUserInfo(""); // Không cần lưu info user
-        vt.setExpiryDate(LocalDateTime.now().plusHours(1)); // 1h hết hạn
-        vt.setType("PASSWORD_RESET");
-        tokenRepository.save(vt);
+        vt.setToken(token);                             // Mã token
+        vt.setEmail(user.getEmail());                   // Email người nhận
+        vt.setUserInfo("");                             // Không cần info user
+        vt.setExpiryDate(LocalDateTime.now().plusHours(1)); // Token sống 1 giờ
+        vt.setType("PASSWORD_RESET");                   // *** QUAN TRỌNG: loại token ***
+        tokenRepository.save(vt);                       // Lưu vào DB
 
         emailService.sendPasswordResetEmail(user, token);
     }
 
+    // ========== ĐẶT LẠI MẬT KHẨU VỚI TOKEN ==========
+    /**
+     * Đặt lại mật khẩu với token hợp lệ và mật khẩu mới.
+     */
     public boolean resetPassword(String token, String newPasswordHash) {
         Optional<VerificationToken> vtOpt = tokenRepository.findByToken(token);
         if (vtOpt.isEmpty()) return false;
@@ -237,5 +250,4 @@ public class UserService {
         tokenRepository.delete(vt); // Xóa token sau khi dùng
         return true;
     }
-
 }
