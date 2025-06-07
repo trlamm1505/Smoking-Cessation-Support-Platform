@@ -14,6 +14,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * API xác thực/đăng nhập/đăng ký/quên mật khẩu bằng OTP 4 số gửi về email.
+ * - Đăng ký: Gửi OTP về email, nhập OTP xác thực mới lưu user.
+ * - Quên mật khẩu: Gửi OTP về email, nhập OTP xác nhận mới đổi mật khẩu.
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthAPI {
@@ -30,38 +35,40 @@ public class AuthAPI {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // ===== ĐĂNG KÝ: Gửi mail xác thực =====
-    @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody RegisterRequest request) {
+    // ===================== ĐĂNG KÝ 2 BƯỚC BẰNG OTP =======================
+
+    /**
+     * BƯỚC 1: Đăng ký - Gửi OTP về email
+     * Endpoint: POST /api/auth/register-request
+     */
+    @PostMapping("/register-request")
+    public ResponseEntity<Map<String, Object>> registerRequest(@RequestBody RegisterRequest request) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Kiểm tra email đã tồn tại chưa
+            // 1. Kiểm tra email đã tồn tại chưa
             if (userService.isEmailExists(request.getEmail())) {
                 response.put("success", false);
                 response.put("message", "Email đã được sử dụng");
                 return ResponseEntity.badRequest().body(response);
             }
-            // Kiểm tra mật khẩu xác nhận
+            // 2. Kiểm tra mật khẩu xác nhận
             if (!request.getPassword().equals(request.getConfirmPassword())) {
                 response.put("success", false);
                 response.put("message", "Mật khẩu xác nhận không khớp");
                 return ResponseEntity.badRequest().body(response);
             }
-
-            // Tạo user mới với enabled=false (chưa xác thực)
-            User newUser = new User();
-            newUser.setFullName(request.getFullName());
-            newUser.setEmail(request.getEmail());
-            newUser.setPasswordHash(request.getPassword());
-            newUser.setUsername(request.getEmail());
-            newUser.setRole("member");
-            // Gửi mail xác thực, lưu user tạm vào VerificationToken
-            userService.registerUserWithVerification(newUser);
+            // 3. Gửi OTP + lưu user tạm vào VerificationToken
+            User user = new User();
+            user.setFullName(request.getFullName());
+            user.setEmail(request.getEmail());
+            user.setPasswordHash(request.getPassword());
+            user.setUsername(request.getEmail());
+            user.setRole("member");
+            userService.registerUserWithOtp(user); // Sửa lại hàm BE, flow dùng OTP
 
             response.put("success", true);
-            response.put("message", "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản!");
+            response.put("message", "OTP đã được gửi về email. Vui lòng kiểm tra email để xác thực!");
             return ResponseEntity.ok(response);
-
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Đăng ký thất bại: " + e.getMessage());
@@ -69,54 +76,27 @@ public class AuthAPI {
         }
     }
 
-    // ======= Xác thực tài khoản qua email =======
-    @GetMapping("/verify")
-    public ResponseEntity<Map<String, Object>> verifyUser(@RequestParam("token") String token) {
+    /**
+     * BƯỚC 2: Xác nhận OTP để hoàn tất đăng ký (tạo user thật)
+     * Endpoint: POST /api/auth/register-verify-otp
+     */
+    @PostMapping("/register-verify-otp")
+    public ResponseEntity<Map<String, Object>> verifyRegisterOtp(@RequestBody VerifyOtpRequest request) {
         Map<String, Object> response = new HashMap<>();
-        Optional<VerificationToken> tokenOpt = tokenRepository.findByToken(token);
-
-        if (tokenOpt.isEmpty()) {
-            response.put("success", false);
-            response.put("message", "Token không hợp lệ hoặc đã được xác thực!");
-            return ResponseEntity.badRequest().body(response);
-        }
-        VerificationToken verificationToken = tokenOpt.get();
-
-        // Kiểm tra token hết hạn
-        if (verificationToken.getExpiryDate().isBefore(java.time.LocalDateTime.now())) {
-            tokenRepository.delete(verificationToken);
-            response.put("success", false);
-            response.put("message", "Token đã hết hạn!");
-            return ResponseEntity.badRequest().body(response);
-        }
-        try {
-            // Deserialize user từ userInfo (JSON)
-            User user = objectMapper.readValue(verificationToken.getUserInfo(), User.class);
-
-            // Kiểm tra lại email đã tồn tại chưa (phòng double click hoặc tấn công)
-            if (userRepository.existsByEmail(user.getEmail())) {
-                response.put("success", false);
-                response.put("message", "Tài khoản này đã được xác thực trước đó!");
-                tokenRepository.delete(verificationToken);
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            user.setEnabled(true); // Đánh dấu đã xác thực
-            userRepository.save(user);
-            tokenRepository.delete(verificationToken);
-
+        boolean ok = userService.verifyOtpAndRegister(request.getEmail(), request.getOtp());
+        if (ok) {
             response.put("success", true);
-            response.put("message", "Xác thực tài khoản thành công! Bạn đã có thể đăng nhập.");
+            response.put("message", "Đăng ký thành công! Bạn đã có thể đăng nhập.");
             return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
+        } else {
             response.put("success", false);
-            response.put("message", "Xác thực thất bại: " + e.getMessage());
+            response.put("message", "OTP không đúng hoặc đã hết hạn!");
             return ResponseEntity.badRequest().body(response);
         }
     }
 
-    // ========== Đăng nhập ==========
+    // ===================== ĐĂNG NHẬP =======================
+
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request) {
         Map<String, Object> response = new HashMap<>();
@@ -127,10 +107,9 @@ public class AuthAPI {
                 response.put("message", "Email không tồn tại");
                 return ResponseEntity.badRequest().body(response);
             }
-            // Chỉ cho login khi đã xác thực
             if (!user.isEnabled()) {
                 response.put("success", false);
-                response.put("message", "Tài khoản chưa được xác thực qua email!");
+                response.put("message", "Tài khoản chưa xác thực hoặc chưa hoàn tất đăng ký OTP!");
                 return ResponseEntity.badRequest().body(response);
             }
             if (!user.getPasswordHash().equals(request.getPassword())) {
@@ -150,7 +129,6 @@ public class AuthAPI {
                     "profilePictureUrl", user.getProfilePictureUrl() != null ? user.getProfilePictureUrl() : ""
             ));
             return ResponseEntity.ok(response);
-
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Đăng nhập thất bại: " + e.getMessage());
@@ -158,19 +136,23 @@ public class AuthAPI {
         }
     }
 
-    // ======================= QUÊN MẬT KHẨU KIỂU OTP =======================
-    // BƯỚC 1: Nhận email và mật khẩu mới, gửi OTP về email
+    // ===================== QUÊN MẬT KHẨU 2 BƯỚC (OTP) =======================
+
+    /**
+     * BƯỚC 1: Gửi OTP xác nhận đổi mật khẩu về email
+     */
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody ForgotPasswordOtpRequest req) {
-        boolean sent = userService.sendPasswordResetOtp(req.getEmail(), req.getNewPassword());
-        // Không tiết lộ email có tồn tại hay không!
+        userService.sendPasswordResetOtp(req.getEmail(), req.getNewPassword());
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Nếu email hợp lệ, mã OTP đã được gửi về email. Hãy kiểm tra hộp thư!"
         ));
     }
 
-    // BƯỚC 2: Nhập email + otp, xác nhận đổi mật khẩu
+    /**
+     * BƯỚC 2: Nhập OTP để đổi mật khẩu
+     */
     @PostMapping("/reset-password-otp")
     public ResponseEntity<Map<String, Object>> resetPasswordOtp(@RequestBody VerifyOtpRequest req) {
         boolean ok = userService.verifyOtpAndResetPassword(req.getEmail(), req.getOtp());
@@ -181,62 +163,48 @@ public class AuthAPI {
         }
     }
 
-    // ======= DTO cho request đăng ký =======
+    // =================== DTO ====================
+
     public static class RegisterRequest {
         private String fullName;
         private String email;
         private String password;
         private String confirmPassword;
-
         public RegisterRequest() {}
-
         public String getFullName() { return fullName; }
         public void setFullName(String fullName) { this.fullName = fullName; }
-
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
-
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
-
         public String getConfirmPassword() { return confirmPassword; }
         public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
     }
 
-    // ======= DTO cho request đăng nhập =======
     public static class LoginRequest {
         private String email;
         private String password;
-
         public LoginRequest() {}
-
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
-
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
     }
 
-    // ======= DTO bước 1: Quên mật khẩu (gửi OTP) =======
     public static class ForgotPasswordOtpRequest {
         private String email;
         private String newPassword;
-
         public ForgotPasswordOtpRequest() {}
-
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
         public String getNewPassword() { return newPassword; }
         public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
     }
 
-    // ======= DTO bước 2: Xác nhận OTP =======
     public static class VerifyOtpRequest {
         private String email;
         private String otp;
-
         public VerifyOtpRequest() {}
-
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
         public String getOtp() { return otp; }

@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 
 @Service
 public class UserService {
@@ -28,17 +27,22 @@ public class UserService {
     EmailService emailService;
 
     @Autowired
-    private ObjectMapper objectMapper; // Jackson để serialize/deserialize User
+    private ObjectMapper objectMapper;
 
-    // ======== ĐĂNG KÝ: CHỈ LƯU TOKEN, GỬI EMAIL XÁC THỰC =========
-    public void registerUserWithVerification(User user) {
-        // 1. Kiểm tra username/email đã tồn tại chưa (vẫn check trong bảng User)
+    // ========================= ĐĂNG KÝ OTP 2 BƯỚC =========================
+
+    /**
+     * BƯỚC 1: Gửi OTP về email, lưu user tạm vào VerificationToken (type = REGISTER_OTP)
+     */
+    public void registerUserWithOtp(User user) {
+        // 1. Check username/email đã tồn tại trong DB chưa
         if (isUsernameExists(user.getUsername()) || isEmailExists(user.getEmail())) {
             throw new IllegalArgumentException("Username or Email already exists!");
         }
-        // 2. Serialize toàn bộ user thành JSON, lưu vào VerificationToken
-        user.setEnabled(false); // Trạng thái chưa kích hoạt
+        user.setEnabled(false); // Đánh dấu chưa xác thực
         user.setRegistrationDate(LocalDateTime.now());
+
+        // 2. Serialize toàn bộ user thành JSON
         String userJson;
         try {
             userJson = objectMapper.writeValueAsString(user);
@@ -46,52 +50,61 @@ public class UserService {
             throw new RuntimeException("Cannot serialize user data", e);
         }
 
-        // 3. Tạo token xác thực email
-        String token = UUID.randomUUID().toString();
-        VerificationToken verificationToken = new VerificationToken();
-        verificationToken.setToken(token);                           // Mã token
-        verificationToken.setEmail(user.getEmail());                 // Email người đăng ký
-        verificationToken.setUserInfo(userJson);                     // Lưu user JSON vào token
-        verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // Token sống 24h
-        verificationToken.setType("EMAIL_VERIFICATION");             // Loại xác thực email
-        tokenRepository.save(verificationToken);                     // Lưu vào DB
+        // 3. Sinh OTP (4 số)
+        String otp = generateOtp();
 
-        // 4. Gửi mail xác thực
-        emailService.sendVerificationEmail(user.getEmail(), user.getFullName(), token);
+        // 4. Xóa OTP cũ nếu có
+        tokenRepository.findByEmailAndType(user.getEmail(), "REGISTER_OTP")
+                .ifPresent(tokenRepository::delete);
+
+        // 5. Lưu vào bảng VerificationToken
+        VerificationToken vt = new VerificationToken();
+        vt.setToken(otp); // Lưu OTP
+        vt.setEmail(user.getEmail());
+        vt.setUserInfo(userJson); // Lưu tạm user
+        vt.setExpiryDate(LocalDateTime.now().plusMinutes(10)); // OTP sống 10 phút
+        vt.setType("REGISTER_OTP");
+        tokenRepository.save(vt);
+
+        // 6. Gửi OTP qua email
+        emailService.sendOtpResetPassword(user.getEmail(), otp); // Tên hàm này dùng cho OTP, nếu bạn muốn custom nội dung thì tạo hàm riêng cho đăng ký
     }
 
     /**
-     * Xác thực email: Khi user click link xác thực, lấy thông tin user từ VerificationToken,
-     * lưu vào bảng User, xóa token khỏi DB.
+     * BƯỚC 2: Xác thực OTP và lưu user vào bảng User
      */
-    public boolean verifyUserRegistration(String token) {
-        Optional<VerificationToken> opt = tokenRepository.findByToken(token);
-        if (opt.isEmpty()) return false;
-        VerificationToken vt = opt.get();
+    public boolean verifyOtpAndRegister(String email, String otp) {
+        Optional<VerificationToken> vtOpt = tokenRepository.findByEmailAndType(email, "REGISTER_OTP");
+        if (vtOpt.isEmpty()) return false;
+        VerificationToken vt = vtOpt.get();
 
-        // Chỉ xử lý token loại xác thực email
-        if (!"EMAIL_VERIFICATION".equals(vt.getType())) return false;
-
-        // Kiểm tra token có hết hạn không
-        if (vt.getExpiryDate() != null && vt.getExpiryDate().isBefore(LocalDateTime.now())) {
+        // Kiểm tra OTP đúng và chưa hết hạn
+        if (!vt.getToken().equals(otp) || vt.getExpiryDate().isBefore(LocalDateTime.now())) {
             tokenRepository.delete(vt);
             return false;
         }
 
+        // Deserialize user từ userInfo
         try {
-            // Deserialize user từ JSON
             User user = objectMapper.readValue(vt.getUserInfo(), User.class);
-            user.setEnabled(true); // Đã xác thực
+
+            // Check lại email có tồn tại không (tránh double register)
+            if (userRepository.existsByEmail(user.getEmail())) {
+                tokenRepository.delete(vt);
+                return false;
+            }
+
+            user.setEnabled(true); // Đã xác thực OTP
             userRepository.save(user);
+            tokenRepository.delete(vt);
+            return true;
         } catch (Exception e) {
+            tokenRepository.delete(vt);
             return false;
         }
-        // Xóa token sau khi xác thực thành công
-        tokenRepository.delete(vt);
-        return true;
     }
 
-    // ================== QUÊN MẬT KHẨU: Gửi OTP VỀ EMAIL ==================
+    // ======================= OTP cho QUÊN MẬT KHẨU ==========================
 
     /**
      * Sinh ra OTP 4 số ngẫu nhiên dưới dạng String.
@@ -103,38 +116,37 @@ public class UserService {
     }
 
     /**
-     * Gửi OTP cho email muốn đặt lại mật khẩu.
-     * - Lưu OTP vào VerificationToken, type = PASSWORD_RESET_OTP
-     * - Lưu tạm mật khẩu mới vào userInfo (nên hash ở FE hoặc BE)
+     * Gửi OTP về email để xác thực đổi mật khẩu.
+     * - Lưu OTP vào VerificationToken (type = PASSWORD_RESET_OTP)
+     * - Lưu tạm mật khẩu mới vào userInfo
      */
     public boolean sendPasswordResetOtp(String email, String newPassword) {
         User user = userRepository.findByEmail(email);
         if (user == null) return false;
 
-        // Sinh OTP mới (4 số)
+        // 1. Sinh OTP
         String otp = generateOtp();
 
-        // Xóa OTP cũ (nếu có)
+        // 2. Xóa OTP cũ (nếu có)
         tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP")
                 .ifPresent(tokenRepository::delete);
 
+        // 3. Lưu VerificationToken
         VerificationToken vt = new VerificationToken();
-        vt.setToken(otp); // Lưu OTP
+        vt.setToken(otp);
         vt.setEmail(email);
-        vt.setUserInfo(newPassword); // Lưu tạm mật khẩu mới, có thể hash trước ở FE/BE
-        vt.setExpiryDate(LocalDateTime.now().plusMinutes(10)); // OTP sống 10 phút
+        vt.setUserInfo(newPassword);
+        vt.setExpiryDate(LocalDateTime.now().plusMinutes(10));
         vt.setType("PASSWORD_RESET_OTP");
         tokenRepository.save(vt);
 
-        // Gửi OTP qua email
+        // 4. Gửi OTP qua email
         emailService.sendOtpResetPassword(email, otp);
         return true;
     }
 
     /**
-     * Kiểm tra OTP và đổi mật khẩu nếu hợp lệ.
-     * - Nhận vào email và OTP
-     * - Nếu đúng thì đổi mật khẩu thành công, xóa OTP khỏi DB
+     * Kiểm tra OTP đổi mật khẩu, nếu đúng thì đổi mật khẩu mới cho user.
      */
     public boolean verifyOtpAndResetPassword(String email, String otp) {
         Optional<VerificationToken> vtOpt = tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP");
@@ -143,18 +155,17 @@ public class UserService {
 
         // Kiểm tra OTP đúng & chưa hết hạn
         if (!vt.getToken().equals(otp) || vt.getExpiryDate().isBefore(LocalDateTime.now())) {
-            tokenRepository.delete(vt); // Nếu sai/hết hạn thì xóa luôn
+            tokenRepository.delete(vt);
             return false;
         }
 
-        // Lấy user
+        // Đổi mật khẩu mới (userInfo lưu tạm mật khẩu mới)
         User user = userRepository.findByEmail(email);
         if (user == null) {
             tokenRepository.delete(vt);
             return false;
         }
 
-        // Đổi mật khẩu mới (userInfo lưu tạm mật khẩu mới)
         user.setPasswordHash(vt.getUserInfo());
         userRepository.save(user);
 
@@ -162,15 +173,11 @@ public class UserService {
         return true;
     }
 
-    // ================== CÁC HÀM CRUD KHÁC ==================
+    // ================== CRUD & CHECK ==================
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
+    public List<User> getAllUsers() { return userRepository.findAll(); }
 
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
-    }
+    public User getUserById(Long id) { return userRepository.findById(id).orElse(null); }
 
     public User createNewUser(User user) {
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
@@ -206,7 +213,6 @@ public class UserService {
                     if (updatedUser.getRole() != null && !updatedUser.getRole().trim().isEmpty()) {
                         user.setRole(updatedUser.getRole());
                     }
-                    // KHÔNG cập nhật password, registrationDate, lastLoginDate ở đây
                     return userRepository.save(user);
                 })
                 .orElse(null);
