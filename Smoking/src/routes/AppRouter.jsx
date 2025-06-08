@@ -1,5 +1,6 @@
 import React from 'react'
 import { Route, Routes, Link, Navigate } from 'react-router'
+import ProtectedRoute from '../components/ProtectedRoute'
 import Home from '../source/page/Home/Home'
 import Login from '../source/page/Home/Login'
 import Error from '../source/page/Home/Error'
@@ -48,12 +49,16 @@ import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
 export default function AppRouter() {
   return (
     <Routes>
-      {/* Home */}
+      {/* Public Routes */}
       <Route path='/' element={<Home />} />
       <Route path='login' element={<Login />} />
 
-      {/* Guest Routes */}
-      <Route path='guest' element={<GuestLayout />}>
+      {/* Protected Guest Routes */}
+      <Route path='guest' element={
+        <ProtectedRoute>
+          <GuestLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="/guest/home" replace />} />
         <Route path='home' element={<GuestHome />} />
         <Route path='profile' element={<GuestProfile />} />
@@ -69,8 +74,12 @@ export default function AppRouter() {
         <Route path='community' element={<RequirePremiumNotice />} />
       </Route>
 
-      {/* Users Routes */}
-      <Route path='users' element={<UserLayout />}>
+      {/* Protected User Routes */}
+      <Route path='users' element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <UserLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="/users/home" replace />} />
         <Route path='home' element={<UserHome />} />
         <Route path='dashboard' element={<UserDashboard />} />
@@ -87,8 +96,12 @@ export default function AppRouter() {
         <Route path='reviews' element={<UserReviews />} />
       </Route>
 
-      {/* Coach Routes */}
-      <Route path='coach' element={<CoachLayout />}>
+      {/* Protected Coach Routes */}
+      <Route path='coach' element={
+        <ProtectedRoute allowedRoles={['coach']}>
+          <CoachLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<CoachHome />} />
         <Route path='profile' element={<CoachProfile />} />
         <Route path='schedule' element={<Schedule />} />
@@ -100,8 +113,12 @@ export default function AppRouter() {
         <Route path='blog-view' element={<CoachBlog />} />
       </Route>
 
-      {/* Admin Routes */}
-      <Route path='admin' element={<AdminLayout />}>
+      {/* Protected Admin Routes */}
+      <Route path='admin' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <AdminLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path='dashboard' element={<Dashboard />} />
         <Route path='community-manage' element={<CommunityManagement />} />
@@ -112,7 +129,7 @@ export default function AppRouter() {
         <Route path='reports' element={<AdminReports />} />
       </Route>
 
-      {/* Splats: TỨC LÀ NẾU KO THẤY TUYẾN ĐƯỜNG PHÙ HỢP THÌ SẼ TRẢ VỀ TRANG NÀY */}
+      {/* Error Route */}
       <Route path='*' element={<Error />} />
     </Routes>
   )
