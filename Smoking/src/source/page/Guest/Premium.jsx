@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider } from 'antd';
 import { CheckOutlined, CrownOutlined, DollarOutlined, SafetyCertificateOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 const { Step } = Steps;
 const { Title } = Typography;
@@ -10,23 +10,38 @@ const PageContainer = styled.div`
   padding: 32px;
   max-width: 1200px;
   margin: 0 auto;
-  background: #f8f9fa;
-  min-height: calc(100vh - 64px);
+  background: linear-gradient(135deg, #e6f7f6 0%, #f0f9f8 100%);
+  min-height: 100vh;
 `;
 
 const PageHeader = styled.div`
   text-align: center;
   margin-bottom: 40px;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  border: none;
   
   .main-title {
     color: #2c3e50;
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
     
     .icon {
       color: #5FB8B3;
       margin-right: 16px;
+      font-size: 32px;
+      animation: shine 2s infinite;
+    }
+    @keyframes shine {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); }
     }
   }
   
@@ -466,6 +481,30 @@ const SubscriptionInfoGrid = styled.div`
   }
 `;
 
+// Add slideUp keyframes
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const AnimatedSubscriptionStatusCard = styled(SubscriptionStatusCard)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: 0.1s;
+  opacity: 0;
+`;
+
+const AnimatedPremiumCard = styled(PremiumCard)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+`;
+
 const Premium = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
@@ -484,7 +523,7 @@ const Premium = () => {
                 'Hỗ trợ qua email',
                 'Tham gia cộng đồng',
                 'Các tài liệu hướng dẫn'
-            ]   
+            ]
         },
         {
             title: 'Nâng Cao',
@@ -679,7 +718,7 @@ const Premium = () => {
                 </p>
             </PageHeader>
 
-            <SubscriptionStatusCard isNearExpiry={getDaysRemaining(currentSubscription.renewalDate) <= 7}>
+            <AnimatedSubscriptionStatusCard isNearExpiry={getDaysRemaining(currentSubscription.renewalDate) <= 7}>
                 <div className="header-section">
                     <h2 className="title">
                         <CrownOutlined />
@@ -752,15 +791,16 @@ const Premium = () => {
                         </Button>
                     </ActionButtons>
                 </div>
-            </SubscriptionStatusCard>
+            </AnimatedSubscriptionStatusCard>
 
             <Row gutter={[24, 24]}>
                 {plans.map((plan, index) => (
                     <Col xs={24} md={8} key={index}>
-                        <PremiumCard
+                        <AnimatedPremiumCard
                             featured={plan.featured}
                             title={plan.title}
                             extra={plan.featured && <Tag color="#5FB8B3">Phổ biến nhất</Tag>}
+                            delay={`${0.15 + index * 0.1}s`}
                         >
                             <div className="price">
                                 {plan.price}đ
@@ -783,7 +823,7 @@ const Premium = () => {
                             >
                                 Đăng ký ngay
                             </Button>
-                        </PremiumCard>
+                        </AnimatedPremiumCard>
                     </Col>
                 ))}
             </Row>
@@ -817,8 +857,8 @@ const Premium = () => {
 
                     <div style={{ marginTop: '32px', textAlign: 'right' }}>
                         {currentStep > 0 && (
-                            <Button 
-                                style={{ marginRight: '8px' }} 
+                            <Button
+                                style={{ marginRight: '8px' }}
                                 onClick={handlePrev}
                                 size="large"
                             >
@@ -826,11 +866,11 @@ const Premium = () => {
                             </Button>
                         )}
                         {currentStep < steps.length - 1 && (
-                            <Button 
-                                type="primary" 
+                            <Button
+                                type="primary"
                                 onClick={handleNext}
                                 size="large"
-                                style={{ 
+                                style={{
                                     backgroundColor: '#5FB8B3',
                                     borderColor: '#5FB8B3',
                                     padding: '0 32px'
@@ -840,11 +880,11 @@ const Premium = () => {
                             </Button>
                         )}
                         {currentStep === steps.length - 1 && (
-                            <Button 
-                                type="primary" 
+                            <Button
+                                type="primary"
                                 onClick={handlePayment}
                                 size="large"
-                                style={{ 
+                                style={{
                                     backgroundColor: '#5FB8B3',
                                     borderColor: '#5FB8B3',
                                     padding: '0 32px'
@@ -881,11 +921,12 @@ const Premium = () => {
                 <Row gutter={[16, 16]}>
                     {plans.map((plan, index) => (
                         <Col key={index} xs={24} md={8}>
-                            <PremiumCard
+                            <AnimatedPremiumCard
                                 featured={plan.featured}
                                 title={plan.title}
                                 extra={plan.featured && <Tag color="#5FB8B3">Phổ biến nhất</Tag>}
                                 style={{ opacity: plan.title === currentSubscription.plan ? 0.7 : 1 }}
+                                delay={`${0.1 + index * 0.08}s`}
                             >
                                 <div className="price">
                                     {plan.price}đ
@@ -916,7 +957,7 @@ const Premium = () => {
                                 >
                                     {plan.title === currentSubscription.plan ? 'Gói hiện tại' : 'Chọn gói này'}
                                 </Button>
-                            </PremiumCard>
+                            </AnimatedPremiumCard>
                         </Col>
                     ))}
                 </Row>
