@@ -516,7 +516,7 @@ const Premium = () => {
     const plans = [
         {
             title: 'Cơ Bản',
-            price: '99,000',
+            price: '100,000',
             duration: '1 tháng',
             features: [
                 'Truy cập tất cả tính năng cơ bản',
@@ -527,7 +527,7 @@ const Premium = () => {
         },
         {
             title: 'Nâng Cao',
-            price: '249,000',
+            price: '550,000',
             duration: '3 tháng',
             featured: true,
             features: [
@@ -540,7 +540,7 @@ const Premium = () => {
         },
         {
             title: 'Chuyên Nghiệp',
-            price: '399,000',
+            price: '1000,000',
             duration: '6 tháng',
             features: [
                 'Tất cả tính năng của gói Nâng Cao',

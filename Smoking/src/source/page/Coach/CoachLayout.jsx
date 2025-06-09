@@ -35,7 +35,6 @@ const CoachLayout = () => {
   };
 
   return (
-    // Use Tailwind classes for layout
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <nav className="w-64 bg-white shadow-md flex flex-col">
@@ -84,19 +83,11 @@ const CoachLayout = () => {
             </Link>
           </li>
           <li>
-            <Link to="/coach/blog-view" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/blog-view') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
+            <Link to="/coach/community" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
+              isActive('/coach/community') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
             }`}>
-              <ReadOutlined className="text-lg" /> {/* Icon for Blog View */}
-              <span className="text-base">Xem Blog</span> {/* Link text */}
-            </Link>
-          </li>
-          <li>
-            <Link to="/coach/blog" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/blog') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
-            }`}>
-              <EditOutlined className="text-lg" />
-              <span className="text-base">Quản lý Blog</span>
+              <TeamOutlined className="text-lg" />
+              <span className="text-base">Cộng đồng</span>
             </Link>
           </li>
           <li>
@@ -132,7 +123,7 @@ const CoachLayout = () => {
 
       {/* Main content area */}
       <main className="flex-1 flex flex-col">
-        <CoachHeader /> {/* Include the CoachHeader component */}
+        <CoachHeader className="sticky top-0 w-full z-10" /> {/* Include the CoachHeader component */}
         <div className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </div>

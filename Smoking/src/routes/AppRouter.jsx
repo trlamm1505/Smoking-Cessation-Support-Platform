@@ -15,7 +15,6 @@ import DetailedSchedule from '../source/page/Users/DetailedSchedule'
 import Achievements from '../source/page/Users/Achievements'
 import Consultation from '../source/page/Users/Consultation'
 import Community from '../source/page/Users/Community'
-import Blog from '../source/page/Users/Blog'
 import UserReviews from '../source/page/Users/UserReviews'
 import CoachLayout from '../source/page/Coach/CoachLayout'
 import CoachHome from '../source/page/Coach/Home'
@@ -23,17 +22,14 @@ import CoachProfile from '../source/page/Coach/CoachProfile'
 import Schedule from '../source/page/Coach/Schedule'
 import Members from '../source/page/Coach/Members'
 import Statistics from '../source/page/Coach/Statistics'
-import BlogManagement from '../source/page/Coach/BlogManagement'
 import ConsultationCoach from '../source/page/Coach/Consultation'
 import ReportPage from '../source/page/Coach/ReportPage'
-import CoachBlog from '../source/page/Coach/CoachBlog'
 import AdminLayout from '../source/page/Admin/AdminLayout'
 import Dashboard from '../source/page/Admin/Dashboard'
 import CommunityManagement from '../source/page/Admin/CommunityManagement'
 import BlogManagementAdmin from '../source/page/Admin/BlogManagement'
 import RevenueStatistics from '../source/page/Admin/RevenueStatistics'
 import AdminBlog from '../source/page/Admin/AdminBlog'
-import AdminCommunity from '../source/page/Admin/AdminCommunity'
 import AdminReports from '../source/page/Admin/AdminReports'
 
 // Guest Components
@@ -84,7 +80,6 @@ export default function AppRouter() {
         <Route path='achievements' element={<Achievements />} />
         <Route path='consultation' element={<Consultation />} />
         <Route path='community' element={<Community />} />
-        <Route path='blog' element={<Blog />} />
         <Route path='reviews' element={<UserReviews />} />
       </Route>
 
@@ -96,9 +91,8 @@ export default function AppRouter() {
         <Route path='members' element={<Members />} />
         <Route path='consultation' element={<ConsultationCoach />} />
         <Route path='statistics' element={<Statistics />} />
-        <Route path='blog' element={<BlogManagement />} />
+        <Route path='community' element={<Community />} />
         <Route path='report' element={<ReportPage />} />
-        <Route path='blog-view' element={<CoachBlog />} />
       </Route>
 
       {/* Admin Routes */}
@@ -109,7 +103,7 @@ export default function AppRouter() {
         <Route path='blog-manage' element={<BlogManagementAdmin />} />
         <Route path='revenue' element={<RevenueStatistics />} />
         <Route path='blog' element={<AdminBlog />} />
-        <Route path='community' element={<AdminCommunity />} />
+        <Route path='community' element={<Community />} />
         <Route path='reports' element={<AdminReports />} />
       </Route>
 

@@ -47,19 +47,9 @@ const AdminLayout = () => {
             label: 'Quản lý bài viết cộng đồng',
         },
         {
-            key: 'blog-manage',
-            icon: <ReadOutlined />,
-            label: 'Quản lý blog',
-        },
-        {
             key: 'revenue',
             icon: <DollarOutlined />,
             label: 'Thống kê doanh thu',
-        },
-        {
-            key: 'blog',
-            icon: <ReadOutlined />,
-            label: 'Blog',
         },
         {
             key: 'community',

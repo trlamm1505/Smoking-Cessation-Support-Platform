@@ -126,11 +126,6 @@ const Sidebar = () => {
             icon: <StarOutlined />
         },
         {
-            path: '/users/blog',
-            name: 'Blog',
-            icon: <FileTextOutlined />
-        },
-        {
             path: '/users/premium',
             name: 'Gói Thành Viên',
             icon: <CrownOutlined />
