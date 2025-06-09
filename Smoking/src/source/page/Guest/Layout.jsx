@@ -15,6 +15,8 @@ const MainContent = styled.main`
     flex: 1;
     background: #f0f2f5;
     display: flex;
+    width: calc(100vw - 250px);
+    min-height: 100vh;
 `;
 
 const ContentWrapper = styled.div`
