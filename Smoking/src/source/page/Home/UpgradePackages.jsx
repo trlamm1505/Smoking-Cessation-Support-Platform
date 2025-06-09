@@ -23,7 +23,7 @@ const UpgradePackages = () => {
       id: "pro",
       name: "GÓI CHUYÊN NGHIỆP",
       price: "550,000 VND",
-      duration: "6 tháng",
+      duration: "3 tháng",
       features: [
         "Tất cả các lợi ích từ Gói Cơ bản",
         "Tư vấn trực tiếp với chuyên gia y tế",
@@ -37,7 +37,7 @@ const UpgradePackages = () => {
       id: "premium",
       name: "GÓI CAO CẤP",
       price: "1000,000 VND",
-      duration: "1 năm",
+      duration: "6 tháng",
       features: [
         "Tất cả các lợi ích từ Gói Chuyên nghiệp",
         "Chương trình huấn luyện cá nhân hóa",
