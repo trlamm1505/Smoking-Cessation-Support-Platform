@@ -1,9 +1,20 @@
 import React from 'react';
 import { Card, Row, Col, Typography, Progress, Tag, Tooltip } from 'antd';
 import { TrophyOutlined, CalendarOutlined, DollarOutlined, HeartOutlined, FireOutlined, StarOutlined, LockOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 const { Title, Text } = Typography;
+
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
 
 const PageContainer = styled.div`
   padding: 24px;
@@ -31,7 +42,7 @@ const PageContainer = styled.div`
   }
 `;
 
-const AchievementCard = styled(Card)`
+const AnimatedAchievementCard = styled(Card)`
   margin-bottom: 24px;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(95, 184, 179, 0.08);
@@ -39,6 +50,9 @@ const AchievementCard = styled(Card)`
   background: white;
   position: relative;
   overflow: hidden;
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
 
   .ant-card-head {
     background: #5FB8B3;
@@ -271,9 +285,9 @@ const Achievements = () => {
   };
 
   const renderAchievementSection = (title, items, icon) => (
-    <AchievementCard title={<><TrophyOutlined /> {title}</>}>
+    <AnimatedAchievementCard title={<><TrophyOutlined /> {title}</>}>
       <Row gutter={[24, 24]}>
-        {items.map(achievement => (
+        {items.map((achievement, index) => (
           <Col xs={24} sm={12} md={8} lg={6} key={achievement.id}>
             <Tooltip
               title={achievement.unlocked ? `Đạt được vào: ${achievement.date}` : `Hoàn thành: ${achievement.progress}%`}
@@ -300,7 +314,7 @@ const Achievements = () => {
           </Col>
         ))}
       </Row>
-    </AchievementCard>
+    </AnimatedAchievementCard>
   );
 
   return (

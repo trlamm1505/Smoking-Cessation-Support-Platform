@@ -1,403 +1,311 @@
 import React, { useState } from 'react';
-// Remove Ant Design imports
-// import { Typography, Card, Form, Input, Button, Table, Space, Modal, message, Rate, Select, Option } from 'antd';
-import styled from 'styled-components';
-// Keep icons if needed
-import { PlusOutlined, DeleteOutlined, StarOutlined } from '@ant-design/icons';
+import { Card, Button, Table, Select, Input, Typography } from 'antd';
+import { StarOutlined, UserOutlined, AppstoreOutlined, PlusOutlined } from '@ant-design/icons';
+import styled, { keyframes } from 'styled-components';
 
-// Define basic styled components
-const Container = styled.div`
+const { Title } = Typography;
+const { Option } = Select;
+
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const AnimatedCard = styled(Card)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+  border-radius: 12px;
+`;
+
+const PageContainer = styled.div`
   padding: 24px;
-  background: linear-gradient(135deg, #e6f7f6 0%, #f0f9f8 100%);
+  background: #e8f4f3;
   min-height: 100vh;
+
+  .page-title {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #1a1a1a;
+    .anticon {
+      color: #5FB8B3;
+      font-size: 28px;
+      animation: shine 2s infinite;
+    }
+    @keyframes shine {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+  }
 `;
 
-const Header = styled.div`
+const ToggleContainer = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: center;
   margin-bottom: 24px;
+  gap: 16px;
 `;
 
-const TitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  .anticon {
-    color: #5FB8B3;
-    font-size: 28px;
-    animation: shine 2s infinite;
-  }
-  @keyframes shine {
-    0% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(1.1) rotate(5deg); }
-    100% { transform: scale(1) rotate(0deg); }
-  }
-`;
-
-const StyledCard = styled.div`
-  margin-bottom: 24px;
-  border-radius: 16px;
-  padding: 24px;
-  background: white;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 25px rgba(95, 184, 179, 0.12);
-  }
-`;
-
-const Title = styled.h2`
-  font-size: 32px;
-  margin: 0;
+const ToggleButton = styled(Button)`
   font-weight: 600;
-  color: #222;
-`;
-
-const Button = styled.button` /* Simple Button */
-  padding: 8px 16px;
-  background-color: #1890ff; /* Example primary color */
-  color: white;
+  border-radius: 8px !important;
+  padding: 0 24px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  background: ${({ active }) => (active ? 'linear-gradient(90deg, #5FB8B3 30%, #1890ff 100%)' : '#f0f0f0')};
+  color: ${({ active }) => (active ? 'white' : '#666')};
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.9;
+  &:hover, &:focus {
+    background: ${({ active }) => (active ? 'linear-gradient(90deg, #1890ff 10%, #5FB8B3 90%)' : '#e0e0e0')};
+    color: ${({ active }) => (active ? 'white' : '#1890ff')};
   }
 `;
 
-// Remove Ant Design Modal and related state/functions
-/*
+const ReviewForm = styled.div`
+  .ant-form-item-label > label {
+    color: #2c7a75;
+    font-weight: 500;
+    font-size: 15px;
+  }
+  .ant-input, .ant-select-selector, .ant-input-number {
+    border-radius: 8px !important;
+    border: 1px solid #E3F6F5 !important;
+    padding: 8px 12px;
+    height: auto;
+    transition: all 0.3s ease;
+    &:hover, &:focus {
+      border-color: #5FB8B3 !important;
+      box-shadow: 0 0 0 2px rgba(95, 184, 179, 0.1);
+    }
+  }
+`;
+
+const Star = () => <span style={{ color: '#FFD700', fontSize: '1.2em', marginRight: 2 }}>★</span>;
+
+const AnimatedToggleContainer = styled(ToggleContainer)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+`;
+
 const UserReviews = () => {
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [form] = Form.useForm();
-    const [reviews, setReviews] = useState([
-// ... rest of Ant Design specific code ...
-    ]);
-
-    return (
-        <Container>
-            <Header>
-                <Title level={2}>Đánh giá của tôi</Title>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleCreateReview}
-                >
-                    Viết đánh giá mới
-                </Button>
-            </Header>
-
-            <StyledCard>
-                <Table
-                    columns={columns}
-                    dataSource={reviews}
-                    rowKey="id"
-                />
-            </StyledCard>
-
-            <Modal
-                title="Viết đánh giá mới"
-                open={isModalVisible}
-                onCancel={handleCancelModal}
-                footer={null}
-                width={600}
-            >
-                <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={handleSubmitReview}
-                >
-                    <Form.Item
-                        name="coachId"
-                        label="Chọn Huấn luyện viên"
-                        rules={[{ required: true, message: 'Vui lòng chọn huấn luyện viên' }]}
-                    >
-                        <Select placeholder="Chọn huấn luyện viên">
-                            {coachesForReview.map(coach => (
-                                <Option key={coach.id} value={coach.id}>
-                                    {coach.name}
-                                </Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-
-                    <Form.Item
-                        name="rating"
-                        label="Số sao"
-                        rules={[{ required: true, message: 'Vui lòng chọn số sao' }]}
-                    >
-                        <Rate />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="comment"
-                        label="Nội dung đánh giá"
-                        rules={[{ required: true, message: 'Vui lòng nhập nội dung đánh giá' }]}
-                    >
-                        <TextArea rows={4} placeholder="Chia sẻ trải nghiệm của bạn..." />
-                    </Form.Item>
-
-                    <Form.Item>
-                        <Space>
-                            <Button type="primary" htmlType="submit">
-                                Gửi đánh giá
-                            </Button>
-                            <Button onClick={handleCancelModal}>
-                                Hủy
-                            </Button>
-                        </Space>
-                    </Form.Item>
-                </Form>
-            </Modal>
-        </Container>
-    );
-};
-
-export default UserReviews;
-*/
-
-// Start rebuilding the component without Ant Design
-const UserReviews = () => {
-    // Keep state for reviews and coaches for review
-    const [reviews, setReviews] = useState([
-        {
-            id: 1,
-            coachName: 'Huấn luyện viên A',
-            rating: 5,
-            comment: 'HLV rất tốt, giúp tôi vượt qua giai đoạn khó khăn.',
-            date: '2023-10-26',
-        },
-        {
-            id: 2,
-            coachName: 'Huấn luyện viên B',
-            rating: 4,
-            comment: 'Nhận được nhiều lời khuyên hữu ích.',
-            date: '2023-10-20',
-        },
-    ]);
-
-    const [coachesForReview, setCoachesForReview] = useState([
+    // No sample data by default
+    const [coachReviews, setCoachReviews] = useState([]);
+    const [systemReviews, setSystemReviews] = useState([]);
+    const [coachesForReview] = useState([
         { id: 1, name: 'Huấn luyện viên A' },
         { id: 2, name: 'Huấn luyện viên B' },
         { id: 3, name: 'Huấn luyện viên C' },
     ]);
+    const [activeReviewType, setActiveReviewType] = useState('coach');
+    const [coachReviewForm, setCoachReviewForm] = useState({ coachId: '', rating: 0, comment: '' });
+    const [systemReviewForm, setSystemReviewForm] = useState({ rating: 0, comment: '' });
 
-    // State for modal visibility and form data (manual)
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [reviewFormData, setReviewFormData] = useState({
-        coachId: '',
-        rating: 0,
-        comment: '',
-    });
-
-    // Remove state for delete confirmation
-    // const [reviewToDelete, setReviewToDelete] = useState(null);
-    // const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-
-    // --- Functions (adapted from Ant Design version) ---
-    const handleCreateReview = () => {
-        setIsModalVisible(true);
+    // Handlers
+    const handleCoachFormChange = (field, value) => {
+        setCoachReviewForm({ ...coachReviewForm, [field]: value });
     };
-
-    // Handle form input changes
-    const handleFormChange = (e) => {
-        const { name, value } = e.target;
-        setReviewFormData({ ...reviewFormData, [name]: value });
+    const handleSystemFormChange = (field, value) => {
+        setSystemReviewForm({ ...systemReviewForm, [field]: value });
     };
-
-    // Handle rating change (basic for now, need custom component for stars)
-    const handleRatingChange = (value) => {
-        setReviewFormData({ ...reviewFormData, rating: value });
-    };
-
-    const handleSubmitReview = () => {
-        // Basic validation
-        if (!reviewFormData.coachId || reviewFormData.rating === 0 || !reviewFormData.comment) {
-            alert('Vui lòng điền đầy đủ thông tin!'); // Use simple alert
+    const handleSubmitCoachReview = () => {
+        if (!coachReviewForm.coachId || coachReviewForm.rating < 1) {
+            window.alert('Vui lòng điền đầy đủ thông tin!');
             return;
         }
-
-        // Find coach name
-        const selectedCoach = coachesForReview.find(coach => coach.id === parseInt(reviewFormData.coachId)); // Parse ID as it comes as string from select
+        const selectedCoach = coachesForReview.find(coach => coach.id === parseInt(coachReviewForm.coachId));
         const coachName = selectedCoach ? selectedCoach.name : 'Không rõ';
-
-        const newReview = {
-            id: reviews.length + 1, // Simple mock ID
-            coachName: coachName,
-            rating: parseInt(reviewFormData.rating), // Parse rating
-            comment: reviewFormData.comment,
-            date: new Date().toISOString().split('T')[0], // Current date
-        };
-
-        // Note: In a real app, send this newReview data to your backend API
-        console.log('Submitting review:', newReview); // Log for now
-
-        // setReviews([...reviews, newReview]); // Don't add to local state if sending to backend
-        alert('Đánh giá của bạn đã được gửi!'); // Use simple alert
-        setIsModalVisible(false);
-        // Reset form
-        setReviewFormData({ coachId: '', rating: 0, comment: '' });
+        setCoachReviews([
+            ...coachReviews,
+            {
+                id: Date.now(),
+                coachName,
+                rating: parseInt(coachReviewForm.rating),
+                comment: coachReviewForm.comment,
+                date: new Date().toISOString().split('T')[0],
+            },
+        ]);
+        setCoachReviewForm({ coachId: '', rating: 0, comment: '' });
+    };
+    const handleSubmitSystemReview = () => {
+        if (systemReviewForm.rating < 1) {
+            window.alert('Vui lòng điền đầy đủ thông tin!');
+            return;
+        }
+        setSystemReviews([
+            ...systemReviews,
+            {
+                id: Date.now(),
+                rating: parseInt(systemReviewForm.rating),
+                comment: systemReviewForm.comment,
+                date: new Date().toISOString().split('T')[0],
+            },
+        ]);
+        setSystemReviewForm({ rating: 0, comment: '' });
     };
 
-    const handleCancelModal = () => {
-        setIsModalVisible(false);
-        // Reset form
-        setReviewFormData({ coachId: '', rating: 0, comment: '' });
-    };
-
-    // Remove Delete confirmation logic
-    // const handleDeleteReview = (reviewId) => {
-    //     setReviewToDelete(reviewId);
-    //     setIsDeleteModalVisible(true);
-    // };
-
-    // const handleConfirmDelete = () => {
-    //      setReviews(reviews.filter(review => review.id !== reviewToDelete));
-    //      alert('Đã xóa đánh giá thành công!'); // Use simple alert
-    //      setIsDeleteModalVisible(false);
-    //      setReviewToDelete(null);
-    // };
-
-    // const handleCancelDelete = () => {
-    //     setIsDeleteModalVisible(false);
-    //     setReviewToDelete(null);
-    // };
-
-
-    // --- Render functions (replace Ant Design components) ---
-
-    // Basic Table rendering
-    const renderReviewsTable = () => (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-                <tr style={{ borderBottom: '1px solid #eee' }}>
-                    <th style={{ padding: '10px', textAlign: 'left' }}>Huấn luyện viên</th>
-                    <th style={{ padding: '10px', textAlign: 'left' }}>Số sao</th>
-                    <th style={{ padding: '10px', textAlign: 'left' }}>Nội dung đánh giá</th>
-                    <th style={{ padding: '10px', textAlign: 'left' }}>Ngày đánh giá</th>
-                    {/* Remove Thao tác column */}
-                    {/* <th style={{ padding: '10px', textAlign: 'left' }}>Thao tác</th> */}
-                </tr>
-            </thead>
-            <tbody>
-                {reviews.map(review => (
-                    <tr key={review.id} style={{ borderBottom: '1px solid #eee' }}>
-                        <td style={{ padding: '10px' }}>{review.coachName}</td><td style={{ padding: '10px' }}>{review.rating} sao</td> {/* Simple display */}<td style={{ padding: '10px' }}>{review.comment}</td><td style={{ padding: '10px' }}>{review.date}</td>
-                        {/* Remove action column cell */}
-                        {/* <td style={{ padding: '10px' }}>
-                            <button onClick={() => handleDeleteReview(review.id)}>Xóa</button>
-                        </td> */}
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-    );
-
-    // Basic Modal component (redefined)
-    const CustomModal = ({ isOpen, onClose, title, children }) => {
-        if (!isOpen) return null;
-
-        return (
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 1000,
-            }}>
-                <div style={{
-                    backgroundColor: 'white',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    minWidth: '400px',
-                    maxWidth: '90%',
-                    zIndex: 1001,
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <h3>{title}</h3>
-                        <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.2em', cursor: 'pointer' }}>&times;</button>
-                    </div>
-                    <div>
-                        {children}
-                    </div>
-                </div>
-            </div>
-        );
-    };
+    // Table columns
+    const coachColumns = [
+        {
+            title: 'Huấn luyện viên',
+            dataIndex: 'coachName',
+            key: 'coachName',
+        },
+        {
+            title: 'Số sao',
+            dataIndex: 'rating',
+            key: 'rating',
+            render: (rating) => <>{Array.from({ length: rating }, (_, i) => <Star key={i} />)}</>,
+        },
+        {
+            title: 'Nội dung đánh giá',
+            dataIndex: 'comment',
+            key: 'comment',
+        },
+        {
+            title: 'Ngày đánh giá',
+            dataIndex: 'date',
+            key: 'date',
+        },
+    ];
+    const systemColumns = [
+        {
+            title: 'Số sao',
+            dataIndex: 'rating',
+            key: 'rating',
+            render: (rating) => <>{Array.from({ length: rating }, (_, i) => <Star key={i} />)}</>,
+        },
+        {
+            title: 'Nội dung đánh giá',
+            dataIndex: 'comment',
+            key: 'comment',
+        },
+        {
+            title: 'Ngày đánh giá',
+            dataIndex: 'date',
+            key: 'date',
+        },
+    ];
 
     return (
-        <Container>
-            <Header>
-                <TitleRow>
-                    <StarOutlined />
-                    <Title>Đánh Giá Của Tôi</Title>
-                </TitleRow>
-                <Button
-                    type="primary"
-                    onClick={handleCreateReview}
+        <PageContainer>
+            <Title level={2} className="page-title">
+                <StarOutlined /> Đánh Giá Của Tôi
+            </Title>
+            <AnimatedToggleContainer>
+                <ToggleButton
+                    active={activeReviewType === 'coach'}
+                    onClick={() => setActiveReviewType('coach')}
                 >
-                    <PlusOutlined /> Viết đánh giá mới
-                </Button>
-            </Header>
+                    <UserOutlined style={{ marginRight: 8 }} /> Đánh giá Huấn luyện viên
+                </ToggleButton>
+                <ToggleButton
+                    active={activeReviewType === 'system'}
+                    onClick={() => setActiveReviewType('system')}
+                >
+                    <AppstoreOutlined style={{ marginRight: 8 }} /> Đánh giá Hệ thống
+                </ToggleButton>
+            </AnimatedToggleContainer>
 
-            <StyledCard>
-                {renderReviewsTable()}
-            </StyledCard>
-
-            {/* Modal for creating a new review */}
-            <CustomModal
-                isOpen={isModalVisible}
-                onClose={handleCancelModal}
-                title="Viết đánh giá mới"
+            <AnimatedCard
+                title={activeReviewType === 'coach' ? 'Viết đánh giá Huấn luyện viên' : 'Viết đánh giá Hệ thống'}
+                style={{ marginBottom: 24, borderRadius: 12 }}
+                delay="0.5s"
             >
-                {/* Form items for review */}
-                <div>
-                    {/* Coach Select (basic implementation) */}
-                    <label htmlFor="coachId">Chọn Huấn luyện viên:</label><br />
-                    <select name="coachId" id="coachId" value={reviewFormData.coachId} onChange={handleFormChange} style={{ marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} required>
-                        <option value="">-- Chọn huấn luyện viên --</option>
-                        {coachesForReview.map(coach => (
-                            <option key={coach.id} value={coach.id}>{coach.name}</option>
-                        ))}
-                    </select><br />
+                <ReviewForm>
+                    {activeReviewType === 'coach' ? (
+                        <>
+                            <div style={{ marginBottom: 16 }}>
+                                <label>Chọn Huấn luyện viên:</label>
+                                <Select
+                                    style={{ width: '100%' }}
+                                    value={coachReviewForm.coachId}
+                                    onChange={v => handleCoachFormChange('coachId', v)}
+                                    placeholder="-- Chọn huấn luyện viên --"
+                                >
+                                    {coachesForReview.map(coach => (
+                                        <Option key={coach.id} value={coach.id}>{coach.name}</Option>
+                                    ))}
+                                </Select>
+                            </div>
+                            <div style={{ marginBottom: 16 }}>
+                                <label>Số sao (1-5):</label>
+                                <Select
+                                    style={{ width: '100%' }}
+                                    value={coachReviewForm.rating || undefined}
+                                    onChange={v => handleCoachFormChange('rating', v)}
+                                    placeholder="Chọn số sao"
+                                >
+                                    {[1, 2, 3, 4, 5].map(star => <Option key={star} value={star}>{Array.from({ length: star }, (_, i) => <Star key={i} />)}</Option>)}
+                                </Select>
+                            </div>
+                            <div style={{ marginBottom: 16 }}>
+                                <label>Nội dung đánh giá:</label>
+                                <Input.TextArea
+                                    rows={4}
+                                    value={coachReviewForm.comment}
+                                    onChange={e => handleCoachFormChange('comment', e.target.value)}
+                                    placeholder="Chia sẻ trải nghiệm của bạn với huấn luyện viên..."
+                                />
+                            </div>
+                            <Button type="primary" onClick={handleSubmitCoachReview} icon={<PlusOutlined />}>Gửi đánh giá</Button>
+                        </>
+                    ) : (
+                        <>
+                            <div style={{ marginBottom: 16 }}>
+                                <label>Số sao (1-5):</label>
+                                <Select
+                                    style={{ width: '100%' }}
+                                    value={systemReviewForm.rating || undefined}
+                                    onChange={v => handleSystemFormChange('rating', v)}
+                                    placeholder="Chọn số sao"
+                                >
+                                    {[1, 2, 3, 4, 5].map(star => <Option key={star} value={star}>{Array.from({ length: star }, (_, i) => <Star key={i} />)}</Option>)}
+                                </Select>
+                            </div>
+                            <div style={{ marginBottom: 16 }}>
+                                <label>Nội dung đánh giá:</label>
+                                <Input.TextArea
+                                    rows={4}
+                                    value={systemReviewForm.comment}
+                                    onChange={e => handleSystemFormChange('comment', e.target.value)}
+                                    placeholder="Chia sẻ trải nghiệm của bạn với hệ thống..."
+                                />
+                            </div>
+                            <Button type="primary" onClick={handleSubmitSystemReview} icon={<PlusOutlined />}>Gửi đánh giá</Button>
+                        </>
+                    )}
+                </ReviewForm>
+            </AnimatedCard>
 
-                    {/* Rating Input (basic number input, needs custom component for stars) */}
-                    <label htmlFor="rating">Số sao (1-5):</label><br />
-                    <input type="number" name="rating" id="rating" value={reviewFormData.rating} onChange={handleFormChange} min="1" max="5" style={{ marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} required /><br />
-
-                    {/* Comment TextArea */}
-                    <label htmlFor="comment">Nội dung đánh giá:</label><br />
-                    <textarea name="comment" id="comment" value={reviewFormData.comment} onChange={handleFormChange} rows="4" placeholder="Chia sẻ trải nghiệm của bạn..." style={{ marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%' }} required></textarea><br />
-
-                    <button onClick={handleSubmitReview} style={{ marginRight: '10px', padding: '10px 15px', backgroundColor: '#1890ff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Gửi đánh giá</button>
-                    <button onClick={handleCancelModal} style={{ padding: '10px 15px', backgroundColor: '#ccc', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Hủy</button>
-                </div>
-            </CustomModal>
-
-            {/* Remove Custom Delete Confirmation Modal */}
-            {/*
-            <CustomModal
-                isOpen={isDeleteModalVisible}
-                onClose={handleCancelDelete}
-                title="Xác nhận xóa"
+            <AnimatedCard
+                title={activeReviewType === 'coach' ? (
+                    <span><UserOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử đánh giá Huấn luyện viên</span>
+                ) : (
+                    <span><AppstoreOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử đánh giá Hệ thống</span>
+                )}
+                style={{ borderRadius: 12 }}
+                delay="0.5s"
             >
-                <p>Bạn có chắc chắn muốn xóa đánh giá này không?</p>
-                <div style={{ textAlign: 'right', marginTop: '20px' }}>
-                    <button onClick={handleConfirmDelete} style={{ marginRight: '10px', padding: '10px 15px', backgroundColor: '#ff4d4f', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Xóa</button>
-                    <button onClick={handleCancelDelete} style={{ padding: '10px 15px', backgroundColor: '#ccc', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Hủy</button>
-                </div>
-            </CustomModal>
-             */}
-
-        </Container>
+                <Table
+                    columns={activeReviewType === 'coach' ? coachColumns : systemColumns}
+                    dataSource={activeReviewType === 'coach' ? coachReviews : systemReviews}
+                    rowKey="id"
+                    locale={{ emptyText: 'Chưa có đánh giá nào' }}
+                    pagination={{ pageSize: 5 }}
+                />
+            </AnimatedCard>
+        </PageContainer>
     );
 };
 
