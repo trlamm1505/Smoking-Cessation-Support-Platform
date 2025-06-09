@@ -40,8 +40,8 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get the redirect path from location state or default to home
-  const from = location.state?.from?.pathname || '/';
+  // Get the redirect path from location state or default to guest home
+  const from = location.state?.from?.pathname || '/guest/home';
 
   // Hiển thị thông báo
   const showNotification = (message, type) => {
@@ -52,6 +52,56 @@ const Login = () => {
   useEffect(() => {
     if (window.location.hash === '#signup') setIsSignUp(true);
   }, []);
+
+  // ======= Đăng nhập =======
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginData)
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Store authentication data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userRole', data.role);
+        localStorage.setItem('userId', data.id);
+        
+        showNotification('Đăng nhập thành công!', 'success');
+        
+        // Redirect based on role
+        switch(data.role) {
+          case 'admin':
+            navigate('/admin/dashboard', { replace: true });
+            break;
+          case 'coach':
+            navigate('/coach/home', { replace: true });
+            break;
+          case 'user':
+            navigate('/users/home', { replace: true });
+            break;
+          case 'guest':
+          default:
+            navigate('/guest/home', { replace: true });
+        }
+      } else {
+        showNotification(data.message || 'Đăng nhập thất bại!', 'error');
+        // Clear any existing auth data on failed login
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userId');
+      }
+    } catch (error) {
+      showNotification('Lỗi kết nối server!', 'error');
+      // Clear any existing auth data on error
+      localStorage.removeItem('token');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userId');
+    }
+  };
 
   // ======= Đăng ký 2 bước =======
   // Bước 1: Gửi info -> gửi OTP về email
@@ -103,7 +153,30 @@ const Login = () => {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showNotification(data.message || 'Đăng ký thành công! Bạn có thể đăng nhập.', 'success');
+        // Store authentication data after successful registration
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userRole', data.role);
+        localStorage.setItem('userId', data.id);
+        
+        showNotification(data.message || 'Đăng ký thành công!', 'success');
+        
+        // Redirect to appropriate page based on role
+        switch(data.role) {
+          case 'admin':
+            navigate('/admin/dashboard', { replace: true });
+            break;
+          case 'coach':
+            navigate('/coach/home', { replace: true });
+            break;
+          case 'user':
+            navigate('/users/home', { replace: true });
+            break;
+          case 'guest':
+          default:
+            navigate('/guest/home', { replace: true });
+        }
+        
+        // Reset form
         setRegisterStep(1);
         setIsSignUp(false);
         setRegisterData({ name: '', email: '', password: '', confirmPassword: '' });
@@ -111,27 +184,6 @@ const Login = () => {
         setRegisteringEmail('');
       } else {
         showNotification(data.message || 'OTP không đúng hoặc đã hết hạn!', 'error');
-      }
-    } catch (error) {
-      showNotification('Lỗi kết nối server!', 'error');
-    }
-  };
-
-  // ======= Đăng nhập =======
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData)
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        showNotification('Đăng nhập thành công!', 'success');
-        handleLoginSuccess(data);
-      } else {
-        showNotification(data.message || 'Đăng nhập thất bại!', 'error');
       }
     } catch (error) {
       showNotification('Lỗi kết nối server!', 'error');
@@ -204,40 +256,6 @@ const Login = () => {
     } catch (err) {
       showNotification('Lỗi kết nối server!', 'error');
     }
-  };
-
-  // Handle successful login
-  const handleLoginSuccess = (userData) => {
-    // Store authentication data
-    localStorage.setItem('token', userData.token);
-    localStorage.setItem('userRole', userData.role);
-    localStorage.setItem('userId', userData.id);
-    
-    // Redirect based on role
-    switch(userData.role) {
-      case 'admin':
-        navigate('/admin/dashboard');
-        break;
-      case 'coach':
-        navigate('/coach/home');
-        break;
-      case 'user':
-        navigate('/users/home');
-        break;
-      default:
-        navigate('/');
-    }
-  };
-
-  // Handle successful registration
-  const handleRegisterSuccess = (userData) => {
-    // Store authentication data
-    localStorage.setItem('token', userData.token);
-    localStorage.setItem('userRole', userData.role);
-    localStorage.setItem('userId', userData.id);
-    
-    // Redirect to user home after registration
-    navigate('/users/home');
   };
 
   // ======= Giao diện =======

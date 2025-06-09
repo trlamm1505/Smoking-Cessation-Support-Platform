@@ -1,6 +1,5 @@
 import React from 'react'
 import { Route, Routes, Link, Navigate } from 'react-router'
-import ProtectedRoute from '../components/ProtectedRoute'
 import Home from '../source/page/Home/Home'
 import Login from '../source/page/Home/Login'
 import Error from '../source/page/Home/Error'
@@ -45,7 +44,6 @@ import GuestBlog from '../source/page/Guest/Blog'
 import GuestPremium from '../source/page/Guest/Premium'
 import GuestLayout from '../source/page/Guest/Layout'
 import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
-import LoginRequired from '../source/page/Home/LoginRequired'
 
 export default function AppRouter() {
   return (
@@ -54,12 +52,8 @@ export default function AppRouter() {
       <Route path='/' element={<Home />} />
       <Route path='login' element={<Login />} />
 
-      {/* Protected Guest Routes */}
-      <Route path='guest' element={
-        <ProtectedRoute>
-          <GuestLayout />
-        </ProtectedRoute>
-      }>
+      {/* Guest Routes */}
+      <Route path='guest' element={<GuestLayout />}>
         <Route index element={<Navigate to="/guest/home" replace />} />
         <Route path='home' element={<GuestHome />} />
         <Route path='profile' element={<GuestProfile />} />
@@ -75,12 +69,8 @@ export default function AppRouter() {
         <Route path='community' element={<RequirePremiumNotice />} />
       </Route>
 
-      {/* Protected User Routes */}
-      <Route path='users' element={
-        <ProtectedRoute allowedRoles={['user']}>
-          <UserLayout />
-        </ProtectedRoute>
-      }>
+      {/* User Routes */}
+      <Route path='users' element={<UserLayout />}>
         <Route index element={<Navigate to="/users/home" replace />} />
         <Route path='home' element={<UserHome />} />
         <Route path='dashboard' element={<UserDashboard />} />
@@ -97,12 +87,8 @@ export default function AppRouter() {
         <Route path='reviews' element={<UserReviews />} />
       </Route>
 
-      {/* Protected Coach Routes */}
-      <Route path='coach' element={
-        <ProtectedRoute allowedRoles={['coach']}>
-          <CoachLayout />
-        </ProtectedRoute>
-      }>
+      {/* Coach Routes */}
+      <Route path='coach' element={<CoachLayout />}>
         <Route index element={<CoachHome />} />
         <Route path='profile' element={<CoachProfile />} />
         <Route path='schedule' element={<Schedule />} />
@@ -114,12 +100,8 @@ export default function AppRouter() {
         <Route path='blog-view' element={<CoachBlog />} />
       </Route>
 
-      {/* Protected Admin Routes */}
-      <Route path='admin' element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <AdminLayout />
-        </ProtectedRoute>
-      }>
+      {/* Admin Routes */}
+      <Route path='admin' element={<AdminLayout />}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path='dashboard' element={<Dashboard />} />
         <Route path='community-manage' element={<CommunityManagement />} />
@@ -132,9 +114,6 @@ export default function AppRouter() {
 
       {/* Error Route */}
       <Route path='*' element={<Error />} />
-
-      {/* Login Required Route */}
-      <Route path='/login-required' element={<LoginRequired />} />
     </Routes>
   )
 }
