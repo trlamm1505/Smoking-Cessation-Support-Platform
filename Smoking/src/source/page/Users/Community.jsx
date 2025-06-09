@@ -11,7 +11,7 @@ import {
   TeamOutlined,
   CheckOutlined
 } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -327,6 +327,29 @@ const CustomModalContent = styled.div`
   }
 `;
 
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const AnimatedPostCard = styled(PostCard)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+`;
+
+const AnimatedCreatePostButton = styled(CreatePostButton)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+`;
+
 const Community = () => {
   const [isPostModalVisible, setIsPostModalVisible] = useState(false);
   const [postContent, setPostContent] = useState('');
@@ -424,10 +447,10 @@ const Community = () => {
         <Title level={2} style={{ color: '#222', margin: 0 }}>Cộng Đồng Cai Thuốc</Title>
       </TitleRow>
 
-      <CreatePostButton onClick={() => setIsPostModalVisible(true)}>
+      <AnimatedCreatePostButton onClick={() => setIsPostModalVisible(true)}>
         <Avatar src="https://xsgames.co/randomusers/avatar.php?g=male" />
         <Text type="secondary">Chia sẻ thành tích của bạn...</Text>
-      </CreatePostButton>
+      </AnimatedCreatePostButton>
 
       <Tabs defaultActiveKey="1">
         <TabPane tab="Tất Cả Bài Viết" key="1">
@@ -435,7 +458,7 @@ const Community = () => {
             itemLayout="vertical"
             dataSource={posts}
             renderItem={post => (
-              <PostCard>
+              <AnimatedPostCard delay={`${post.id * 0.1}s`}>
                 <Card.Meta
                   avatar={<Avatar src={post.avatar} />}
                   title={post.author}
@@ -513,7 +536,7 @@ const Community = () => {
                     />
                   </div>
                 )}
-              </PostCard>
+              </AnimatedPostCard>
             )}
           />
         </TabPane>
