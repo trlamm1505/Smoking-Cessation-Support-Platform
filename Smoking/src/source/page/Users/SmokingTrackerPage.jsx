@@ -1,10 +1,31 @@
 import React, { useState } from 'react';
 import { Card, Form, InputNumber, Select, Button, Typography, TimePicker, Space, Table, DatePicker, Input } from 'antd';
 import { PlusOutlined, SaveOutlined, ClockCircleOutlined, EnvironmentOutlined, DollarOutlined, SmileOutlined, CalendarOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 const { Title } = Typography;
 const { Option } = Select;
+
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const AnimatedCard = styled(Card)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(95, 184, 179, 0.1);
+  margin-bottom: 24px;
+  border: 1px solid rgba(95, 184, 179, 0.1);
+`;
 
 const PageContainer = styled.div`
   padding: 24px;
@@ -254,7 +275,7 @@ const SmokingTrackerPage = () => {
         Ghi Nhận Thói Quen Hút Thuốc
       </Title>
 
-      <Card title="Thêm Ghi Nhận Mới" className="tracker-form-card">
+      <AnimatedCard delay="0.5s" title="Thêm Ghi Nhận Mới" className="tracker-form-card">
         <Form
           form={form}
           name="smoking_tracker"
@@ -334,16 +355,16 @@ const SmokingTrackerPage = () => {
             </Button>
           </Form.Item>
         </Form>
-      </Card>
+      </AnimatedCard>
 
-      <Card title="Lịch Sử Ghi Nhận" className="history-card">
+      <AnimatedCard delay="0.75s" title="Lịch Sử Ghi Nhận" className="history-card">
         <Table
           columns={columns}
           dataSource={entries}
           rowKey="id"
           pagination={{ pageSize: 10 }}
         />
-      </Card>
+      </AnimatedCard>
     </PageContainer>
   );
 };

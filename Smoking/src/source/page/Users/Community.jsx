@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Avatar, Button, Input, List, Space, Tag, Typography, Modal, message, Tabs, Badge, Select, Upload, Form } from 'antd';
 import {
   CommentOutlined,
@@ -8,9 +8,10 @@ import {
   CalendarOutlined,
   TeamOutlined,
   CheckOutlined,
-  PlusOutlined
+  PlusOutlined,
+  HeartFilled
 } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -347,6 +348,29 @@ const getBase64 = (file) =>
     reader.onerror = (error) => reject(error);
   });
 
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const AnimatedPostCard = styled(PostCard)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+`;
+
+const AnimatedCreatePostButton = styled(CreatePostButton)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+`;
+
 const Community = () => {
   const [isPostModalVisible, setIsPostModalVisible] = useState(false);
   const [postContent, setPostContent] = useState('');
@@ -356,6 +380,7 @@ const Community = () => {
   const [uploadedImageFile, setUploadedImageFile] = useState([]);
   const [currentRole, setCurrentRole] = useState('user');
   const [currentComment, setCurrentComment] = useState('');
+  const [likedPosts, setLikedPosts] = useState(new Set());
   const [posts, setPosts] = useState([
     {
       id: 1,
@@ -404,12 +429,44 @@ const Community = () => {
     { id: 4, name: 'Người Truyền Cảm Hứng', icon: <UserOutlined />, color: '#1890ff' }
   ];
 
+  const handleLike = (postId) => {
+    setLikedPosts(prev => {
+      const newLikedPosts = new Set(prev);
+      if (newLikedPosts.has(postId)) {
+        newLikedPosts.delete(postId);
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return { ...post, likes: post.likes - 1 };
+          }
+          return post;
+        }));
+      } else {
+        newLikedPosts.add(postId);
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return { ...post, likes: post.likes + 1 };
+          }
+          return post;
+        }));
+      }
+      return newLikedPosts;
+    });
+  };
+
   const handleUploadChange = async ({ fileList: newFileList }) => {
+    if (newFileList.length > 1) {
+      message.warning('Chỉ có thể tải lên 1 ảnh');
+      return;
+    }
     setUploadedImageFile(newFileList);
     if (newFileList.length > 0) {
       const file = newFileList[0];
       if (!file.url && !file.preview) {
-        file.preview = await getBase64(file.originFileObj);
+        try {
+          file.preview = await getBase64(file.originFileObj);
+        } catch (error) {
+          message.error('Lỗi khi xử lý ảnh');
+        }
       }
     }
   };
@@ -446,15 +503,6 @@ const Community = () => {
     message.success('Đăng bài thành công!');
   };
 
-  const handleLike = (postId) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return { ...post, likes: post.likes + 1 };
-      }
-      return post;
-    }));
-  };
-
   const handleComment = (postId, comment) => {
     setPosts(posts.map(post => {
       if (post.id === postId) {
@@ -484,21 +532,17 @@ const Community = () => {
     <PageContainer>
       <TitleRow>
         <IconEffect>
-        <TeamOutlined />
+          <TeamOutlined />
         </IconEffect>
         <Title level={2} style={{ color: '#222', margin: 0 }}>Cộng Đồng Cai Thuốc</Title>
       </TitleRow>
 
       <TopContentContainer>
-        <Space align="center" style={{ marginBottom: 24 }}>
+        <AnimatedCreatePostButton onClick={() => setIsPostModalVisible(true)}>
           <Avatar src={currentRole === 'coach' ? 'https://xsgames.co/randomusers/avatar.php?g=female' : 'https://xsgames.co/randomusers/avatar.php?g=male'} />
           <Text type="secondary">{currentRole === 'coach' ? 'Chia sẻ kinh nghiệm hoặc tạo động lực...' : 'Chia sẻ thành tích của bạn...'}</Text>
-        </Space>
-
-      <CreatePostButton onClick={() => setIsPostModalVisible(true)}>
-          <Avatar src={currentRole === 'coach' ? 'https://xsgames.co/randomusers/avatar.php?g=female' : 'https://xsgames.co/randomusers/avatar.php?g=male'} />
-          <Text type="secondary">{currentRole === 'coach' ? 'Chia sẻ kinh nghiệm hoặc tạo động lực...' : 'Chia sẻ thành tích của bạn...'}</Text>
-      </CreatePostButton>
+        </AnimatedCreatePostButton>
+      </TopContentContainer>
 
       <Tabs defaultActiveKey="1">
         <TabPane tab="Tất Cả Bài Viết" key="1">
@@ -506,7 +550,7 @@ const Community = () => {
             itemLayout="vertical"
             dataSource={posts}
             renderItem={post => (
-              <PostCard>
+              <AnimatedPostCard delay={`${post.id * 0.1}s`}>
                   {post.featuredImage && (
                     <div className="ant-card-cover">
                       <img alt="featured" src={post.featuredImage} />
@@ -553,22 +597,20 @@ const Community = () => {
                 )}
 
                 <div className="post-stats">
-                  <Space>
-                    <Button
-                      type="text"
-                        icon={<HeartOutlined style={{ color: '#ff4d4f' }} />}
-                      onClick={() => handleLike(post.id)}
-                    >
-                        {post.likes}
-                    </Button>
-                    <Button
-                      type="text"
-                      icon={<CommentOutlined style={{ color: '#5FB8B3' }} />}
-                      onClick={() => toggleComments(post.id)}
-                    >
-                      {post.comments.length} Bình luận
-                    </Button>
-                  </Space>
+                  <Button 
+                    type="text" 
+                    icon={likedPosts.has(post.id) ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
+                    onClick={() => handleLike(post.id)}
+                  >
+                    {post.likes}
+                  </Button>
+                  <Button 
+                    type="text" 
+                    icon={<CommentOutlined />}
+                    onClick={() => toggleComments(post.id)}
+                  >
+                    {post.comments.length}
+                  </Button>
                 </div>
 
                 {post.showComments && (
@@ -623,12 +665,11 @@ const Community = () => {
                       </Space>
                   </div>
                 )}
-              </PostCard>
+              </AnimatedPostCard>
             )}
           />
         </TabPane>
       </Tabs>
-      </TopContentContainer>
 
       <Modal
         title={

@@ -12,7 +12,8 @@ CREATE TABLE Users (
     CurrentMembershipPackageID INT,
     SubscriptionEndDate DATE,
     CoachID INT,
-    Role NVARCHAR(255) NOT NULL DEFAULT 'member'
+    Role NVARCHAR(255) NOT NULL DEFAULT 'member',
+    Enabled BIT NOT NULL DEFAULT 0  -- Thêm trường này, mặc định là false (0)
 );
 
 -- Tạo bảng MembershipPackages

@@ -1,9 +1,20 @@
 import React from 'react';
 import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag } from 'antd';
 import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, HomeOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 const { Title, Text } = Typography;
+
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
 
 const PageContainer = styled.div`
     padding: 24px;
@@ -50,6 +61,9 @@ const StyledCard = styled(Card)`
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
     overflow: hidden;
+    animation: ${slideUp} 0.5s ease-out forwards;
+    animation-delay: ${props => props.delay || '0s'};
+    opacity: 0;
 
     &:hover {
         transform: translateY(-8px);
@@ -374,7 +388,7 @@ const Home = () => {
             </WelcomeTitle>
 
             <Row gutter={[24, 24]}>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={12}>
                     <StatisticCard>
                         <ClockCircleOutlined className="icon" />
                         <Statistic
@@ -384,7 +398,7 @@ const Home = () => {
                         />
                     </StatisticCard>
                 </Col>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={12}>
                     <StatisticCard>
                         <DollarOutlined className="icon" />
                         <Statistic
@@ -392,26 +406,6 @@ const Home = () => {
                             value={userData.moneySaved}
                             suffix="đ"
                             formatter={value => `${value.toLocaleString()}`}
-                        />
-                    </StatisticCard>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <StatisticCard>
-                        <HeartOutlined className="icon" />
-                        <Statistic
-                            title="Sức Khỏe Cải Thiện"
-                            value={userData.healthImprovement}
-                            suffix="%"
-                        />
-                    </StatisticCard>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <StatisticCard>
-                        <TrophyOutlined className="icon" />
-                        <Statistic
-                            title="Điếu Thuốc Đã Tránh"
-                            value={userData.cigarettesAvoided}
-                            suffix="điếu"
                         />
                     </StatisticCard>
                 </Col>

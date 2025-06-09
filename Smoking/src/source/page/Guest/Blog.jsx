@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Row, Col, Tag, Space, Typography, Modal } from 'antd';
 import { CalendarOutlined, EyeOutlined, ReadOutlined, UserOutlined as AntUserOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 const { Title, Text } = Typography;
 
@@ -58,6 +58,23 @@ const CategoryTag = styled(Tag)`
   cursor: pointer;
   margin: 0;
   border: none;
+`;
+
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const AnimatedCategoryTag = styled(CategoryTag)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
 `;
 
 const ArticleCard = styled(Card)`
@@ -223,6 +240,12 @@ const ArticleModalContent = styled.div`
   }
 `;
 
+const AnimatedArticleCard = styled(ArticleCard)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+`;
+
 const categories = [
   { key: 'all', label: 'Tất cả', color: '#4096ff' },
   { key: 'methods', label: 'Phương pháp', color: '#95de64' },
@@ -304,8 +327,9 @@ const Blog = () => {
 
   const renderArticleCard = (article) => (
     <Col xs={24} md={8} style={{ marginBottom: 24 }}>
-      <ArticleCard
+      <AnimatedArticleCard
         cover={<img alt={article.title} src={article.coverImage} />}
+        delay={`${(filteredArticles.indexOf(article) * 0.1) + 0.1}s`}
       >
         <CategoryLabel color={categories.find(cat => cat.key === article.category)?.color}>
           {categories.find(cat => cat.key === article.category)?.label}
@@ -338,7 +362,7 @@ const Blog = () => {
         <ReadMoreButton onClick={() => handleReadMore(article)}>
           Đọc Thêm
         </ReadMoreButton>
-      </ArticleCard>
+      </AnimatedArticleCard>
     </Col>
   );
 
@@ -352,15 +376,16 @@ const Blog = () => {
       </Header>
 
       <CategoryContainer>
-        {categories.map(category => (
-          <CategoryTag
+        {categories.map((category, idx) => (
+          <AnimatedCategoryTag
             key={category.key}
             color={category.color}
             onClick={() => setActiveCategory(category.key)}
             style={{ backgroundColor: activeCategory === category.key ? category.color : 'rgba(0, 0, 0, 0.06)', color: activeCategory === category.key ? 'white' : 'rgba(0, 0, 0, 0.85)' }}
+            delay={`${(idx * 0.07) + 0.05}s`}
           >
             {category.label}
-          </CategoryTag>
+          </AnimatedCategoryTag>
         ))}
       </CategoryContainer>
 
