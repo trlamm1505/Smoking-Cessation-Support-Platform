@@ -39,7 +39,8 @@ const PostCard = styled(Card)`
 
   .post-stats {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
     padding: 8px 0;
     border-top: 1px solid #5FB8B3;
     margin-top: 16px;
@@ -143,7 +144,8 @@ const AdminCommunity = () => {
                 { id: 2, author: 'Lê C', content: 'Tuyệt vời! Mình cũng đang cố gắng đạt được thành tích này.' }
             ],
             timestamp: '2 giờ trước',
-            showComments: false
+            showComments: false,
+            isAdmin: true
         }
     ]);
 
@@ -169,7 +171,8 @@ const AdminCommunity = () => {
             likes: 0,
             comments: [],
             timestamp: 'Vừa xong',
-            showComments: false
+            showComments: false,
+            isAdmin: true
         };
 
         setPosts([newPost, ...posts]);
@@ -240,7 +243,17 @@ const AdminCommunity = () => {
                             <PostCard>
                                 <Card.Meta
                                     avatar={<Avatar src={post.avatar} />}
-                                    title={post.author}
+                                    title={
+                                        <span>
+                                            {post.author}
+                                            {post.isAdmin && (
+                                                <Tag color="gold" style={{ marginLeft: 8 }}>
+                                                    <UserOutlined style={{ marginRight: 4 }} />
+                                                    Admin
+                                                </Tag>
+                                            )}
+                                        </span>
+                                    }
                                     description={post.timestamp}
                                 />
                                 <Paragraph>{post.content}</Paragraph>

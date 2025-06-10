@@ -65,7 +65,17 @@ const AdminLayout = () => {
 
     return (
         <div className="flex min-h-screen bg-gray-100">
-            <nav className="w-64 bg-white shadow-md flex flex-col">
+            <nav
+                className="w-64 bg-white shadow-md flex flex-col"
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    height: '100vh',
+                    zIndex: 100,
+                    borderRight: '1px solid #f0f0f0',
+                }}
+            >
                 <div className="p-4 border-b border-gray-200">
                     <Link to="/admin/dashboard" className="flex items-center space-x-2 flex-shrink-0 no-underline">
                        <UserOutlined className="text-xl text-[#5FB8B3]" />
@@ -97,7 +107,7 @@ const AdminLayout = () => {
                 </div>
             </nav>
 
-            <main className="flex-1 flex flex-col">
+            <main className="flex-1 flex flex-col" style={{ marginLeft: '16rem' }}>
                 <header className="bg-white shadow-sm p-4 flex items-center justify-between">
                     <h1 className="text-xl font-semibold text-gray-800">
                         {menuItems.find(item => location.pathname.startsWith(`/admin/${item.key}`))?.label || 'Admin Dashboard'}

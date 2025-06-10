@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider } from 'antd';
 import { CheckOutlined, CrownOutlined, DollarOutlined, SafetyCertificateOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const { Step } = Steps;
 const { Title } = Typography;
@@ -493,19 +494,20 @@ const slideUp = keyframes`
   }
 `;
 
-const AnimatedSubscriptionStatusCard = styled(SubscriptionStatusCard)`
+const AnimatedSubscriptionStatusCard = styled(({ isNearExpiry, ...rest }) => <SubscriptionStatusCard {...rest} />)`
   animation: ${slideUp} 0.5s ease-out forwards;
   animation-delay: 0.1s;
   opacity: 0;
 `;
 
-const AnimatedPremiumCard = styled(PremiumCard)`
+const AnimatedPremiumCard = styled(({ featured, ...rest }) => <PremiumCard {...rest} />)`
   animation: ${slideUp} 0.5s ease-out forwards;
   animation-delay: ${props => props.delay || '0s'};
   opacity: 0;
 `;
 
 const Premium = () => {
+    const navigate = useNavigate();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [selectedPlan, setSelectedPlan] = useState(null);
@@ -516,7 +518,7 @@ const Premium = () => {
     const plans = [
         {
             title: 'Cơ Bản',
-            price: '99,000',
+            price: '100,000',
             duration: '1 tháng',
             features: [
                 'Truy cập tất cả tính năng cơ bản',
@@ -527,7 +529,7 @@ const Premium = () => {
         },
         {
             title: 'Nâng Cao',
-            price: '249,000',
+            price: '550,000',
             duration: '3 tháng',
             featured: true,
             features: [
@@ -540,7 +542,7 @@ const Premium = () => {
         },
         {
             title: 'Chuyên Nghiệp',
-            price: '399,000',
+            price: '1000,000',
             duration: '6 tháng',
             features: [
                 'Tất cả tính năng của gói Nâng Cao',
@@ -575,10 +577,10 @@ const Premium = () => {
     };
 
     const handlePayment = () => {
-        message.success('Đăng ký thành công! Cảm ơn bạn đã tin tưởng SmokeFree');
         setIsModalVisible(false);
         setCurrentStep(0);
         form.resetFields();
+        navigate('/users');
     };
 
     const handleRenew = () => {
@@ -835,7 +837,7 @@ const Premium = () => {
                         <h2 style={{ margin: 0, color: '#2c3e50' }}>Đăng ký gói thành viên</h2>
                     </div>
                 }
-                visible={isModalVisible}
+                open={isModalVisible}
                 onCancel={() => {
                     setIsModalVisible(false);
                     setCurrentStep(0);
@@ -899,7 +901,7 @@ const Premium = () => {
 
             <Modal
                 title="Thay đổi gói thành viên"
-                visible={isChangeModalVisible}
+                open={isChangeModalVisible}
                 onCancel={() => setIsChangeModalVisible(false)}
                 footer={null}
                 width={900}

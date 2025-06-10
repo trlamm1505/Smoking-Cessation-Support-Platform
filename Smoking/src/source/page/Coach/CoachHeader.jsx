@@ -45,7 +45,7 @@ const CoachHeader = ({ className }) => {
             <BellOutlined style={{ color: notiOpen ? '#5FB8B3' : '#666' }} className="text-2xl" />
           </Badge>
         </button>
-        <CoachNavIcons />
+      <CoachNavIcons />
       </div>
       <Notification visible={notiOpen} onClose={() => setNotiOpen(false)} />
     </header>
