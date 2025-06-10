@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider } from 'antd';
 import { CheckOutlined, CrownOutlined, DollarOutlined, SafetyCertificateOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 const { Step } = Steps;
 const { Title } = Typography;
@@ -481,6 +481,30 @@ const SubscriptionInfoGrid = styled.div`
   }
 `;
 
+// Add slideUp keyframes
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const AnimatedSubscriptionStatusCard = styled(SubscriptionStatusCard)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: 0.1s;
+  opacity: 0;
+`;
+
+const AnimatedPremiumCard = styled(PremiumCard)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+`;
+
 const Premium = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
@@ -492,7 +516,7 @@ const Premium = () => {
     const plans = [
         {
             title: 'Cơ Bản',
-            price: '99,000',
+            price: '100,000',
             duration: '1 tháng',
             features: [
                 'Truy cập tất cả tính năng cơ bản',
@@ -503,7 +527,7 @@ const Premium = () => {
         },
         {
             title: 'Nâng Cao',
-            price: '249,000',
+            price: '550,000',
             duration: '3 tháng',
             featured: true,
             features: [
@@ -516,7 +540,7 @@ const Premium = () => {
         },
         {
             title: 'Chuyên Nghiệp',
-            price: '399,000',
+            price: '1000,000',
             duration: '6 tháng',
             features: [
                 'Tất cả tính năng của gói Nâng Cao',
@@ -694,7 +718,7 @@ const Premium = () => {
                 </p>
             </PageHeader>
 
-            <SubscriptionStatusCard isNearExpiry={getDaysRemaining(currentSubscription.renewalDate) <= 7}>
+            <AnimatedSubscriptionStatusCard isNearExpiry={getDaysRemaining(currentSubscription.renewalDate) <= 7}>
                 <div className="header-section">
                     <h2 className="title">
                         <CrownOutlined />
@@ -767,15 +791,16 @@ const Premium = () => {
                         </Button>
                     </ActionButtons>
                 </div>
-            </SubscriptionStatusCard>
+            </AnimatedSubscriptionStatusCard>
 
             <Row gutter={[24, 24]}>
                 {plans.map((plan, index) => (
                     <Col xs={24} md={8} key={index}>
-                        <PremiumCard
+                        <AnimatedPremiumCard
                             featured={plan.featured}
                             title={plan.title}
                             extra={plan.featured && <Tag color="#5FB8B3">Phổ biến nhất</Tag>}
+                            delay={`${0.15 + index * 0.1}s`}
                         >
                             <div className="price">
                                 {plan.price}đ
@@ -798,7 +823,7 @@ const Premium = () => {
                             >
                                 Đăng ký ngay
                             </Button>
-                        </PremiumCard>
+                        </AnimatedPremiumCard>
                     </Col>
                 ))}
             </Row>
@@ -896,11 +921,12 @@ const Premium = () => {
                 <Row gutter={[16, 16]}>
                     {plans.map((plan, index) => (
                         <Col key={index} xs={24} md={8}>
-                            <PremiumCard
+                            <AnimatedPremiumCard
                                 featured={plan.featured}
                                 title={plan.title}
                                 extra={plan.featured && <Tag color="#5FB8B3">Phổ biến nhất</Tag>}
                                 style={{ opacity: plan.title === currentSubscription.plan ? 0.7 : 1 }}
+                                delay={`${0.1 + index * 0.08}s`}
                             >
                                 <div className="price">
                                     {plan.price}đ
@@ -931,7 +957,7 @@ const Premium = () => {
                                 >
                                     {plan.title === currentSubscription.plan ? 'Gói hiện tại' : 'Chọn gói này'}
                                 </Button>
-                            </PremiumCard>
+                            </AnimatedPremiumCard>
                         </Col>
                     ))}
                 </Row>

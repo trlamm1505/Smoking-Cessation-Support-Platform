@@ -8,7 +8,7 @@ public class AppswpApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AppswpApplication.class, args);
-		
+		System.out.println("Hello World!");
 	}
 
 }

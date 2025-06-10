@@ -14,12 +14,24 @@ const shine = keyframes`
   100% { transform: scale(1) rotate(0deg); }
 `;
 
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
 const PageContainer = styled.div`
   padding: 24px;
   background: linear-gradient(135deg, #e6f7f6 0%, #f0f9f8 100%);
   min-height: 100vh;
   width: 100%;
   flex: 1;
+  box-sizing: border-box;
 `;
 
 const TitleRow = styled.div`
@@ -119,6 +131,18 @@ const HistoryCard = styled(Card)`
   }
 `;
 
+const AnimatedCoachCard = styled(CoachCard)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+`;
+
+const AnimatedHistoryCard = styled(HistoryCard)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: 0.5s;
+  opacity: 0;
+`;
+
 const Consultation = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedCoach, setSelectedCoach] = useState(null);
@@ -178,9 +202,9 @@ const Consultation = () => {
                 <Title level={2} style={{ margin: 0 }}>Đặt Lịch Tư Vấn</Title>
             </TitleRow>
             <Row gutter={[16, 16]}>
-                {coaches.map(coach => (
+                {coaches.map((coach, index) => (
                     <Col xs={24} md={12} key={coach.id}>
-                        <CoachCard>
+                        <AnimatedCoachCard delay={`${index * 0.1}s`}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
                                 <Avatar size={64} src={coach.avatar} icon={<UserOutlined />} />
                                 <div style={{ flex: 1 }}>
@@ -194,12 +218,12 @@ const Consultation = () => {
                             <Button type="primary" block onClick={() => handleBooking(coach)}>
                                 Đặt Lịch Tư Vấn
                             </Button>
-                        </CoachCard>
+                        </AnimatedCoachCard>
                     </Col>
                 ))}
             </Row>
 
-            <HistoryCard title={<span style={{ fontWeight: 700, fontSize: 20, color: '#222' }}>Lịch Sử Đặt Lịch</span>}>
+            <AnimatedHistoryCard title={<span style={{ fontWeight: 700, fontSize: 20, color: '#222' }}>Lịch Sử Đặt Lịch</span>}>
                 <CustomTable
                     columns={[
                         { title: 'Tên huấn luyện viên', dataIndex: 'coachName', key: 'coachName' },
@@ -213,7 +237,7 @@ const Consultation = () => {
                     pagination={false}
                     style={{ borderRadius: 0 }}
                 />
-            </HistoryCard>
+            </AnimatedHistoryCard>
 
             <BookingModal
                 title={selectedCoach ? `Đặt Lịch Tư Vấn với ${selectedCoach.name}` : 'Đặt Lịch Tư Vấn'}

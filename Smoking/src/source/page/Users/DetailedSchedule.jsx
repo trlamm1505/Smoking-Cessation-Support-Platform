@@ -8,10 +8,31 @@ import {
     ScheduleOutlined,
     CheckOutlined
 } from '@ant-design/icons';
-import styled, { createGlobalStyle } from 'styled-components';
+import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
+
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const AnimatedCard = styled(Card)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(95, 184, 179, 0.1);
+  margin-bottom: 24px;
+  border: 1px solid #E3F6F5;
+`;
 
 const PageContainer = styled.div`
     padding: 24px;
@@ -762,62 +783,68 @@ const DetailedSchedule = () => {
             </Title>
 
             {/* Giai đoạn cai thuốc */}
-            <Card style={{ marginBottom: 24, borderRadius: 12, border: '1px solid #E3F6F5', boxShadow: '0 2px 8px rgba(95,184,179,0.07)', padding: 0 }}>
-                <StyledSteps current={currentPhase}>
-                    {phases.map(phase => (
-                        <Steps.Step
-                            key={phase.title}
-                            title={<div>{phase.title}<div style={{ fontSize: 13, color: '#888', fontWeight: 400, marginTop: 2 }}>{phase.duration} ngày</div></div>}
-                            description={phase.description}
-                        />
-                    ))}
-                </StyledSteps>
-            </Card>
+            <AnimatedCard delay="0.5s">
+                <Card style={{ marginBottom: 24, borderRadius: 12, border: '1px solid #E3F6F5', boxShadow: '0 2px 8px rgba(95,184,179,0.07)', padding: 0 }}>
+                    <StyledSteps current={currentPhase}>
+                        {phases.map(phase => (
+                            <Steps.Step
+                                key={phase.title}
+                                title={<div>{phase.title}<div style={{ fontSize: 13, color: '#888', fontWeight: 400, marginTop: 2 }}>{phase.duration} ngày</div></div>}
+                                description={phase.description}
+                            />
+                        ))}
+                    </StyledSteps>
+                </Card>
+            </AnimatedCard>
 
-            <Card className="schedule-card">
-                <List
-                    dataSource={tasks}
-                    renderItem={task => (
-                        <List.Item className={task.status === true ? 'completed' : ''}>
-                            {renderTaskContent(task)}
-                            <div className="status-buttons">
-                                <Button
-                                    type={task.status === true ? 'primary' : 'default'}
-                                    icon={<CheckCircleOutlined />}
-                                    onClick={() => handleTaskComplete(task.id, true)}
-                                    style={{
-                                        background: task.status === true ? '#5FB8B3' : '',
-                                        borderColor: task.status === true ? '#5FB8B3' : ''
-                                    }}
-                                >
-                                    Hoàn thành
-                                </Button>
-                                <Button
-                                    type={task.status === false ? 'primary' : 'default'}
-                                    danger={task.status === false}
-                                    icon={<CloseCircleOutlined />}
-                                    onClick={() => handleTaskComplete(task.id, false)}
-                                >
-                                    Chưa hoàn thành
-                                </Button>
-                            </div>
-                        </List.Item>
-                    )}
-                />
-            </Card>
+            <AnimatedCard delay="1s">
+                <Card className="schedule-card">
+                    <List
+                        dataSource={tasks}
+                        renderItem={task => (
+                            <List.Item className={task.status === true ? 'completed' : ''}>
+                                {renderTaskContent(task)}
+                                <div className="status-buttons">
+                                    <Button
+                                        type={task.status === true ? 'primary' : 'default'}
+                                        icon={<CheckCircleOutlined />}
+                                        onClick={() => handleTaskComplete(task.id, true)}
+                                        style={{
+                                            background: task.status === true ? '#5FB8B3' : '',
+                                            borderColor: task.status === true ? '#5FB8B3' : ''
+                                        }}
+                                    >
+                                        Hoàn thành
+                                    </Button>
+                                    <Button
+                                        type={task.status === false ? 'primary' : 'default'}
+                                        danger={task.status === false}
+                                        icon={<CloseCircleOutlined />}
+                                        onClick={() => handleTaskComplete(task.id, false)}
+                                    >
+                                        Chưa hoàn thành
+                                    </Button>
+                                </div>
+                            </List.Item>
+                        )}
+                    />
+                </Card>
+            </AnimatedCard>
 
             {/* Calendar section */}
             <div className="calendar-section">
                 <Title level={3}>
                     <CalendarOutlined /> Lịch Sử Nhiệm Vụ
                 </Title>
-                <Card className="calendar-card">
-                    <Calendar
-                        fullscreen={false}
-                        dateCellRender={dateCellRender}
-                        onSelect={onSelect}
-                    />
-                </Card>
+                <AnimatedCard delay="1.5s">
+                    <Card className="calendar-card">
+                        <Calendar
+                            fullscreen={false}
+                            dateCellRender={dateCellRender}
+                            onSelect={onSelect}
+                        />
+                    </Card>
+                </AnimatedCard>
             </div>
 
             {/* History Modal */}

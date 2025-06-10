@@ -29,12 +29,33 @@ import {
     BulbOutlined,
     GiftOutlined
 } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
+
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const AnimatedCard = styled(Card)`
+  animation: ${slideUp} 0.5s ease-out forwards;
+  animation-delay: ${props => props.delay || '0s'};
+  opacity: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(95, 184, 179, 0.1);
+  margin-bottom: 24px;
+  border: 1px solid #E3F6F5;
+`;
 
 const PageContainer = styled.div`
   padding: 24px;
@@ -253,7 +274,7 @@ const Plan = () => {
             </Title>
 
             {isEditing ? (
-                <Card title="Thông Tin Kế Hoạch Cai Thuốc" className="plan-form-card">
+                <AnimatedCard title="Thông Tin Kế Hoạch Cai Thuốc" className="plan-form-card" delay="0.5s">
                     <Form
                         form={form}
                         name="smoking_cessation_plan"
@@ -476,9 +497,9 @@ const Plan = () => {
                             </Space>
                         </Form.Item>
                     </Form>
-                </Card>
+                </AnimatedCard>
             ) : (
-                <Card
+                <AnimatedCard
                     title={
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <TrophyOutlined style={{ color: '#5FB8B3', fontSize: '20px' }} />
@@ -491,6 +512,7 @@ const Plan = () => {
                         border: '1px solid #E3F6F5',
                         boxShadow: '0 4px 12px rgba(95, 184, 179, 0.1)'
                     }}
+                    delay="0.5s"
                 >
                     {/* Lịch sử hút thuốc */}
                     <div style={{ marginBottom: '24px' }}>
@@ -663,7 +685,7 @@ const Plan = () => {
                             Lưu Vào Hệ Thống
                         </Button>
                     </div>
-                </Card>
+                </AnimatedCard>
             )}
         </PageContainer>
     );
