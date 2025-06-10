@@ -1,0 +1,95 @@
+-Login, logout
+-Đăng ký
+-Forgot password
+
+*Guest: (Thành viên ko trả phí)
+-Đăng kí gói: bấm đăng kí thì sẽ lưu vào database
+Hiện thông báo đăng ký gói
+Thanh toán bay qua trang Users (đăng ký gói thì dùng chung database Users)
+-Payment:
+Thanh toán được bên hệ thống
+Hiển thị QR code
+
+*Users: (Thành viên trả phí)
+-Trang chủ:
+hiện thông tin
+-Hồ sơ cá nhân:
+lưu thông tin cá nhân
+hiện thông tin cá nhân
+đổi ảnh đại diện, đổi mật khẩu đại diện ảnh nền
+Hồ sơ coach: chỉ sửa, lưu thông, thay đổi mật khẩu, đổi avt,...
+-Kế hoạch cai thuốc:
+Lưu thông tin
+Tạo ra 3 gói lịch trình: Nhẹ - Bình thường - Nặng
+Người dùng nhập số điếu vào sẽ so sánh để đưa ra lịch trình
+-Lịch trình chi tiết:
+Phân ra giai đoạn trước, mỗi giai đoạn sẽ phân ra từng ngày
+-Ghi nhận thói quen:
++ add ghi nhận thói quen
+Lưu thông tin vào database
+Hiện thông tin 
+-Tiến trình cai thuốc:
+ghi nhận thói quen lưu lại sẽ hiện bên tiến trình cai thuốc
+thành tích đặt được 
+hiện thành tích mới đặt được
+-Thành tích:
++sẽ ghi nhận từ mấy chức năng trên
+Viết huy hiệu ra
+thời gian ko hút
+tiết kiệm
+sức khỏe
+thử thách
+-Tư vấn:
+Lưu & hiện thông tin
+bấm xác nhận
+lấy thông tin bên coach xác nhận, dán link gg meet,
+thằng coach chuyển xác nhận chuyển true in hiện lịch sử xác nhận
+-Đánh giá:
+đánh giá Coach
+đánh giá hệ thống 
+lưu và hiện thị chỗ báo cáo
+-Blog:
+Có thông báo hệ thống, blog, tư vấn thành công, lượt thích, lượt like kiểu giống fb
+-Gói thành viên: 
+hiển thị thông tin gói hiện tại người dùng mua
+nâng cấp gói
+
+
+*Coach:
+-Khách hàng:
+Quản lý thành viên
+hiện thông tin thành viên đặt lịch
+-Lịch tư vấn:
+thành viên book lịch sẽ hiện thị bên TKB lịch tư vấn bên, rồi coach ấn xác nhận
+-Thống kê:
+đếm tổng số buổi tư vấn thành công, theo biểu đồ
+báo cáo và thống kê số buổi tư vấn
+-Xem blog:
+-Cộng đồng:
+coach đăng bài blog
+-Báo cáo:
+gửi báo cáo thành viên cho admin
+gửi báo cáo hệ thống cho admin
+
+
+*Admin:
+-Tổng quan:
+đếm và hiện dữ liệu trong database
+-Quản lý cộng đồng:
+chỉnh sửa duyệt & ko duyệt bài blog
+-Thống kê doanh thu:
+đếm tổng và hiện dữ liệu doanh thu
+Blog - Cộng đồng: ....
+-Quản lý báo cáo và phản hồi:
+viết báo cáo và gửi thông báo cho tất cá người dùng
+nhận được feedback từ người dùng gửi đến 
+
+ĐÂY LÀ Ý TƯỞNG CÁC CHỨC NĂNG
+
+
+
+
+
+
+
+
