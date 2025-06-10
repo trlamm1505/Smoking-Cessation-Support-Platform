@@ -37,7 +37,17 @@ const CoachLayout = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <nav className="w-64 bg-white shadow-md flex flex-col">
+      <nav
+        className="w-64 bg-white shadow-md flex flex-col"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: '100vh',
+          zIndex: 100,
+          borderRight: '1px solid #f0f0f0',
+        }}
+      >
         <div className="p-4 border-b border-gray-200">
           {/* Logo area - Make clickable */}
           <Link to="/coach" className="flex items-center space-x-2">
@@ -47,17 +57,7 @@ const CoachLayout = () => {
           </Link>
         </div>
         <ul className="flex flex-col p-2 flex-grow">
-          {/* Removed 'Bảng điều khiển' link */}
-          {/*
-          <li>
-            <Link to="/coach/home" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
-              isActive('/coach/home') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
-            }`}>
-              <HomeOutlined className="text-lg" />
-              <span className="text-base">Bảng điều khiển</span>
-            </Link>
-          </li>
-          */}
+         
           <li>
             <Link to="/coach/members" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
               isActive('/coach/members') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
@@ -108,21 +108,19 @@ const CoachLayout = () => {
           </li>
         </ul>
 
-        {/* Logout Button */}
-        <div className="p-4 border-t border-gray-200">
-           <button 
-              onClick={handleLogoutClick}
-              className="flex items-center space-x-3 p-3 rounded-md text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3] w-full text-left transition-colors"
-            >
-             <LogoutOutlined className="text-lg" />
-             <span className="text-base">Đăng xuất</span>
-           </button>
-        </div>
+        {/* Logout Button - moved up */}
+        <button 
+          onClick={handleLogoutClick}
+          className="flex items-center space-x-3 p-2 mx-2 mb-4 rounded-md text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3] w-full text-left transition-colors border-t border-gray-200"
+        >
+          <LogoutOutlined className="text-lg" />
+          <span className="text-base">Đăng xuất</span>
+        </button>
 
       </nav>
 
       {/* Main content area */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col" style={{ marginLeft: '16rem' }}>
         <CoachHeader className="sticky top-0 w-full z-10" /> {/* Include the CoachHeader component */}
         <div className="flex-1 overflow-y-auto p-6">
           <Outlet />

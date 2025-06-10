@@ -1,50 +1,48 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { CameraOutlined, TrophyOutlined, HeartOutlined, CrownOutlined, TeamOutlined, MailOutlined, PhoneOutlined, HomeOutlined, CalendarOutlined, LockOutlined, EditOutlined, UserOutlined as UserIcon, LogoutOutlined } from '@ant-design/icons'; // Import icons, use alias for UserOutlined to avoid conflict
-import { Typography, Space, Tag, Button as AntButton, Modal, Form, Input } from 'antd'; // Import Modal, Form, Input
+import {
+  CameraOutlined, TrophyOutlined, HeartOutlined, CrownOutlined, TeamOutlined, MailOutlined,
+  PhoneOutlined, HomeOutlined, CalendarOutlined, UserOutlined, EnvironmentOutlined, EditOutlined,
+  SaveOutlined, CloseOutlined, ManOutlined, PlusOutlined, DeleteOutlined, LockOutlined
+} from '@ant-design/icons';
+import { Typography, Space, Tag, Button as AntButton, Modal, Form, Input, message, Spin } from 'antd';
 
 const { Title, Text } = Typography;
 
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px; /* Matched User profile padding */
+  padding: 20px;
 `;
 
 const ProfileHeader = styled.div`
   background: linear-gradient(135deg, #5FB8B3 0%, #4A90E2 100%);
-  border-radius: 16px; /* Matched User profile border-radius */
-  padding: 20px; /* Matched User profile padding */
+  border-radius: 16px;
+  padding: 20px;
   position: relative;
-  margin-bottom: 24px; /* Matched User profile margin-bottom */
+  margin-bottom: 24px;
 `;
 
 const HeaderButtons = styled.div`
   display: flex;
-  justify-content: flex-end; /* Keep flex-end as buttons are on the right */
-  gap: 8px; /* Matched User profile gap */
-  margin-bottom: 20px; /* Matched User profile margin-bottom */
+  justify-content: space-between;
+  margin-bottom: 20px;
 `;
 
-const Button = styled(AntButton)`
+const Button = styled.button`
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
-  padding: 8px 16px; /* Matched User profile padding */
-  border-radius: 8px; /* Matched User profile border-radius */
+  padding: 8px 16px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px; /* Matched User profile gap */
-  font-size: 14px; /* Matched User profile font size */
+  gap: 8px;
+  font-size: 14px;
 
   &:hover {
     background: rgba(255, 255, 255, 0.3);
-    color: white;
-  }
-
-  .anticon {
-      font-size: 16px; /* Adjusted icon size */
   }
 `;
 
@@ -55,454 +53,848 @@ const ProfileContent = styled.div`
 `;
 
 const AvatarContainer = styled.div`
-  width: 120px; /* Matched User profile size */
-  height: 120px; /* Matched User profile size */
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  margin-bottom: 16px; /* Matched User profile margin */
-  border: 4px solid rgba(255, 255, 255, 0.2); /* Matched User profile border */
+  margin-bottom: 16px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
 
   .camera-icon {
     position: absolute;
-    right: 0; /* Matched User profile position */
-    bottom: 0; /* Matched User profile position */
+    right: 0;
+    bottom: 0;
     background: white;
     border-radius: 50%;
-    width: 32px; /* Matched User profile size */
-    height: 32px; /* Matched User profile size */
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border: 2px solid #5FB8B3; /* Matched User profile border */
+    border: 2px solid #5FB8B3;
     color: #5FB8B3;
-    font-size: 14px; /* Adjusted font size */
   }
 `;
 
 const UserName = styled.h2`
   color: white;
-  font-size: 24px; /* Matched User profile font size */
-  margin: 8px 0; /* Matched User profile margin */
+  font-size: 24px;
+  margin: 8px 0;
 `;
 
 const CoachTitle = styled.div`
   color: white;
-  font-size: 14px; /* Matched User profile font size */
+  font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 4px; /* Matched User profile gap */
+  gap: 4px;
   opacity: 0.9;
 `;
 
 const ContentGrid = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 24px;
+`;
+
+const Card = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 18px;
+  color: #2c3e50;
+  margin-bottom: 16px;
+  font-weight: 600;
+`;
+
+const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: 300px 1fr; /* Matched User profile grid structure */
-  gap: 24px; /* Matched User profile gap */
-  margin-top: 24px; /* Matched User profile margin-top */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+`;
+
+const StatCard = styled.div`
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+
+  .icon {
+    color: #5FB8B3;
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+  }
+
+  .label {
+    color: #666;
+    font-size: 14px;
+  }
+`;
+
+const InfoList = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
 `;
 
-// Recreating Card structure using styled divs
-const StyledCard = styled.div`
-  background: white;
-  border-radius: 16px; /* Matched User profile border-radius */
-  padding: 0; /* Remove default padding, controlled by CardContent */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Matched User profile shadow */
-  border: none; /* Ensure no default border */
-  overflow: hidden;
-`;
-
-const CardTitle = styled.h3`
-    font-size: 18px; /* Matched User profile font size */
-    font-weight: 600;
-    color: #2c3e50;
-    padding: 10px 24px 0; /* Further reduced padding */
-    margin-bottom: 0; /* Remove default margin */
-`;
-
-const CardContent = styled.div`
-   padding: 8px 24px 12px; /* Further reduced padding */
-`;
-
-const SectionTitle = styled.h3`
-  font-size: 18px; /* Matched User profile font size */
-  color: #2c3e50;
-  margin-bottom: 16px; /* Matched User profile margin-bottom */
-  font-weight: 600;
-`;
-
-const AchievementList = styled.div` /* Added AchievementList styled component */
-  display: flex;
-  flex-direction: column;
-  gap: 12px; /* Matched User profile gap */
-`;
-
-const AchievementItem = styled.div` /* Added AchievementItem styled component */
-  display: flex;
-  align-items: center;
-  gap: 8px; /* Matched User profile gap */
-  padding: 8px 16px; /* Matched User profile padding */
-  background: #5FB8B3;
-  color: white;
-  border-radius: 8px; /* Matched User profile border-radius */
-  font-size: 14px; /* Matched User profile font size */
-`;
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Keep 2 columns for stats as per previous discussion */
-  gap: 16px; /* Matched User profile gap */
-  margin-bottom: 24px; /* Matched User profile margin-bottom */
-
-   @media (max-width: 480px) {
-      grid-template-columns: 1fr; /* Stack on very small screens */
-   }
-`;
-
-const StatCard = styled.div`
-  background: #f8f9fa;
-  padding: 20px; /* Matched User profile padding */
-  border-radius: 12px; /* Matched User profile border-radius */
-  text-align: center;
-
-  .icon {
-    color: #5FB8B3;
-    font-size: 24px; /* Matched User profile font size */
-    margin-bottom: 8px; /* Matched User profile margin-bottom */
-  }
-
-  .value {
-    font-size: 24px; /* Matched User profile font size */
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 4px; /* Matched User profile margin-bottom */
-  }
-
-  .label {
-    color: #666;
-    font-size: 14px; /* Matched User profile font size */
-  }
-`;
-
-const InfoList = styled.div`
-  display: grid;
-  gap: 16px; /* Matched User profile gap */
-`;
-
 const InfoItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px; /* Matched User profile gap */
+  gap: 16px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #5FB8B3;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateX(4px);
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(95, 184, 179, 0.1);
+    border-left-color: #4A90E2;
+
+    .icon {
+      color: #4A90E2;
+      transform: scale(1.05);
+    }
+  }
 
   .icon {
     color: #5FB8B3;
-    font-size: 18px; /* Matched User profile icon size */
+    font-size: 18px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(95, 184, 179, 0.1);
+    border-radius: 8px;
+  }
+
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .label {
     color: #666;
-    font-size: 14px; /* Matched User profile font size */
-    width: 100px; /* Matched User profile width */
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
   }
 
   .value {
     color: #2c3e50;
     font-weight: 500;
-    font-size: 14px; /* Matched User profile font size */
+    font-size: 14px;
+    line-height: 1.4;
   }
 `;
 
-const FileInput = styled.input` // Add FileInput styled component
+const EditableSection = styled.div`
+  position: relative;
+
+  .edit-button {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #5FB8B3 0%, #4A90E2 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(95, 184, 179, 0.3);
+    z-index: 10;
+
+    &:hover {
+      background: linear-gradient(135deg, #4A90E2 0%, #5FB8B3 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(95, 184, 179, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .edit-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    justify-content: center;
+    padding: 16px 0;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .action-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    justify-content: center;
+
+    &.save {
+      background: linear-gradient(135deg, #5FB8B3 0%, #4A90E2 100%);
+      color: white;
+      box-shadow: 0 3px 12px rgba(95, 184, 179, 0.4);
+
+      &:hover {
+        background: linear-gradient(135deg, #4A90E2 0%, #5FB8B3 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(95, 184, 179, 0.5);
+      }
+    }
+
+    &.cancel {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      color: #666;
+      border: 2px solid #e9ecef;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      &:hover {
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        border-color: #dee2e6;
+      }
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+`;
+
+const EditableTextarea = styled.textarea`
+  width: 100%;
+  min-height: 120px;
+  padding: 20px 24px;
+  border: 3px solid #5FB8B3;
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  color: #2c3e50;
+
+  &:focus {
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.15);
+    background: #ffffff;
+    transform: translateY(-2px);
+  }
+
+  &::placeholder {
+    color: #999;
+    font-style: italic;
+    opacity: 0.7;
+  }
+`;
+
+const EditableInput = styled.input`
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #5FB8B3;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+
+  &:focus {
+    border-color: #4A90E2;
+  }
+`;
+
+const FileInput = styled.input`
   display: none;
 `;
 
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+
+  h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 20px;
+  }
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+
+  &:hover {
+    background: #f5f5f5;
+    color: #333;
+  }
+`;
+
+const FormSection = styled.div`
+  margin-bottom: 24px;
+
+  h3 {
+    color: #2c3e50;
+    font-size: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+`;
+
+const FormGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const FormField = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    color: #666;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+`;
+
+const ActionButton = styled.button`
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+
+  &.primary {
+    background: #5FB8B3;
+    color: white;
+
+    &:hover {
+      background: #4A90E2;
+    }
+  }
+
+  &.secondary {
+    background: #f5f5f5;
+    color: #666;
+
+    &:hover {
+      background: #e8e8e8;
+    }
+  }
+`;
+
+const SelectInput = styled.select`
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #5FB8B3;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  background: white;
+
+  &:focus {
+    border-color: #4A90E2;
+  }
+`;
+
 const CoachProfile = () => {
-    // Removed: const navigate = useNavigate(); // Initialize useNavigate
-    const [isEditModalVisible, setIsEditModalVisible] = useState(false); // State for modal visibility
-    const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
-    const [editForm] = Form.useForm(); // Form instance
+  const [isEditingIntro, setIsEditingIntro] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [accountForm, setAccountForm] = useState({
+    username: 'coachnguyenvanb',
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [accountError, setAccountError] = useState('');
 
-    // Mock data for Coach - replace with real data
-    const [coachData, setCoachData] = useState({
-        name: 'Coach Nguyễn Văn B',
-        title: 'Chuyên gia tư vấn cai thuốc',
-        avatarUrl: '/Images/default-avatar.jpg', // Replace with actual avatar URL
-        activeClients: 35,
-        consultationsCompleted: 120,
-        successRate: 85,
-        yearsExperience: 5,
-        totalAchievements: 15,
-        achievements: [
-            'Hoàn thành 100 buổi tư vấn',
-            'Đạt tỷ lệ thành công 80%',
-            'Nhận phản hồi tích cực từ 50 khách hàng',
-             'Đồng hành cùng 10 khách hàng cai thuốc thành công'
-        ],
-        personalInfo: {
-            email: 'coachnguyenvanb@example.com',
-            phone: '0987654321',
-            address: 'TP Hồ Chí Minh, Việt Nam',
-            joinDate: '01/05/2019',
-            qualifications: 'Chứng chỉ A, B', // Added qualifications
-            expertise: 'Tư vấn cá nhân, liệu pháp nhóm' // Added expertise
-        },
-         description: 'Xin chào! Tôi là một chuyên gia tư vấn với nhiều năm kinh nghiệm...' // Added description
-    });
+  const [introText, setIntroText] = useState(
+    "Xin chào! Tôi là một chuyên gia tư vấn với nhiều năm kinh nghiệm trong lĩnh vực cai thuốc lá. Tôi đã giúp đỡ nhiều người vượt qua thử thách này và tôi tin rằng với sự hỗ trợ phù hợp, ai cũng có thể thành công."
+  );
+  const [tempIntroText, setTempIntroText] = useState(introText);
 
-    const stats = [
-        { icon: <TeamOutlined />, value: coachData.activeClients, label: 'Khách hàng đang tư vấn' },
-        { icon: <CalendarOutlined />, value: coachData.consultationsCompleted, label: 'Buổi tư vấn hoàn thành' },
-        { icon: <HeartOutlined />, value: `${coachData.successRate}%`, label: 'Tỷ lệ thành công' },
-        { icon: <TrophyOutlined />, value: coachData.yearsExperience, label: 'Năm kinh nghiệm' },
-    ];
+  const [profileData, setProfileData] = useState({
+    name: 'Coach Nguyễn Văn B',
+    title: 'Chuyên gia tư vấn cai thuốc',
+    avatarUrl: '/Images/default-avatar.jpg',
+    activeClients: 35,
+    consultationsCompleted: 120,
+    successRate: 85,
+    yearsExperience: 5
+  });
+  const [tempProfileData, setTempProfileData] = useState({ ...profileData });
 
-    const handleChangePassword = () => {
-        console.log('Change password button clicked');
-        alert('Chức năng thay đổi mật khẩu sẽ được triển khai tại đây.');
-    };
+  const [personalInfo, setPersonalInfo] = useState([
+    {
+      icon: <MailOutlined />,
+      label: 'Email',
+      value: 'coachnguyenvanb@example.com',
+      key: 'email'
+    },
+    {
+      icon: <PhoneOutlined />,
+      label: 'Số điện thoại',
+      value: '0987654321',
+      key: 'phone'
+    },
+    {
+      icon: <UserOutlined />,
+      label: 'Tuổi',
+      value: '35',
+      key: 'age'
+    },
+    {
+      icon: <ManOutlined />,
+      label: 'Giới tính',
+      value: 'Nam',
+      key: 'gender'
+    },
+    {
+      icon: <TrophyOutlined />,
+      label: 'Bằng cấp',
+      value: 'Chứng chỉ A, B',
+      key: 'qualifications'
+    },
+    {
+      icon: <TeamOutlined />,
+      label: 'Lĩnh vực mạnh',
+      value: 'Tư vấn cá nhân, liệu pháp nhóm',
+      key: 'expertise'
+    },
+    {
+      icon: <EnvironmentOutlined />,
+      label: 'Địa chỉ',
+      value: 'TP Hồ Chí Minh, Việt Nam',
+      key: 'address'
+    },
+    {
+      icon: <CalendarOutlined />,
+      label: 'Ngày tham gia',
+      value: '01/05/2019',
+      key: 'joinDate'
+    }
+  ]);
 
-     // Handle avatar file selection
-    const handleAvatarChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            console.log('Selected avatar file:', file);
-            // TODO: Implement file upload logic here
-            // For now, just display a temporary URL or process the file
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setCoachData({ ...coachData, avatarUrl: reader.result }); // Update avatar URL with data URL
-            };
-            reader.readAsDataURL(file); // Read file as Data URL for preview
-        }
-    };
+  const [tempPersonalInfo, setTempPersonalInfo] = useState([...personalInfo]);
 
-    // Removed: const handleGoToSchedule = () => {
-    // Removed:     // Navigate to the schedule page
-    // Removed: };
+  const handleSaveIntro = () => {
+    setIntroText(tempIntroText);
+    setIsEditingIntro(false);
+  };
 
-    const handleEditProfileClick = () => {
-        // Set initial values in the form when opening the modal
-        editForm.setFieldsValue({
-            name: coachData.name,
-            email: coachData.personalInfo.email,
-            phone: coachData.personalInfo.phone,
-            qualifications: coachData.personalInfo.qualifications,
-            expertise: coachData.personalInfo.expertise,
-            description: coachData.description,
-        });
-        setIsEditModalVisible(true);
-    };
+  const handleCancelIntro = () => {
+    setTempIntroText(introText);
+    setIsEditingIntro(false);
+  };
 
-    const handleSaveProfile = (values) => {
-        // TODO: Implement API call to save profile changes
-        console.log('Saving profile changes:', values);
-        setCoachData({
-            ...coachData,
-            name: values.name,
-            personalInfo: {
-                ...coachData.personalInfo,
-                email: values.email,
-                phone: values.phone,
-                qualifications: values.qualifications,
-                expertise: values.expertise,
-            },
-            description: values.description,
-        });
-        setIsEditModalVisible(false);
-        // In a real app, handle success/error messages based on API response
-    };
+  const handleOpenEditModal = () => {
+    setTempProfileData({ ...profileData });
+    setTempPersonalInfo([...personalInfo]);
+    setShowEditModal(true);
+  };
 
-    return (
-        <Container>
-            <ProfileHeader>
-                <HeaderButtons>
-                    <Button icon={<CalendarOutlined />}>Thiết lập lịch làm việc</Button>
-                    <Button icon={<CameraOutlined />} onClick={() => document.getElementById('avatarInput').click()}>Thay đổi ảnh đại diện</Button>
-                    <Button icon={<EditOutlined />} onClick={handleEditProfileClick}>Chỉnh sửa hồ sơ</Button>
-                    <Button icon={<LockOutlined />} onClick={handleChangePassword}>Thay đổi mật khẩu</Button>
-                </HeaderButtons>
-                <ProfileContent>
-                    <AvatarContainer>
-                         {/* Use actual img tag for avatar */}
-                        <img src={coachData.avatarUrl} alt={`${coachData.name}'s Avatar`} className="w-full h-full rounded-full object-cover" />
-                        {/* Add hidden file input */}
-                        <FileInput
-                            id="avatarInput"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleAvatarChange} // Call the new handler
-                        />
-                        {/* Camera icon can be added back if needed for avatar upload, perhaps positioned over the image */}
-                    </AvatarContainer>
-                    <UserName>{coachData.name}</UserName>
-                    <CoachTitle>
-                        <UserIcon />
-                        {coachData.title} {/* Display coach title here */}
-                    </CoachTitle>
-                </ProfileContent>
-            </ProfileHeader>
+  const handleSaveProfile = () => {
+    setProfileData({ ...tempProfileData });
+    setPersonalInfo([...tempPersonalInfo]);
+    setShowEditModal(false);
+  };
 
-            <ContentGrid>
-                <div> {/* Left Column */}
-                    <StyledCard>
-                        <CardTitle>Giới thiệu</CardTitle>
-                        <CardContent>
-                             <p style={{ fontSize: '14px', lineHeight: '1.5' }}>
-                                {coachData.description} {/* Display description */}
-                            </p>
-                        </CardContent>
-                    </StyledCard>
+  const handleCancelProfile = () => {
+    setTempProfileData({ ...profileData });
+    setTempPersonalInfo([...personalInfo]);
+    setShowEditModal(false);
+  };
 
-                    {/* Added Achievements section back */}
-                    <StyledCard style={{ marginTop: '24px' }}> {/* Increased margin-top to move down */}
-                         <CardTitle>Thành tích</CardTitle>
-                         <CardContent>
-                            <AchievementList>
-                                {coachData.achievements.map((achievement, index) => (
-                                    <AchievementItem key={index}>
-                                        <TrophyOutlined />
-                                        {achievement}
-                                    </AchievementItem>
-                                ))}
-                            </AchievementList>
-                         </CardContent>
-                    </StyledCard>
+  const handleInfoChange = (index, newValue) => {
+    const updated = [...tempPersonalInfo];
+    updated[index].value = newValue;
+    setTempPersonalInfo(updated);
+  };
 
+  const handleFileUpload = (type) => {
+    // Xử lý upload file cho avatar hoặc cover photo
+    console.log(`Uploading ${type}`);
+  };
+
+  const stats = [
+    { icon: <TeamOutlined />, value: profileData.activeClients, label: 'Khách hàng đang tư vấn' },
+    { icon: <CalendarOutlined />, value: profileData.consultationsCompleted, label: 'Buổi tư vấn hoàn thành' },
+    { icon: <HeartOutlined />, value: `${profileData.successRate}%`, label: 'Tỷ lệ thành công' },
+    { icon: <TrophyOutlined />, value: profileData.yearsExperience, label: 'Năm kinh nghiệm' }
+  ];
+
+  return (
+    <Container>
+      <ProfileHeader>
+        <HeaderButtons>
+          <Button onClick={() => document.getElementById('coverInput').click()}>
+            <CameraOutlined />
+            Thay đổi ảnh bìa
+          </Button>
+          <FileInput
+            id="coverInput"
+            type="file"
+            accept="image/*"
+            onChange={() => handleFileUpload('cover')}
+          />
+          <Button onClick={() => setShowAccountModal(true)}>
+            <LockOutlined />
+            Đổi mật khẩu
+          </Button>
+          <Button onClick={handleOpenEditModal}>
+            <EditOutlined />
+            Chỉnh sửa profile
+          </Button>
+        </HeaderButtons>
+        <ProfileContent>
+          <AvatarContainer>
+            <TeamOutlined style={{ fontSize: '48px', color: '#5FB8B3' }} />
+            <div className="camera-icon" onClick={() => document.getElementById('avatarInput').click()}>
+              <CameraOutlined />
+            </div>
+            <FileInput
+              id="avatarInput"
+              type="file"
+              accept="image/*"
+              onChange={() => handleFileUpload('avatar')}
+            />
+          </AvatarContainer>
+          <UserName>{profileData.name}</UserName>
+          <CoachTitle>
+            <UserOutlined />
+            {profileData.title}
+          </CoachTitle>
+        </ProfileContent>
+      </ProfileHeader>
+
+      <ContentGrid>
+        <Card>
+          <EditableSection>
+            <SectionTitle>Giới thiệu</SectionTitle>
+            {!isEditingIntro && (
+              <button
+                className="edit-button"
+                onClick={() => setIsEditingIntro(true)}
+              >
+                <EditOutlined />
+                Sửa
+              </button>
+            )}
+            {isEditingIntro ? (
+              <>
+                <EditableTextarea
+                  value={tempIntroText}
+                  onChange={(e) => setTempIntroText(e.target.value)}
+                  placeholder="Viết giới thiệu về bản thân..."
+                />
+                <div className="edit-actions">
+                  <button className="action-button save" onClick={handleSaveIntro}>
+                    <SaveOutlined />
+                    Lưu
+                  </button>
+                  <button className="action-button cancel" onClick={handleCancelIntro}>
+                    <CloseOutlined />
+                    Hủy
+                  </button>
                 </div>
+              </>
+            ) : (
+              <p>{introText}</p>
+            )}
+          </EditableSection>
+        </Card>
 
-                <div> {/* Right Column */}
-                    <StyledCard>
-                         <CardTitle>Thống kê hoạt động</CardTitle>
-                         <CardContent>
-                            <StatsGrid>
-                                {stats.map((stat, index) => (
-                                    <StatCard key={index}>
-                                        <div className="icon">{stat.icon}</div>
-                                        <div className="value">{stat.value}</div>
-                                        <div className="label">{stat.label}</div>
-                                    </StatCard>
-                                ))}
-                            </StatsGrid>
-                         </CardContent>
-                    </StyledCard>
+        <Card>
+          <SectionTitle>Thống kê hoạt động</SectionTitle>
+          <StatsGrid>
+            {stats.map((stat, index) => (
+              <StatCard key={index}>
+                <div className="icon">{stat.icon}</div>
+                <div className="value">{stat.value}</div>
+                <div className="label">{stat.label}</div>
+              </StatCard>
+            ))}
+          </StatsGrid>
+        </Card>
 
-                    <StyledCard style={{ marginTop: '8px' }}> {/* Adjusted margin-top */}
-                         <CardTitle>Thông tin cá nhân</CardTitle>
-                         <CardContent>
-                            <InfoList>
-                                 <InfoItem>
-                                    <MailOutlined className="icon" />
-                                    <span className="label">Email</span>
-                                    <span className="value">{coachData.personalInfo.email}</span>
-                                </InfoItem>
-                                <InfoItem>
-                                    <PhoneOutlined className="icon" />
-                                    <span className="label">Số điện thoại</span>
-                                    <span className="value">{coachData.personalInfo.phone}</span>
-                                </InfoItem>
-                                 <InfoItem>
-                                    <HomeOutlined className="icon" />
-                                    <span className="label">Địa chỉ</span>
-                                    <span className="value">{coachData.personalInfo.address}</span>
-                                </InfoItem>
-                                <InfoItem>
-                                    <CalendarOutlined className="icon" />
-                                    <span className="label">Ngày tham gia</span>
-                                    <span className="value">{coachData.personalInfo.joinDate}</span>
-                                </InfoItem>
-                                <InfoItem> {/* Added Qualifications */}
-                                    <TrophyOutlined className="icon" />
-                                    <span className="label">Bằng cấp</span>
-                                    <span className="value">{coachData.personalInfo.qualifications}</span>
-                                </InfoItem>
-                                 <InfoItem> {/* Added Expertise */}
-                                    <TeamOutlined className="icon" />
-                                    <span className="label">Lĩnh vực mạnh</span>
-                                    <span className="value">{coachData.personalInfo.expertise}</span>
-                                </InfoItem>
-                            </InfoList>
-                         </CardContent>
-                    </StyledCard>
+        <Card>
+          <SectionTitle>Thông tin cá nhân</SectionTitle>
+          <InfoList>
+            {personalInfo.map((info, index) => (
+              <InfoItem key={index}>
+                <div className="icon">{info.icon}</div>
+                <div className="content">
+                  <span className="label">{info.label}</span>
+                  <span className="value">{info.value}</span>
                 </div>
-            </ContentGrid>
+              </InfoItem>
+            ))}
+          </InfoList>
+        </Card>
+      </ContentGrid>
 
-            {/* Edit Profile Modal */}
-            <Modal
-                title="Chỉnh sửa hồ sơ"
-                open={isEditModalVisible}
-                onCancel={() => setIsEditModalVisible(false)}
-                footer={null} // Use form's own submit button
-            >
-                <Form
-                    form={editForm}
-                    layout="vertical"
-                    onFinish={handleSaveProfile}
-                    initialValues={{
-                        name: coachData.name,
-                        email: coachData.personalInfo.email,
-                        phone: coachData.personalInfo.phone,
-                        qualifications: coachData.personalInfo.qualifications,
-                        expertise: coachData.personalInfo.expertise,
-                        description: coachData.description,
-                    }}
-                >
-                    <Form.Item
-                        name="name"
-                        label="Họ và tên"
-                        rules={[{ required: true, message: 'Vui lòng nhập họ và tên' }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="email"
-                        label="Email"
-                        rules={[{ required: true, message: 'Vui lòng nhập email' }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="phone"
-                        label="Số điện thoại"
-                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="qualifications"
-                        label="Bằng cấp"
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="expertise"
-                        label="Lĩnh vực mạnh"
-                    >
-                        <Input />
-                    </Form.Item>
-                     <Form.Item
-                        name="description"
-                        label="Mô tả bản thân"
-                    >
-                        <Input.TextArea rows={4} />
-                    </Form.Item>
-                    <Form.Item>
-                        <Button type="primary" htmlType="submit" style={{ marginTop: 16 }}>
-                            Lưu thay đổi
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Modal>
+      {showEditModal && (
+        <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancelProfile()}>
+          <ModalContent>
+            <ModalHeader>
+              <h2>Chỉnh sửa thông tin cá nhân</h2>
+              <CloseButton onClick={handleCancelProfile}>
+                <CloseOutlined />
+              </CloseButton>
+            </ModalHeader>
 
-        </Container>
-    );
+            <FormSection>
+              <h3>
+                <UserOutlined />
+                Thông tin cơ bản
+              </h3>
+              <FormGrid>
+                <FormField>
+                  <label>Tên hiển thị</label>
+                  <EditableInput
+                    value={tempProfileData.name}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, name: e.target.value })}
+                    placeholder="Nhập tên hiển thị"
+                  />
+                </FormField>
+                {tempPersonalInfo.filter(info => info.key !== 'joinDate').map((info, index) => (
+                  <FormField key={index} className={info.key === 'address' || info.key === 'expertise' ? 'full-width' : ''}>
+                    <label>{info.label}</label>
+                    {info.key === 'gender' ? (
+                      <SelectInput
+                        value={info.value}
+                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
+                      >
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                      </SelectInput>
+                    ) : info.key === 'age' ? (
+                      <EditableInput
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={info.value}
+                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
+                        placeholder="Nhập tuổi"
+                      />
+                    ) : (
+                      <EditableInput
+                        value={info.value}
+                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
+                        placeholder={`Nhập ${info.label.toLowerCase()}`}
+                      />
+                    )}
+                  </FormField>
+                ))}
+              </FormGrid>
+            </FormSection>
+
+            <ModalActions>
+              <ActionButton className="secondary" onClick={handleCancelProfile}>
+                <CloseOutlined />
+                Hủy
+              </ActionButton>
+              <ActionButton className="primary" onClick={handleSaveProfile}>
+                <SaveOutlined />
+                Lưu thay đổi
+              </ActionButton>
+            </ModalActions>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {showAccountModal && (
+        <ModalOverlay onClick={e => e.target === e.currentTarget && setShowAccountModal(false)}>
+          <ModalContent>
+            <ModalHeader>
+              <h2>Chỉnh sửa tài khoản & mật khẩu</h2>
+              <CloseButton onClick={() => setShowAccountModal(false)}>
+                <CloseOutlined />
+              </CloseButton>
+            </ModalHeader>
+            <FormSection>
+              <FormField className="full-width">
+                <label>Tài khoản đăng nhập</label>
+                <EditableInput
+                  type="text"
+                  value={accountForm.username}
+                  onChange={e => setAccountForm({ ...accountForm, username: e.target.value })}
+                  placeholder="Nhập tài khoản đăng nhập"
+                />
+              </FormField>
+              <FormField className="full-width">
+                <label>Mật khẩu cũ</label>
+                <EditableInput
+                  type="password"
+                  value={accountForm.oldPassword}
+                  onChange={e => setAccountForm({ ...accountForm, oldPassword: e.target.value })}
+                  placeholder="Nhập mật khẩu cũ"
+                />
+              </FormField>
+              <FormField className="full-width">
+                <label>Mật khẩu mới</label>
+                <EditableInput
+                  type="password"
+                  value={accountForm.newPassword}
+                  onChange={e => setAccountForm({ ...accountForm, newPassword: e.target.value })}
+                  placeholder="Nhập mật khẩu mới"
+                />
+              </FormField>
+              <FormField className="full-width">
+                <label>Xác nhận mật khẩu mới</label>
+                <EditableInput
+                  type="password"
+                  value={accountForm.confirmPassword}
+                  onChange={e => setAccountForm({ ...accountForm, confirmPassword: e.target.value })}
+                  placeholder="Nhập lại mật khẩu mới"
+                />
+              </FormField>
+              {accountError && <div style={{ color: 'red', marginTop: 8 }}>{accountError}</div>}
+            </FormSection>
+            <ModalActions>
+              <ActionButton className="secondary" onClick={() => setShowAccountModal(false)}>
+                <CloseOutlined />
+                Hủy
+              </ActionButton>
+              <ActionButton className="primary" onClick={() => {
+                // Validate
+                if (!accountForm.username) {
+                  setAccountError('Vui lòng nhập tài khoản đăng nhập.');
+                  return;
+                }
+                if (!accountForm.oldPassword) {
+                  setAccountError('Vui lòng nhập mật khẩu cũ.');
+                  return;
+                }
+                if (!accountForm.newPassword) {
+                  setAccountError('Vui lòng nhập mật khẩu mới.');
+                  return;
+                }
+                if (accountForm.newPassword !== accountForm.confirmPassword) {
+                  setAccountError('Mật khẩu mới và xác nhận không khớp.');
+                  return;
+                }
+                setAccountError('');
+                setShowAccountModal(false);
+                // Thực hiện lưu thông tin ở đây nếu cần
+              }}>
+                <SaveOutlined />
+                Lưu thay đổi
+              </ActionButton>
+            </ModalActions>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+    </Container>
+  );
 };
 
-export default CoachProfile; 
+export default CoachProfile;

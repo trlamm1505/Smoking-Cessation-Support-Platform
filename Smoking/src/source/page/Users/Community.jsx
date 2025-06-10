@@ -91,7 +91,8 @@ const PostCard = styled(Card)`
 
   .post-stats {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
     padding: 8px 0;
     border-top: 1px solid #e0e0e0;
     margin-top: 16px;
@@ -532,7 +533,7 @@ const Community = () => {
     <PageContainer>
       <TitleRow>
         <IconEffect>
-          <TeamOutlined />
+        <TeamOutlined />
         </IconEffect>
         <Title level={2} style={{ color: '#222', margin: 0 }}>Cộng Đồng Cai Thuốc</Title>
       </TitleRow>
@@ -597,20 +598,20 @@ const Community = () => {
                 )}
 
                 <div className="post-stats">
-                  <Button 
-                    type="text" 
+                    <Button
+                      type="text"
                     icon={likedPosts.has(post.id) ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
-                    onClick={() => handleLike(post.id)}
-                  >
+                      onClick={() => handleLike(post.id)}
+                    >
                     {post.likes}
-                  </Button>
-                  <Button 
-                    type="text" 
+                    </Button>
+                    <Button
+                      type="text"
                     icon={<CommentOutlined />}
-                    onClick={() => toggleComments(post.id)}
-                  >
+                      onClick={() => toggleComments(post.id)}
+                    >
                     {post.comments.length}
-                  </Button>
+                    </Button>
                 </div>
 
                 {post.showComments && (
