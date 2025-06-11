@@ -109,13 +109,13 @@ const CoachLayout = () => {
         </ul>
 
         {/* Logout Button - moved up */}
-        <button 
-          onClick={handleLogoutClick}
+           <button 
+              onClick={handleLogoutClick}
           className="flex items-center space-x-3 p-2 mx-2 mb-4 rounded-md text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3] w-full text-left transition-colors border-t border-gray-200"
-        >
-          <LogoutOutlined className="text-lg" />
-          <span className="text-base">Đăng xuất</span>
-        </button>
+            >
+             <LogoutOutlined className="text-lg" />
+             <span className="text-base">Đăng xuất</span>
+           </button>
 
       </nav>
 
