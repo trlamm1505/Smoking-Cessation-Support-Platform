@@ -521,12 +521,12 @@ const CoachProfile = () => {
   const [tempIntroText, setTempIntroText] = useState(introText);
 
   const [profileData, setProfileData] = useState({
-    name: 'Coach Nguyễn Văn B',
-    title: 'Chuyên gia tư vấn cai thuốc',
+        name: 'Coach Nguyễn Văn B',
+        title: 'Chuyên gia tư vấn cai thuốc',
     avatarUrl: '/Images/default-avatar.jpg',
-    activeClients: 35,
-    consultationsCompleted: 120,
-    successRate: 85,
+        activeClients: 35,
+        consultationsCompleted: 120,
+        successRate: 85,
     yearsExperience: 5
   });
   const [tempProfileData, setTempProfileData] = useState({ ...profileData });
@@ -587,7 +587,7 @@ const CoachProfile = () => {
   const handleSaveIntro = () => {
     setIntroText(tempIntroText);
     setIsEditingIntro(false);
-  };
+    };
 
   const handleCancelIntro = () => {
     setTempIntroText(introText);
@@ -616,7 +616,7 @@ const CoachProfile = () => {
     const updated = [...tempPersonalInfo];
     updated[index].value = newValue;
     setTempPersonalInfo(updated);
-  };
+    };
 
   const handleFileUpload = (type) => {
     // Xử lý upload file cho avatar hoặc cover photo
@@ -630,10 +630,10 @@ const CoachProfile = () => {
     { icon: <TrophyOutlined />, value: profileData.yearsExperience, label: 'Năm kinh nghiệm' }
   ];
 
-  return (
-    <Container>
-      <ProfileHeader>
-        <HeaderButtons>
+    return (
+        <Container>
+            <ProfileHeader>
+                <HeaderButtons>
           <Button onClick={() => document.getElementById('coverInput').click()}>
             <CameraOutlined />
             Thay đổi ảnh bìa
@@ -652,29 +652,29 @@ const CoachProfile = () => {
             <EditOutlined />
             Chỉnh sửa profile
           </Button>
-        </HeaderButtons>
-        <ProfileContent>
-          <AvatarContainer>
+                </HeaderButtons>
+                <ProfileContent>
+                    <AvatarContainer>
             <TeamOutlined style={{ fontSize: '48px', color: '#5FB8B3' }} />
             <div className="camera-icon" onClick={() => document.getElementById('avatarInput').click()}>
               <CameraOutlined />
             </div>
-            <FileInput
-              id="avatarInput"
-              type="file"
-              accept="image/*"
+                        <FileInput
+                            id="avatarInput"
+                            type="file"
+                            accept="image/*"
               onChange={() => handleFileUpload('avatar')}
-            />
-          </AvatarContainer>
+                        />
+                    </AvatarContainer>
           <UserName>{profileData.name}</UserName>
-          <CoachTitle>
+                    <CoachTitle>
             <UserOutlined />
             {profileData.title}
-          </CoachTitle>
-        </ProfileContent>
-      </ProfileHeader>
+                    </CoachTitle>
+                </ProfileContent>
+            </ProfileHeader>
 
-      <ContentGrid>
+            <ContentGrid>
         <Card>
           <EditableSection>
             <SectionTitle>Giới thiệu</SectionTitle>
@@ -713,20 +713,20 @@ const CoachProfile = () => {
 
         <Card>
           <SectionTitle>Thống kê hoạt động</SectionTitle>
-          <StatsGrid>
-            {stats.map((stat, index) => (
-              <StatCard key={index}>
-                <div className="icon">{stat.icon}</div>
-                <div className="value">{stat.value}</div>
-                <div className="label">{stat.label}</div>
-              </StatCard>
-            ))}
-          </StatsGrid>
+                            <StatsGrid>
+                                {stats.map((stat, index) => (
+                                    <StatCard key={index}>
+                                        <div className="icon">{stat.icon}</div>
+                                        <div className="value">{stat.value}</div>
+                                        <div className="label">{stat.label}</div>
+                                    </StatCard>
+                                ))}
+                            </StatsGrid>
         </Card>
 
         <Card>
           <SectionTitle>Thông tin cá nhân</SectionTitle>
-          <InfoList>
+                            <InfoList>
             {personalInfo.map((info, index) => (
               <InfoItem key={index}>
                 <div className="icon">{info.icon}</div>
@@ -738,7 +738,7 @@ const CoachProfile = () => {
             ))}
           </InfoList>
         </Card>
-      </ContentGrid>
+            </ContentGrid>
 
       {showEditModal && (
         <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancelProfile()}>
@@ -804,7 +804,7 @@ const CoachProfile = () => {
               </ActionButton>
               <ActionButton className="primary" onClick={handleSaveProfile}>
                 <SaveOutlined />
-                Lưu thay đổi
+                            Lưu thay đổi
               </ActionButton>
             </ModalActions>
           </ModalContent>
@@ -893,8 +893,8 @@ const CoachProfile = () => {
           </ModalContent>
         </ModalOverlay>
       )}
-    </Container>
-  );
+        </Container>
+    );
 };
 
-export default CoachProfile;
+export default CoachProfile; 

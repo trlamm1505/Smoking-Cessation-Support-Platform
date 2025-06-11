@@ -715,86 +715,10 @@ const Premium = () => {
                     <CrownOutlined className="icon" />
                     Gói Thành Viên Premium
                 </Title>
-                <p className="subtitle">
-                    Nâng cấp tài khoản của bạn để trải nghiệm những tính năng độc quyền và nhận được nhiều ưu đãi đặc biệt.
-                </p>
+               
             </PageHeader>
 
-            <AnimatedSubscriptionStatusCard isNearExpiry={getDaysRemaining(currentSubscription.renewalDate) <= 7}>
-                <div className="header-section">
-                    <h2 className="title">
-                        <CrownOutlined />
-                        Thông tin đăng ký của bạn
-                        <span className="status-badge">
-                            {getStatusBadge(currentSubscription.status)}
-                        </span>
-                    </h2>
-                </div>
-
-                <div className="content-section">
-                    <SubscriptionInfoGrid>
-                        <div className="info-item-wrapper">
-                            <div>
-                                <div className="label">
-                                    <span className="icon"><CrownOutlined /></span>
-                                    Gói hiện tại
-                                </div>
-                                <div className="value">
-                                    {currentSubscription.plan}
-                                    <Tag className="subscription-tag">
-                                        {currentSubscription.price}đ/{currentSubscription.duration}
-                                    </Tag>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="info-item-wrapper">
-                            <div>
-                                <div className="label">
-                                    <span className="icon"><CalendarOutlined /></span>
-                                    Ngày bắt đầu
-                                </div>
-                                <div className="value">{formatDate(currentSubscription.startDate)}</div>
-                            </div>
-                        </div>
-                        <div className="info-item-wrapper">
-                            <div>
-                                <div className="label">
-                                    <span className="icon"><CalendarOutlined /></span>
-                                    Ngày kết thúc
-                                </div>
-                                <div className="value">{formatDate(currentSubscription.endDate)}</div>
-                            </div>
-                        </div>
-                        <div className="info-item-wrapper">
-                            <div>
-                                <div className="label">
-                                    <span className="icon"><ClockCircleOutlined /></span>
-                                    Ngày gia hạn
-                                </div>
-                                <div className="value">{formatDate(currentSubscription.renewalDate)}</div>
-                            </div>
-                        </div>
-                    </SubscriptionInfoGrid>
-
-                    <ActionButtons>
-                        <Button
-                            className="action-button renew"
-                            icon={<SafetyCertificateOutlined />}
-                            onClick={handleRenew}
-                        >
-                            Gia hạn gói hiện tại
-                        </Button>
-                        <Button
-                            className="action-button change"
-                            icon={<CrownOutlined />}
-                            onClick={handleChangePlan}
-                        >
-                            Thay đổi gói
-                        </Button>
-                    </ActionButtons>
-                </div>
-            </AnimatedSubscriptionStatusCard>
-
+            
             <Row gutter={[24, 24]}>
                 {plans.map((plan, index) => (
                     <Col xs={24} md={8} key={index}>
