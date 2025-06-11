@@ -39,11 +39,9 @@ const Login = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Get the redirect path from location state or default to guest home
   const from = location.state?.from?.pathname || '/guest/home';
 
-  // Hiển thị thông báo
+  // Thông báo
   const showNotification = (message, type) => {
     setNotification({ visible: true, message, type });
     setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 3000);
@@ -55,53 +53,63 @@ const Login = () => {
 
   // ======= Đăng nhập =======
   const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData)
-      });
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        // Store authentication data
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userRole', data.role);
-        localStorage.setItem('userId', data.id);
-        
-        showNotification('Đăng nhập thành công!', 'success');
-        
-        // Redirect based on role
-        switch(data.role) {
-          case 'admin':
-            navigate('/admin/dashboard', { replace: true });
-            break;
-          case 'coach':
-            navigate('/coach/home', { replace: true });
-            break;
-          case 'user':
-            navigate('/users/home', { replace: true });
-            break;
-          case 'guest':
-          default:
-            navigate('/guest/home', { replace: true });
+  e.preventDefault();
+  try {
+    const response = await fetch('http://localhost:8080/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(loginData)
+    });
+    const data = await response.json();
+
+    if (response.ok && data.token) {
+      // Store authentication data
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userRole', data.role);
+      localStorage.setItem('userId', data.userId);
+
+      showNotification('Đăng nhập thành công!', 'success');
+
+      // Kiểm tra trạng thái gói thành viên
+      const userId = data.userId;
+      const token = data.token;
+      // Lưu ý: thêm Authorization nếu backend yêu cầu
+      const userRes = await fetch(`http://localhost:8080/api/user/${userId}`, {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
+      });
+      const userInfo = await userRes.json();
+
+      // Ngày hiện tại
+      const today = new Date().toISOString().split('T')[0];
+
+      // Nếu chưa có gói hoặc đã hết hạn thì vào guest/home
+      if (
+        !userInfo.currentMembershipPackage ||
+        !userInfo.subscriptionEndDate ||
+        userInfo.subscriptionEndDate < today
+      ) {
+        navigate('/guest/home', { replace: true });
       } else {
-        showNotification(data.message || 'Đăng nhập thất bại!', 'error');
-        // Clear any existing auth data on failed login
-        localStorage.removeItem('token');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('userId');
+        navigate('/users/home', { replace: true });
       }
-    } catch (error) {
-      showNotification('Lỗi kết nối server!', 'error');
-      // Clear any existing auth data on error
+    } else {
+      showNotification(data.message || 'Đăng nhập thất bại!', 'error');
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
       localStorage.removeItem('userId');
     }
-  };
+  } catch (error) {
+    showNotification('Lỗi kết nối server!', 'error');
+    localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
+  }
+};
+
+
 
   // ======= Đăng ký 2 bước =======
   // Bước 1: Gửi info -> gửi OTP về email
@@ -153,29 +161,24 @@ const Login = () => {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        // Store authentication data after successful registration
         localStorage.setItem('token', data.token);
-        localStorage.setItem('userRole', data.role);
-        localStorage.setItem('userId', data.id);
-        
+        localStorage.setItem('userRole', data.user?.role || 'member');
+        localStorage.setItem('userId', data.user?.id);
+        localStorage.setItem('userName', data.user?.fullName || '');
         showNotification(data.message || 'Đăng ký thành công!', 'success');
-        
-        // Redirect to appropriate page based on role
-        switch(data.role) {
+        switch (data.user?.role) {
           case 'admin':
             navigate('/admin/dashboard', { replace: true });
             break;
           case 'coach':
             navigate('/coach/home', { replace: true });
             break;
-          case 'user':
+          case 'member': // hoặc 'user'
             navigate('/users/home', { replace: true });
             break;
-          case 'guest':
           default:
             navigate('/guest/home', { replace: true });
         }
-        
         // Reset form
         setRegisterStep(1);
         setIsSignUp(false);
