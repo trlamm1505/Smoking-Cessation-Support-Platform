@@ -40,6 +40,7 @@ import GuestBlog from '../source/page/Guest/Blog'
 import GuestPremium from '../source/page/Guest/Premium'
 import GuestLayout from '../source/page/Guest/Layout'
 import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
+import LoginRequired from '../source/page/Home/LoginRequired'
 
 export default function AppRouter() {
   return (
@@ -47,6 +48,7 @@ export default function AppRouter() {
       {/* Public Routes */}
       <Route path='/' element={<Home />} />
       <Route path='login' element={<Login />} />
+      <Route path='login-required' element={<LoginRequired />} />
 
       {/* Guest Routes */}
       <Route path='guest' element={<GuestLayout />}>
