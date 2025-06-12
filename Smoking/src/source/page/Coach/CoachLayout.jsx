@@ -51,13 +51,20 @@ const CoachLayout = () => {
         <div className="p-4 border-b border-gray-200">
           {/* Logo area - Make clickable */}
           <Link to="/coach" className="flex items-center space-x-2">
-             {/* Replace with actual logo image */}
-             <img src="/Images/logo.jpg" alt="SmokeFree Logo" className="w-8 h-8 rounded-full"/>
+             
+             <img src="/Images/logo.jpg" alt="SmokeFree Logo" className="w-14 h-14 rounded-full"/>
              <span className="text-xl font-semibold text-[#5FB8B3]">Coach Portal</span> {/* Updated text */}
           </Link>
         </div>
         <ul className="flex flex-col p-2 flex-grow">
-         
+         <li>
+         <Link to="/coach" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
+              isActive('/coach/consultation') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
+            }`}>
+              <HomeOutlined className="text-lg" />
+              <span className="text-base">Trang Chủ</span>
+            </Link>
+         </li>
           <li>
             <Link to="/coach/members" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
               isActive('/coach/members') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'

@@ -36,7 +36,7 @@ const CoachSearchBar = () => {
       <Input
         placeholder="Tìm kiếm khách hàng..."
         prefix={<SearchOutlined className="text-gray-400 text-[1.2rem]" />} // Adjust icon size
-        className="rounded-full h-[45px] text-[1.1rem]"
+        className="rounded-lg h-[45px] text-[1.1rem]"
         style={{ width: '100%' }} 
       />
     </div>

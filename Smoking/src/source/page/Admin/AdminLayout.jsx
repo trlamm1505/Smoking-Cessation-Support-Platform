@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 import { Menu, Modal, Button } from 'antd';
 import {
-    DashboardOutlined,
+    HomeOutlined,
     TeamOutlined,
     BookOutlined,
     DollarOutlined,
@@ -38,8 +38,8 @@ const AdminLayout = () => {
     const menuItems = [
         {
             key: 'dashboard',
-            icon: <DashboardOutlined />,
-            label: 'Tổng quan',
+            icon: <HomeOutlined/>,
+            label: 'Trang Chủ',
         },
         {
             key: 'community-manage',
