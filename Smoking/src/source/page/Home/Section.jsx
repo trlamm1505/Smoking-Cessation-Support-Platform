@@ -171,7 +171,7 @@ const Section = () => {
                     <p className="text-base leading-relaxed">{card.description}</p>
                   </div>
                   <div className="mt-6 relative">
-                    <a href="/service-details" className="inline-block h-[30px] w-[30px] relative">
+                    <a href="/login-required" className="inline-block h-[30px] w-[30px] relative">
                       <img
                         src="/Images/arrow-right-black.svg"
                         alt="arrow-black"
