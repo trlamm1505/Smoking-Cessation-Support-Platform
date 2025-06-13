@@ -51,9 +51,8 @@ const CoachLayout = () => {
         <div className="p-4 border-b border-gray-200">
           {/* Logo area - Make clickable */}
           <Link to="/coach" className="flex items-center space-x-2">
-             
              <img src="/Images/logo.jpg" alt="SmokeFree Logo" className="w-14 h-14 rounded-full"/>
-             <span className="text-xl font-semibold text-[#5FB8B3]">Coach Portal</span> {/* Updated text */}
+             <span className="text-xl font-semibold text-[#5FB8B3]">Coach Portal</span>
           </Link>
         </div>
         <ul className="flex flex-col p-2 flex-grow">
