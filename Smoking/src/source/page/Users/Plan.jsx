@@ -286,88 +286,6 @@ const Plan = () => {
                             startDate: dayjs()
                         }}
                     >
-                        {/* Lịch sử hút thuốc */}
-                        <div className="section-header">
-                            <FileTextOutlined />
-                            Lịch Sử Hút Thuốc
-                        </div>
-
-                        <Row gutter={16}>
-                            <Col span={8}>
-                                <Form.Item
-                                    name="smokingYears"
-                                    label="Số năm hút thuốc"
-                                    rules={[{ required: true, message: 'Vui lòng nhập số năm hút thuốc!' }]}
-                                    className="form-item-with-icon"
-                                >
-                                    <InputNumber
-                                        min={0}
-                                        max={100}
-                                        placeholder="Ví dụ: 5"
-                                        style={{ width: '100%' }}
-                                        suffix="năm"
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={8}>
-                                <Form.Item
-                                    name="cigarettesPerDay"
-                                    label="Số điếu mỗi ngày"
-                                    rules={[{ required: true, message: 'Vui lòng nhập số điếu mỗi ngày!' }]}
-                                >
-                                    <InputNumber
-                                        min={1}
-                                        max={100}
-                                        placeholder="Ví dụ: 20"
-                                        style={{ width: '100%' }}
-                                        suffix="điếu"
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={8}>
-                                <Form.Item
-                                    name="cigaretteCost"
-                                    label="Chi phí thuốc (VNĐ/ngày)"
-                                    rules={[{ required: true, message: 'Vui lòng nhập chi phí thuốc mỗi ngày!' }]}
-                                >
-                                    <InputNumber
-                                        min={0}
-                                        max={1000000}
-                                        placeholder="Ví dụ: 30000"
-                                        style={{ width: '100%' }}
-                                        formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                        parser={value => value.replace(/\D/g, '')}
-                                        addonAfter="VNĐ"
-                                    />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item
-                                    name="healthIssues"
-                                    label="Vấn đề sức khỏe liên quan (nếu có)"
-                                >
-                                    <TextArea
-                                        rows={3}
-                                        placeholder="Ví dụ: Ho khan, khó thở, đau ngực..."
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item
-                                    name="specialHabits"
-                                    label="Thói quen đặc biệt"
-                                >
-                                    <TextArea
-                                        rows={3}
-                                        placeholder="Ví dụ: Hút sau bữa ăn, khi uống cà phê, lúc stress..."
-                                    />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-
                         {/* Kế hoạch cai thuốc */}
                         <div className="section-header">
                             <CalendarOutlined />
@@ -404,20 +322,20 @@ const Plan = () => {
                                         </Col>
                                         <Col span={12}>
                                             <Form.Item
-                                                name="endDate"
+                                                name="endDays"
                                                 label={
                                                     <span style={{ color: '#000000' }}>
                                                         <span style={{ color: '#ff4d4f', marginRight: '4px' }}>*</span>
-                                                        Ngày kết thúc
+                                                        Thời gian kết thúc
                                                     </span>
                                                 }
-                                                rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc!' }]}
+                                                rules={[{ required: true, message: 'Vui lòng chọn thời gian kết thúc!' }]}
                                             >
-                                                <DatePicker
-                                                    style={{ width: '100%' }}
-                                                    format="DD/MM/YYYY"
-                                                    placeholder="Chọn ngày kết thúc"
-                                                />
+                                                <Select placeholder="Chọn thời gian kết thúc">
+                                                    <Option value={10}>10 ngày</Option>
+                                                    <Option value={20}>20 ngày</Option>
+                                                    <Option value={30}>30 ngày</Option>
+                                                </Select>
                                             </Form.Item>
                                         </Col>
                                     </Row>
@@ -514,38 +432,6 @@ const Plan = () => {
                     }}
                     delay="0.5s"
                 >
-                    {/* Lịch sử hút thuốc */}
-                    <div style={{ marginBottom: '24px' }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            color: '#5FB8B3',
-                            fontSize: '16px',
-                            fontWeight: '500',
-                            marginBottom: '16px'
-                        }}>
-                            <FileTextOutlined />
-                            <span>Lịch Sử Hút Thuốc</span>
-                        </div>
-                        <div style={{
-                            background: '#f8fdfc',
-                            padding: '16px',
-                            borderRadius: '8px',
-                            color: '#444'
-                        }}>
-                            <p>• Thời gian hút: {planData.smokingYears} năm</p>
-                            <p>• Số lượng: {planData.cigarettesPerDay} điếu/ngày</p>
-                            <p>• Chi phí thuốc: {planData.cigaretteCost ? planData.cigaretteCost.toLocaleString() + ' VNĐ/ngày' : ''}</p>
-                            {planData.healthIssues && (
-                                <p>• Vấn đề sức khỏe: {planData.healthIssues}</p>
-                            )}
-                            {planData.specialHabits && (
-                                <p>• Thói quen đặc biệt: {planData.specialHabits}</p>
-                            )}
-                        </div>
-                    </div>
-
                     {/* Kế hoạch cai thuốc */}
                     <div style={{ marginBottom: '24px' }}>
                         <div style={{

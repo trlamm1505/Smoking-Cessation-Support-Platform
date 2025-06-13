@@ -515,39 +515,43 @@ const Premium = () => {
 
     const plans = [
         {
-            title: 'Cơ Bản',
+            title: 'Gói 1 tháng',
             price: '100,000',
             duration: '1 tháng',
             features: [
                 'Truy cập tất cả tính năng cơ bản',
-                'Hỗ trợ qua email',
                 'Tham gia cộng đồng',
-                'Các tài liệu hướng dẫn'
+                'Các tài liệu hướng dẫn',
+                'Huy hiệu thành viên đặc biệt',
+                'Báo cáo chi tiết',
+                'Đặt lịch tư vấn'
             ]
         },
         {
-            title: 'Nâng Cao',
+            title: 'Gói 3 tháng',
             price: '550,000',
             duration: '3 tháng',
             featured: true,
             features: [
-                'Tất cả tính năng của gói Cơ Bản',
-                'Hỗ trợ ưu tiên',
-                'Tính năng nâng cao',
+                'Truy cập tất cả tính năng cơ bản',
+                'Tham gia cộng đồng',
+                'Các tài liệu hướng dẫn',
+                'Huy hiệu thành viên đặc biệt',
                 'Báo cáo chi tiết',
-                'Huy hiệu thành viên đặc biệt'
+                'Đặt lịch tư vấn'
             ]
         },
         {
-            title: 'Chuyên Nghiệp',
+            title: 'Gói 6 tháng',
             price: '1000,000',
             duration: '6 tháng',
             features: [
-                'Tất cả tính năng của gói Nâng Cao',
-                'Hỗ trợ 24/7',
-                'Tính năng độc quyền',
-                'Tài liệu premium',
-                'Chứng nhận thành viên VIP'
+                'Truy cập tất cả tính năng cơ bản',
+                'Tham gia cộng đồng',
+                'Các tài liệu hướng dẫn',
+                'Huy hiệu thành viên đặc biệt',
+                'Báo cáo chi tiết',
+                'Đặt lịch tư vấn'
             ]
         }
     ];
@@ -666,7 +670,7 @@ const Premium = () => {
 
     // Mock data for current subscription - this should come from your backend
     const currentSubscription = {
-        plan: 'Nâng Cao',
+        plan: 'Gói 3 tháng',
         startDate: '2024-03-01',
         endDate: '2024-06-01',
         renewalDate: getRenewalDate('2024-06-01'),
@@ -713,9 +717,7 @@ const Premium = () => {
                     <CrownOutlined className="icon" />
                     Gói Thành Viên Premium
                 </Title>
-                <p className="subtitle">
-                    Nâng cấp tài khoản của bạn để trải nghiệm những tính năng độc quyền và nhận được nhiều ưu đãi đặc biệt.
-                </p>
+                
             </PageHeader>
 
             <AnimatedSubscriptionStatusCard isNearExpiry={getDaysRemaining(currentSubscription.renewalDate) <= 7}>
@@ -804,7 +806,6 @@ const Premium = () => {
                         >
                             <div className="price">
                                 {plan.price}đ
-                                <span className="duration">/{plan.duration}</span>
                             </div>
                             <ul className="feature-list">
                                 {plan.features.map((feature, idx) => (
@@ -930,7 +931,6 @@ const Premium = () => {
                             >
                                 <div className="price">
                                     {plan.price}đ
-                                    <span className="duration">/{plan.duration}</span>
                                 </div>
                                 <ul className="feature-list">
                                     {plan.features.map((feature, idx) => (
