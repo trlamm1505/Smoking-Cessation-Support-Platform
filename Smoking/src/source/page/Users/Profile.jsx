@@ -240,8 +240,8 @@ const InfoItem = styled.div`
 
   .label {
     color: #666;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
   }
@@ -249,7 +249,7 @@ const InfoItem = styled.div`
   .value {
     color: #2c3e50;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.4;
   }
 `;
@@ -883,6 +883,24 @@ const Profile = () => {
       label: 'Ngày tham gia',
       value: '01/01/2024',
       key: 'joinDate'
+    },
+    {
+      icon: <HeartOutlined />,
+      label: 'Số năm hút thuốc',
+      value: '',
+      key: 'smokingYears'
+    },
+    {
+      icon: <HeartOutlined />,
+      label: 'Số điếu mỗi ngày',
+      value: '',
+      key: 'cigarettesPerDay'
+    },
+    {
+      icon: <HeartOutlined />,
+      label: 'Vấn đề sức khỏe liên quan (nếu có)',
+      value: '',
+      key: 'healthIssues'
     }
   ]);
 
@@ -1011,7 +1029,7 @@ const Profile = () => {
         <Card>
           <SectionTitle>Thông tin cá nhân</SectionTitle>
           <InfoList>
-            {personalInfo.map((info, index) => (
+            {personalInfo.filter(info => info.key !== 'joinDate').map((info, index) => (
               <InfoItem key={index}>
                 <div className="icon">{info.icon}</div>
                 <div className="content">
@@ -1068,6 +1086,30 @@ const Profile = () => {
                         value={info.value}
                         onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
                         placeholder="Nhập tuổi"
+                      />
+                    ) : info.key === 'smokingYears' ? (
+                      <EditableInput
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={info.value}
+                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
+                        placeholder="Nhập số năm hút thuốc"
+                      />
+                    ) : info.key === 'cigarettesPerDay' ? (
+                      <EditableInput
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={info.value}
+                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
+                        placeholder="Nhập số điếu mỗi ngày"
+                      />
+                    ) : info.key === 'healthIssues' ? (
+                      <EditableInput
+                        value={info.value}
+                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
+                        placeholder="Nhập vấn đề sức khỏe (nếu có)"
                       />
                     ) : (
                       <EditableInput

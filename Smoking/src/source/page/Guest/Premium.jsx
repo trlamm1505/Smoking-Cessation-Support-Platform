@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider } from 'antd';
 import { CheckOutlined, CrownOutlined, DollarOutlined, SafetyCertificateOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
 
 const { Step } = Steps;
 const { Title } = Typography;
@@ -494,20 +493,19 @@ const slideUp = keyframes`
   }
 `;
 
-const AnimatedSubscriptionStatusCard = styled(({ isNearExpiry, ...rest }) => <SubscriptionStatusCard {...rest} />)`
+const AnimatedSubscriptionStatusCard = styled(SubscriptionStatusCard)`
   animation: ${slideUp} 0.5s ease-out forwards;
   animation-delay: 0.1s;
   opacity: 0;
 `;
 
-const AnimatedPremiumCard = styled(({ featured, ...rest }) => <PremiumCard {...rest} />)`
+const AnimatedPremiumCard = styled(PremiumCard)`
   animation: ${slideUp} 0.5s ease-out forwards;
   animation-delay: ${props => props.delay || '0s'};
   opacity: 0;
 `;
 
 const Premium = () => {
-    const navigate = useNavigate();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [selectedPlan, setSelectedPlan] = useState(null);
@@ -517,39 +515,43 @@ const Premium = () => {
 
     const plans = [
         {
-            title: 'Cơ Bản',
+            title: 'Gói 1 tháng',
             price: '100,000',
             duration: '1 tháng',
             features: [
                 'Truy cập tất cả tính năng cơ bản',
-                'Hỗ trợ qua email',
                 'Tham gia cộng đồng',
-                'Các tài liệu hướng dẫn'
+                'Các tài liệu hướng dẫn',
+                'Huy hiệu thành viên đặc biệt',
+                'Báo cáo chi tiết',
+                'Đặt lịch tư vấn'
             ]
         },
         {
-            title: 'Nâng Cao',
+            title: 'Gói 3 tháng',
             price: '550,000',
             duration: '3 tháng',
             featured: true,
             features: [
-                'Tất cả tính năng của gói Cơ Bản',
-                'Hỗ trợ ưu tiên',
-                'Tính năng nâng cao',
+                'Truy cập tất cả tính năng cơ bản',
+                'Tham gia cộng đồng',
+                'Các tài liệu hướng dẫn',
+                'Huy hiệu thành viên đặc biệt',
                 'Báo cáo chi tiết',
-                'Huy hiệu thành viên đặc biệt'
+                'Đặt lịch tư vấn'
             ]
         },
         {
-            title: 'Chuyên Nghiệp',
+            title: 'Gói 6 tháng',
             price: '1000,000',
             duration: '6 tháng',
             features: [
-                'Tất cả tính năng của gói Nâng Cao',
-                'Hỗ trợ 24/7',
-                'Tính năng độc quyền',
-                'Tài liệu premium',
-                'Chứng nhận thành viên VIP'
+                'Truy cập tất cả tính năng cơ bản',
+                'Tham gia cộng đồng',
+                'Các tài liệu hướng dẫn',
+                'Huy hiệu thành viên đặc biệt',
+                'Báo cáo chi tiết',
+                'Đặt lịch tư vấn'
             ]
         }
     ];
@@ -577,10 +579,10 @@ const Premium = () => {
     };
 
     const handlePayment = () => {
+        message.success('Đăng ký thành công! Cảm ơn bạn đã tin tưởng SmokeFree');
         setIsModalVisible(false);
         setCurrentStep(0);
         form.resetFields();
-        navigate('/users');
     };
 
     const handleRenew = () => {
@@ -668,7 +670,7 @@ const Premium = () => {
 
     // Mock data for current subscription - this should come from your backend
     const currentSubscription = {
-        plan: 'Nâng Cao',
+        plan: 'Gói 3 tháng',
         startDate: '2024-03-01',
         endDate: '2024-06-01',
         renewalDate: getRenewalDate('2024-06-01'),
@@ -715,10 +717,11 @@ const Premium = () => {
                     <CrownOutlined className="icon" />
                     Gói Thành Viên Premium
                 </Title>
-               
+                <p className="subtitle">
+                    Nâng cấp tài khoản của bạn để trải nghiệm những tính năng độc quyền và nhận được nhiều ưu đãi đặc biệt.
+                </p>
             </PageHeader>
 
-            
             <Row gutter={[24, 24]}>
                 {plans.map((plan, index) => (
                     <Col xs={24} md={8} key={index}>
@@ -730,7 +733,6 @@ const Premium = () => {
                         >
                             <div className="price">
                                 {plan.price}đ
-                                <span className="duration">/{plan.duration}</span>
                             </div>
                             <ul className="feature-list">
                                 {plan.features.map((feature, idx) => (
@@ -761,7 +763,7 @@ const Premium = () => {
                         <h2 style={{ margin: 0, color: '#2c3e50' }}>Đăng ký gói thành viên</h2>
                     </div>
                 }
-                open={isModalVisible}
+                visible={isModalVisible}
                 onCancel={() => {
                     setIsModalVisible(false);
                     setCurrentStep(0);
@@ -825,7 +827,7 @@ const Premium = () => {
 
             <Modal
                 title="Thay đổi gói thành viên"
-                open={isChangeModalVisible}
+                visible={isChangeModalVisible}
                 onCancel={() => setIsChangeModalVisible(false)}
                 footer={null}
                 width={900}
@@ -856,7 +858,6 @@ const Premium = () => {
                             >
                                 <div className="price">
                                     {plan.price}đ
-                                    <span className="duration">/{plan.duration}</span>
                                 </div>
                                 <ul className="feature-list">
                                     {plan.features.map((feature, idx) => (

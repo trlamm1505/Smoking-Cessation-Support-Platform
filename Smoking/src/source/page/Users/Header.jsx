@@ -101,11 +101,6 @@ const Header = () => {
         <span>SmokeFree</span>
       </Logo>
 
-      <SearchBar
-        placeholder="Tìm kiếm..."
-        prefix={<SearchOutlined style={{ color: '#5FB8B3' }} />}
-      />
-
       <NavIcons>
         <button
           style={{
