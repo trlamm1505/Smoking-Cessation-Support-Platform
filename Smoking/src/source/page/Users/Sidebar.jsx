@@ -1,6 +1,6 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { HomeOutlined, LineChartOutlined, CalendarOutlined, TrophyOutlined, TeamOutlined, MessageOutlined, FileTextOutlined, CrownOutlined, SmileOutlined, ScheduleOutlined, StarOutlined, LogoutOutlined } from '@ant-design/icons'
+import { HomeOutlined, LineChartOutlined, CalendarOutlined, TrophyOutlined, TeamOutlined, MessageOutlined, FileTextOutlined, CrownOutlined, SmileOutlined, ScheduleOutlined, StarOutlined, LogoutOutlined, ReadOutlined } from '@ant-design/icons'
 import styled from 'styled-components'
 
 const SidebarContainer = styled.div`
@@ -119,6 +119,11 @@ const Sidebar = () => {
             path: '/users/consultation',
             name: 'Tư Vấn',
             icon: <MessageOutlined />
+        },
+        {
+            path: '/users/blog',
+            name: 'Blog',
+            icon: <ReadOutlined />
         },
         {
             path: '/users/reviews',

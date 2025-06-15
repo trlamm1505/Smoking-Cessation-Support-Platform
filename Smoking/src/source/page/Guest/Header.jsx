@@ -1,6 +1,6 @@
 import React from 'react';
-import { Input, Badge } from 'antd';
-import { SearchOutlined, BellOutlined, UserOutlined } from '@ant-design/icons';
+import { Badge } from 'antd';
+import { BellOutlined, UserOutlined } from '@ant-design/icons';
 import { Link } from 'react-router';
 import styled from 'styled-components';
 
@@ -37,38 +37,6 @@ const Logo = styled(Link)`
   }
 `;
 
-const SearchBar = styled(Input)`
-  max-width: 700px;
-  width: 100%;
-  border-radius: 25px;
-  height: 45px;
-  font-size: 1.1rem;
-  
-  .ant-input {
-    border-radius: 25px;
-    height: 45px;
-    font-size: 1.1rem;
-    padding-left: 20px;
-    line-height: 45px;
-    display: flex;
-    align-items: center;
-  }
-
-  .ant-input-prefix {
-    margin-right: 10px;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-  }
-
-  .ant-input-affix-wrapper {
-    padding: 0 15px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-  }
-`;
-
 const NavIcons = styled.div`
   display: flex;
   align-items: center;
@@ -97,11 +65,6 @@ const Header = () => {
         <img src="/Images/logo.jpg" alt="SmokeFree" />
         <span>SmokeFree</span>
       </Logo>
-
-      <SearchBar
-        placeholder="Tìm kiếm..."
-        prefix={<SearchOutlined style={{ color: '#5FB8B3' }} />}
-      />
 
       <NavIcons>
         <Link to="/guest/premium-notice">
