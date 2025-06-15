@@ -57,6 +57,11 @@ const AdminLayout = () => {
             label: 'Cộng đồng',
         },
         {
+            key: 'blog',
+            icon: <ReadOutlined />,
+            label: 'Quản lý Blog',
+        },
+        {
             key: 'reports',
             icon: <MessageOutlined />,
             label: 'Quản lý Báo cáo & Phản hồi',

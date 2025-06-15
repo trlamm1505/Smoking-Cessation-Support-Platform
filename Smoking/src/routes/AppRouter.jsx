@@ -31,15 +31,15 @@ import BlogManagementAdmin from '../source/page/Admin/BlogManagement'
 import RevenueStatistics from '../source/page/Admin/RevenueStatistics'
 import AdminBlog from '../source/page/Admin/AdminBlog'
 import AdminReports from '../source/page/Admin/AdminReports'
+import GuestHome from '../source/page/Guest/Home'
+import GuestBlog from '../source/page/Guest/Blog'
+import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
 
 // Guest Components
-import GuestHome from '../source/page/Guest/Home'
 import GuestProfile from '../source/page/Guest/Profile'
 import GuestConsultation from '../source/page/Guest/Consultation'
-import GuestBlog from '../source/page/Guest/Blog'
 import GuestPremium from '../source/page/Guest/Premium'
 import GuestLayout from '../source/page/Guest/Layout'
-import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
 import LoginRequired from '../source/page/Home/LoginRequired'
 
 export default function AppRouter() {
@@ -55,7 +55,7 @@ export default function AppRouter() {
         <Route index element={<Navigate to="/guest/home" replace />} />
         <Route path='home' element={<GuestHome />} />
         <Route path='profile' element={<GuestProfile />} />
-        <Route path='consultation' element={<GuestConsultation />} />
+        <Route path='consultation' element={<RequirePremiumNotice />} />
         <Route path='blog' element={<GuestBlog />} />
         <Route path='premium' element={<GuestPremium />} />
         <Route path='premium-notice' element={<RequirePremiumNotice />} />
@@ -83,6 +83,7 @@ export default function AppRouter() {
         <Route path='consultation' element={<Consultation />} />
         <Route path='community' element={<Community />} />
         <Route path='reviews' element={<UserReviews />} />
+        <Route path='blog' element={<GuestBlog />} />
       </Route>
 
       {/* Coach Routes */}
@@ -95,6 +96,7 @@ export default function AppRouter() {
         <Route path='statistics' element={<Statistics />} />
         <Route path='community' element={<Community />} />
         <Route path='report' element={<ReportPage />} />
+        <Route path='blog' element={<GuestBlog />} />
       </Route>
 
       {/* Admin Routes */}
@@ -105,7 +107,6 @@ export default function AppRouter() {
         <Route path='blog-manage' element={<BlogManagementAdmin />} />
         <Route path='revenue' element={<RevenueStatistics />} />
         <Route path='blog' element={<AdminBlog />} />
-        <Route path='community' element={<Community />} />
         <Route path='reports' element={<AdminReports />} />
       </Route>
 

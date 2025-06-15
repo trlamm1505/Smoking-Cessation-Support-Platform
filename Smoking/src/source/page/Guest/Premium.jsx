@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider } from 'antd';
+import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider, Spin } from 'antd';
 import { CheckOutlined, CrownOutlined, DollarOutlined, SafetyCertificateOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const { Step } = Steps;
 const { Title } = Typography;
@@ -505,6 +506,30 @@ const AnimatedPremiumCard = styled(PremiumCard)`
   opacity: 0;
 `;
 
+const LoaderContainer = styled(Modal)`
+  .ant-modal-content {
+    background: none; /* Remove modal background */
+    box-shadow: none; /* Remove modal shadow */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+`;
+
+const Loader = styled.div`
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #5FB8B3; /* Blue - changed to brand color */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
 const Premium = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
@@ -512,6 +537,9 @@ const Premium = () => {
     const [form] = Form.useForm();
     const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const navigate = useNavigate();
 
     const plans = [
         {
@@ -579,10 +607,15 @@ const Premium = () => {
     };
 
     const handlePayment = () => {
+        setIsLoading(true);
         message.success('Đăng ký thành công! Cảm ơn bạn đã tin tưởng SmokeFree');
-        setIsModalVisible(false);
-        setCurrentStep(0);
-        form.resetFields();
+        setTimeout(() => {
+            setIsModalVisible(false);
+            setCurrentStep(0);
+            form.resetFields();
+            setIsLoading(false);
+            navigate('/users/home');
+        }, 2000);
     };
 
     const handleRenew = () => {
@@ -889,6 +922,19 @@ const Premium = () => {
                     ))}
                 </Row>
             </Modal>
+
+            {/* Loader Modal */}
+            <LoaderContainer
+                open={isLoading}
+                footer={null}
+                closable={false}
+                centered
+                maskClosable={false}
+                width={150}
+                bodyStyle={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '150px' }}
+            >
+                <Loader />
+            </LoaderContainer>
         </PageContainer>
     );
 };
