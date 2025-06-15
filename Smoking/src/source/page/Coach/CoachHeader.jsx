@@ -24,7 +24,7 @@ const CoachHeader = ({ className }) => {
           aria-label="Thông báo"
         >
           <Badge count={2} style={{ backgroundColor: '#5FB8B3' }}>
-            <BellOutlined style={{ color: notiOpen ? '#5FB8B3' : '#666' }} className="text-2xl" />
+            <BellOutlined style={{ color: notiOpen ? '#5FB8B3' : '#666' }} cl assName="text-2xl" />
           </Badge>
         </button>
         <CoachNavIcons />
