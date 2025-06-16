@@ -11,14 +11,14 @@ CREATE TABLE Users (
     RegistrationDate DATETIME NOT NULL DEFAULT GETDATE(),
     LastLoginDate DATETIME,
     ProfilePictureURL NVARCHAR(255),
-    CurrentCustomerPackageID INT,             -- ??i tên tr??ng
+    CurrentCustomerPackageID INT,
     SubscriptionEndDate DATE,
     CoachID INT,
-    Role NVARCHAR(255) NOT NULL DEFAULT 'customer',   -- ??i default role thành 'customer'
+    Role NVARCHAR(255) NOT NULL DEFAULT 'customer',
     Enabled BIT NOT NULL DEFAULT 0
 );
 
--- CustomerPackages (gói thành viên => gói khách hàng)
+-- CustomerPackages
 CREATE TABLE CustomerPackages (
     PackageID INT PRIMARY KEY IDENTITY(1,1),
     PackageName NVARCHAR(255) UNIQUE NOT NULL,
@@ -76,13 +76,12 @@ CREATE TABLE PlanStages (
     SequenceOrder INT NOT NULL DEFAULT 0
 );
 
--- DailyProgress
+-- DailyProgress (B? SmokedToday)
 CREATE TABLE DailyProgress (
     ProgressID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
     PlanID INT,
     LogDate DATE NOT NULL,
-    SmokedToday BIT,
     CigarettesSmoked INT,
     CravingsLevel INT,
     Mood NVARCHAR(255),
@@ -108,14 +107,13 @@ CREATE TABLE UserBadges (
     DateAwarded DATETIME NOT NULL DEFAULT GETDATE()
 );
 
--- Notifications
+-- Notifications (B? IsRead)
 CREATE TABLE Notifications (
     NotificationID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
     MessageType NVARCHAR(255) NOT NULL,
     MessageContent NVARCHAR(MAX) NOT NULL,
     CreatedDate DATETIME NOT NULL DEFAULT GETDATE(),
-    IsRead BIT NOT NULL DEFAULT 0,
     ScheduledSendTime DATETIME,
     RelatedEntityID INT,
     RelatedEntityType NVARCHAR(255)
@@ -155,34 +153,29 @@ CREATE TABLE Feedback (
     SubmissionDate DATETIME NOT NULL DEFAULT GETDATE()
 );
 
--- BlogPosts
+-- BlogPosts (B? Slug, Excerpt, Tags)
 CREATE TABLE BlogPosts (
     PostID INT PRIMARY KEY IDENTITY(1,1),
     AuthorUserID INT NOT NULL,
     Title NVARCHAR(255) NOT NULL,
-    Slug NVARCHAR(255) UNIQUE NOT NULL,
     Content NVARCHAR(MAX) NOT NULL,
-    Excerpt NVARCHAR(MAX),
     PublishDate DATETIME NOT NULL DEFAULT GETDATE(),
     LastModifiedDate DATETIME,
     Category NVARCHAR(255),
-    Tags NVARCHAR(255),
     Views INT NOT NULL DEFAULT 0,
     Status NVARCHAR(255) NOT NULL DEFAULT 'draft',
     FeaturedImageURL NVARCHAR(255)
 );
 
--- PostComments
+-- PostComments (B? CommentDate, Downvotes)
 CREATE TABLE PostComments (
     CommentID INT PRIMARY KEY IDENTITY(1,1),
     PostID INT NOT NULL,
     UserID INT NOT NULL,
     ParentCommentID INT,
     Content NVARCHAR(MAX) NOT NULL,
-    CommentDate DATETIME NOT NULL DEFAULT GETDATE(),
     IsApproved BIT NOT NULL DEFAULT 1,
-    Upvotes INT NOT NULL DEFAULT 0,
-    Downvotes INT NOT NULL DEFAULT 0
+    Upvotes INT NOT NULL DEFAULT 0
 );
 
 -- Indexes
@@ -195,11 +188,10 @@ CREATE UNIQUE INDEX UQ_DailyProgress_UserID_LogDate ON DailyProgress (UserID, Lo
 CREATE UNIQUE INDEX UQ_UserBadges_UserID_BadgeID ON UserBadges (UserID, BadgeID);
 CREATE INDEX IX_Feedback_TargetType_TargetID ON Feedback (TargetType, TargetID);
 CREATE UNIQUE INDEX UQ_Feedback_UserID_TargetType_TargetID ON Feedback (UserID, TargetType, TargetID);
-CREATE INDEX IX_BlogPosts_Slug ON BlogPosts (Slug);
 CREATE INDEX IX_BlogPosts_AuthorUserID ON BlogPosts (AuthorUserID);
 CREATE INDEX IX_BlogPosts_Category ON BlogPosts (Category);
 CREATE INDEX IX_BlogPosts_Status ON BlogPosts (Status);
-CREATE INDEX IX_PostComments_PostID_CommentDate ON PostComments (PostID, CommentDate);
+CREATE INDEX IX_PostComments_PostID ON PostComments (PostID);
 CREATE INDEX IX_PostComments_UserID ON PostComments (UserID);
 CREATE INDEX IX_PostComments_ParentCommentID ON PostComments (ParentCommentID);
 
