@@ -1,0 +1,54 @@
+membership-package-controller
+----------------------------
+GET     /membership-packages/{id}
+PUT     /membership-packages/{id}
+DELETE  /membership-packages/{id}
+GET     /membership-packages
+POST    /membership-packages
+
+user-controller
+---------------
+PUT     /api/users/{id}
+DELETE  /api/users/{id}
+POST    /api/users/topUpWallet/{id}
+POST    /api/users/booking
+GET     /api/users/profile
+
+admin-controller
+----------------
+GET     /api/admin/users/{id}
+PUT     /api/admin/users/{id}
+DELETE  /api/admin/users/{id}
+GET     /api/admin/membership-packages/{id}
+PUT     /api/admin/membership-packages/{id}
+DELETE  /api/admin/membership-packages/{id}
+GET     /api/admin/blog-posts/{id}
+PUT     /api/admin/blog-posts/{id}
+DELETE  /api/admin/blog-posts/{id}
+GET     /api/admin/badges/{id}
+PUT     /api/admin/badges/{id}
+DELETE  /api/admin/badges/{id}
+GET     /api/admin/users
+POST    /api/admin/users
+GET     /api/admin/membership-packages
+POST    /api/admin/membership-packages
+GET     /api/admin/blog-posts
+POST    /api/admin/blog-posts
+POST    /api/admin/badges
+GET     /api/admin/payments
+
+auth-controller
+---------------
+POST    /api/auth/verify-otp
+POST    /api/auth/reset-password
+POST    /api/auth/register
+POST    /api/auth/login
+POST    /api/auth/forgot-password
+GET     /api/auth/profile
+
+coach-controller
+----------------
+GET     /api/coach/users
+GET     /api/coach/profile
+GET     /api/coach/daily-progress
+GET     /api/coach/consultations
