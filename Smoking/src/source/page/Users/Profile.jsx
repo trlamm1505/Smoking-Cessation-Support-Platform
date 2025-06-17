@@ -879,28 +879,16 @@ const Profile = () => {
       key: 'hometown'
     },
     {
+      icon: <UserOutlined />,
+      label: 'Sở thích',
+      value: '',
+      key: 'hobby'
+    },
+    {
       icon: <CalendarOutlined />,
       label: 'Ngày tham gia',
       value: '01/01/2024',
       key: 'joinDate'
-    },
-    {
-      icon: <HeartOutlined />,
-      label: 'Số năm hút thuốc',
-      value: '',
-      key: 'smokingYears'
-    },
-    {
-      icon: <HeartOutlined />,
-      label: 'Số điếu mỗi ngày',
-      value: '',
-      key: 'cigarettesPerDay'
-    },
-    {
-      icon: <HeartOutlined />,
-      label: 'Vấn đề sức khỏe liên quan (nếu có)',
-      value: '',
-      key: 'healthIssues'
     }
   ]);
 
@@ -1086,30 +1074,6 @@ const Profile = () => {
                         value={info.value}
                         onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
                         placeholder="Nhập tuổi"
-                      />
-                    ) : info.key === 'smokingYears' ? (
-                      <EditableInput
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={info.value}
-                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
-                        placeholder="Nhập số năm hút thuốc"
-                      />
-                    ) : info.key === 'cigarettesPerDay' ? (
-                      <EditableInput
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={info.value}
-                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
-                        placeholder="Nhập số điếu mỗi ngày"
-                      />
-                    ) : info.key === 'healthIssues' ? (
-                      <EditableInput
-                        value={info.value}
-                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
-                        placeholder="Nhập vấn đề sức khỏe (nếu có)"
                       />
                     ) : (
                       <EditableInput
