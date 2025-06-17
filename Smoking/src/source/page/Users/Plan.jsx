@@ -256,7 +256,7 @@ const Plan = () => {
         { value: 'fitness', label: 'Tăng cường thể lực' },
         { value: 'social', label: 'Áp lực xã hội' },
         { value: 'pregnancy', label: 'Mang thai/cho con bú' },
-        { value: 'smell', label: 'Loại bỏ mùi thuốc' }
+        { value: 'smell', label: 'Khác' }
     ];
 
     const onFinish = (values) => {
@@ -281,11 +281,57 @@ const Plan = () => {
                         onFinish={onFinish}
                         layout="vertical"
                         initialValues={{
+                            yearsSmoking: 1,
+                            cigarettesPerDay: 10,
+                            moneyPerDay: 20000,
                             goalType: 'temporary',
                             goalDays: 2,
                             startDate: dayjs()
                         }}
                     >
+                        {/* Lịch Sử Hút Thuốc */}
+                        <div className="section-header">
+                            <FileTextOutlined />
+                            Lịch Sử Hút Thuốc
+                        </div>
+                        <div style={{
+                            padding: '24px',
+                            background: '#e8f4f3',
+                            borderRadius: '8px',
+                            border: '1px solid #BEE3E2',
+                            marginBottom: '24px'
+                        }}>
+                            <Row gutter={[24, 24]}>
+                                <Col span={8}>
+                                    <Form.Item
+                                        name="yearsSmoking"
+                                        label={<span><span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>Số năm hút thuốc</span>}
+                                        rules={[{ required: true, message: 'Vui lòng nhập số năm hút thuốc!' }]}
+                                    >
+                                        <InputNumber min={0} style={{ width: '100%' }} placeholder="Ví dụ: 5" addonAfter="năm" />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={8}>
+                                    <Form.Item
+                                        name="cigarettesPerDay"
+                                        label={<span><span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>Số điếu mỗi ngày</span>}
+                                        rules={[{ required: true, message: 'Vui lòng nhập số điếu mỗi ngày!' }]}
+                                    >
+                                        <InputNumber min={0} style={{ width: '100%' }} placeholder="Ví dụ: 20" addonAfter="điếu" />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={8}>
+                                    <Form.Item
+                                        name="moneyPerDay"
+                                        label={<span><span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>Số tiền mỗi ngày</span>}
+                                        rules={[{ required: true, message: 'Vui lòng nhập số tiền mỗi ngày!' }]}
+                                    >
+                                        <InputNumber min={0} style={{ width: '100%' }} placeholder="Ví dụ: 20000" addonAfter="VNĐ/ngày" />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+                        </div>
+
                         {/* Kế hoạch cai thuốc */}
                         <div className="section-header">
                             <CalendarOutlined />
@@ -367,16 +413,6 @@ const Plan = () => {
                             </Checkbox.Group>
                         </Form.Item>
 
-                        <Form.Item
-                            name="customReason"
-                            label="Lý do khác (tùy chọn)"
-                        >
-                            <TextArea
-                                rows={2}
-                                placeholder="Nhập lý do cá nhân khác..."
-                            />
-                        </Form.Item>
-
                         {/* Ghi chú thêm */}
                         <Divider />
 
@@ -432,6 +468,32 @@ const Plan = () => {
                     }}
                     delay="0.5s"
                 >
+                    {/* Lịch Sử Hút Thuốc */}
+                    <div style={{ marginBottom: '24px' }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            color: '#5FB8B3',
+                            fontSize: '16px',
+                            fontWeight: '500',
+                            marginBottom: '16px'
+                        }}>
+                            <FileTextOutlined />
+                            <span>Lịch Sử Hút Thuốc</span>
+                        </div>
+                        <div style={{
+                            background: '#f8fdfc',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            color: '#444'
+                        }}>
+                            <p>• Số năm hút thuốc: {planData.yearsSmoking} năm</p>
+                            <p>• Số điếu mỗi ngày: {planData.cigarettesPerDay} điếu</p>
+                            <p>• Số tiền mỗi ngày: {planData.moneyPerDay?.toLocaleString()} VNĐ</p>
+                        </div>
+                    </div>
+
                     {/* Kế hoạch cai thuốc */}
                     <div style={{ marginBottom: '24px' }}>
                         <div style={{
@@ -452,10 +514,9 @@ const Plan = () => {
                             borderRadius: '8px'
                         }}>
                             <div style={{
-                                background: 'rgba(95, 184, 179, 0.1)',
-                                padding: '12px 16px',
+                               
+                                padding: '0 16px',
                                 borderRadius: '8px',
-                                marginBottom: '16px',
                                 color: '#2c7a75'
                             }}>
                                 {/* Đã bỏ phần hiển thị mục tiêu số ngày không hút */}
