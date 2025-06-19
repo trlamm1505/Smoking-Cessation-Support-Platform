@@ -14,6 +14,7 @@
     "@tailwindcss/vite": "^4.1.7",
     "animate.css": "^4.1.1",
     "antd": "^5.25.2",
+    "axios": "^1.10.0",
     "flowbite": "^3.1.2",
     "framer-motion": "^12.16.0",
     "react": "^19.1.0",

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { CameraOutlined, TrophyOutlined, HeartOutlined, CrownOutlined, TeamOutlined, MailOutlined, PhoneOutlined, HomeOutlined, CalendarOutlined, UserOutlined, EnvironmentOutlined, EditOutlined, SaveOutlined, CloseOutlined, ManOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import userApi from '../Axios/userAxios';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -1148,15 +1149,6 @@ const Profile = () => {
             </ModalHeader>
             <FormSection>
               <FormField className="full-width">
-                <label>Tài khoản đăng nhập</label>
-                <EditableInput
-                  type="text"
-                  value={accountForm.username}
-                  onChange={e => setAccountForm({ ...accountForm, username: e.target.value })}
-                  placeholder="Nhập tài khoản đăng nhập"
-                />
-              </FormField>
-              <FormField className="full-width">
                 <label>Mật khẩu cũ</label>
                 <EditableInput
                   type="password"
@@ -1190,27 +1182,47 @@ const Profile = () => {
                 <CloseOutlined />
                 Hủy
               </ActionButton>
-              <ActionButton className="primary" onClick={() => {
+              <ActionButton className="primary" onClick={async () => {
+                console.log('Đã bấm nút Lưu thay đổi');
+                console.log('accountForm:', accountForm);
                 // Validate
-                if (!accountForm.username) {
-                  setAccountError('Vui lòng nhập tài khoản đăng nhập.');
-                  return;
-                }
                 if (!accountForm.oldPassword) {
                   setAccountError('Vui lòng nhập mật khẩu cũ.');
+                  console.log('Thiếu mật khẩu cũ');
                   return;
                 }
                 if (!accountForm.newPassword) {
                   setAccountError('Vui lòng nhập mật khẩu mới.');
+                  console.log('Thiếu mật khẩu mới');
                   return;
                 }
                 if (accountForm.newPassword !== accountForm.confirmPassword) {
                   setAccountError('Mật khẩu mới và xác nhận không khớp.');
+                  console.log('Mật khẩu mới và xác nhận không khớp');
                   return;
                 }
                 setAccountError('');
+                try {
+                  const userId = localStorage.getItem('userId');
+                  console.log('userId:', userId);
+                  const res = await userApi.changePassword({
+                    userId,
+                    currentPassword: accountForm.oldPassword,
+                    newPassword: accountForm.newPassword,
+                    confirmNewPassword: accountForm.confirmPassword
+                  });
+                  console.log('API response:', res.data);
+                  if (res.data && res.data.success) {
+                    alert('Đổi mật khẩu thành công!');
                 setShowAccountModal(false);
-                // Thực hiện lưu thông tin ở đây nếu cần
+                  } else {
+                    setAccountError(res.data.message || 'Đổi mật khẩu thất bại!');
+                    console.log('API báo lỗi:', res.data.message || 'Đổi mật khẩu thất bại!');
+                  }
+                } catch (err) {
+                  console.log('API error:', err?.response?.data || err.message || err);
+                  setAccountError(err?.response?.data?.message || 'Lỗi kết nối server!');
+                }
               }}>
                 <SaveOutlined />
                 Lưu thay đổi
