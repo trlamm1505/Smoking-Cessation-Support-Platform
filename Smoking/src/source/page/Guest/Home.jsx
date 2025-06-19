@@ -1,7 +1,8 @@
-import React from 'react';
-import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag, Spin } from 'antd';
 import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, HomeOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
+import userApi from '../Axios/userAxios';
 
 const { Title, Text } = Typography;
 
@@ -328,63 +329,58 @@ const LeaderboardCard = styled(StyledCard)`
 `;
 
 const Home = () => {
-    // Mock data - replace with real data from your backend
-    const userData = {
-        daysWithoutSmoking: 15,
-        cigarettesAvoided: 300,
-        moneySaved: 1500000,
-        healthImprovement: 35,
-        nextMilestone: 30,
-        leaderboard: [
-            {
-                name: 'Nguyễn Văn A',
-                daysWithoutSmoking: 45,
-                moneySaved: 4500000,
-                cigarettesAvoided: 900
-            },
-            {
-                name: 'Trần Thị B',
-                daysWithoutSmoking: 30,
-                moneySaved: 3000000,
-                cigarettesAvoided: 600
-            },
-            {
-                name: 'Lê Văn C',
-                daysWithoutSmoking: 25,
-                moneySaved: 2500000,
-                cigarettesAvoided: 500
-            },
-            {
-                name: 'Phạm Thị D',
-                daysWithoutSmoking: 20,
-                moneySaved: 2000000,
-                cigarettesAvoided: 400
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                // Nếu guest có userId (đăng nhập tạm thời), lấy từ localStorage, nếu không thì lấy API guest riêng
+                const userId = localStorage.getItem('userId');
+                let user = {};
+                if (userId) {
+                    const res = await userApi.get(userId);
+                    user = res.data;
+                } else {
+                    // Nếu có API guest riêng, gọi ở đây
+                    // const res = await guestApi.getGuestInfo();
+                    // user = res.data;
+                }
+                setUserData({
+                    name: user.fullName || user.name || user.username || 'Khách',
+                    daysWithoutSmoking: user.daysWithoutSmoking || 0,
+                    cigarettesAvoided: user.cigarettesAvoided || 0,
+                    moneySaved: user.moneySaved || 0,
+                    healthImprovement: user.healthImprovement || 0,
+                    nextMilestone: user.nextMilestone || 30,
+                    leaderboard: user.leaderboard || [],
+                    recentActivities: user.recentActivities || [],
+                });
+            } catch (err) {
+                setError('Lỗi khi tải dữ liệu.');
+            } finally {
+                setLoading(false);
             }
-        ],
-        recentActivities: [
-            {
-                date: '15/03/2024',
-                content: 'Hoàn thành buổi tư vấn với chuyên gia',
-                type: 'success'
-            },
-            {
-                date: '14/03/2024',
-                content: 'Vượt qua cơn thèm thuốc buổi sáng',
-                type: 'success'
-            },
-            {
-                date: '13/03/2024',
-                content: 'Cập nhật kế hoạch cai thuốc',
-                type: 'process'
-            }
-        ]
-    };
+        };
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh'}}><Spin size="large" /></div>;
+    }
+    if (error) {
+        return <div style={{textAlign: 'center', color: 'red', marginTop: 40}}>{error}</div>;
+    }
+    if (!userData) return null;
 
     return (
         <PageContainer>
             <WelcomeTitle level={2}>
                 <HomeOutlined className="home-icon" />
-                Xin chào, Nguyễn Văn A
+                Xin chào, {userData.name}
             </WelcomeTitle>
 
             <Row gutter={[24, 24]}>
@@ -438,7 +434,7 @@ const Home = () => {
                         <Col xs={24}>
                             <TimelineCard title="Hoạt Động Gần Đây">
                                 <Timeline>
-                                    {userData.recentActivities.map((activity, index) => (
+                                    {userData.recentActivities && userData.recentActivities.length > 0 ? userData.recentActivities.map((activity, index) => (
                                         <Timeline.Item
                                             key={index}
                                             color={activity.type === 'success' ? '#5FB8B3' : '#1890ff'}
@@ -447,7 +443,7 @@ const Home = () => {
                                             <br />
                                             {activity.content}
                                         </Timeline.Item>
-                                    ))}
+                                    )) : <Timeline.Item color="#ccc">Chưa có hoạt động nào gần đây.</Timeline.Item>}
                                 </Timeline>
                             </TimelineCard>
                         </Col>
@@ -461,7 +457,7 @@ const Home = () => {
                             <span>Bảng Xếp Hạng</span>
                         </div>
                     }>
-                        {userData.leaderboard.map((user, index) => (
+                        {userData.leaderboard && userData.leaderboard.length > 0 ? userData.leaderboard.map((user, index) => (
                             <div key={index} className="leaderboard-item">
                                 <div className={`rank rank-${index < 3 ? index + 1 : 'other'}`}>
                                     #{index + 1}
@@ -481,7 +477,7 @@ const Home = () => {
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                        )) : <div style={{textAlign: 'center', color: '#aaa', margin: 16}}>Chưa có dữ liệu bảng xếp hạng.</div>}
                         <Button type="primary" block>
                             Xem Bảng Xếp Hạng Đầy Đủ
                         </Button>

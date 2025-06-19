@@ -610,9 +610,9 @@ const Premium = () => {
         setIsLoading(true);
         message.success('Đăng ký thành công! Cảm ơn bạn đã tin tưởng SmokeFree');
         setTimeout(() => {
-            setIsModalVisible(false);
-            setCurrentStep(0);
-            form.resetFields();
+        setIsModalVisible(false);
+        setCurrentStep(0);
+        form.resetFields();
             setIsLoading(false);
             navigate('/users/home');
         }, 2000);
