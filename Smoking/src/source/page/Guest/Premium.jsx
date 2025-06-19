@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
+
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider, Spin } from 'antd';
 import { CheckOutlined, CrownOutlined, DollarOutlined, SafetyCertificateOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
@@ -538,6 +540,7 @@ const Premium = () => {
     const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+
     const [packageList, setPackageList] = useState([]);
 
     const navigate = useNavigate();
@@ -556,6 +559,7 @@ const Premium = () => {
     }, []);
 
     // Chỉ cho phép chọn 1 phương thức thanh toán là VNPAY
+
     const paymentMethods = [
         { value: 'vnpay', label: 'VNPAY' }
     ];
@@ -574,6 +578,7 @@ const Premium = () => {
     const handlePrev = () => {
         setCurrentStep(currentStep - 1);
     };
+
 
     const handlePayment = async () => {
         setIsLoading(true);
@@ -605,6 +610,7 @@ const Premium = () => {
             message.error('Lỗi kết nối server!');
             setIsLoading(false);
         }
+
     };
 
     const handleRenew = () => {

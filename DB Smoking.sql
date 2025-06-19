@@ -1,5 +1,7 @@
-Create database Smoking
-use Smoking 
+CREATE DATABASE Smoking;
+USE Smoking;
+
+-- Users
 CREATE TABLE Users (
     UserID INT PRIMARY KEY IDENTITY(1,1),
     Username NVARCHAR(255) UNIQUE NOT NULL,
@@ -9,15 +11,15 @@ CREATE TABLE Users (
     RegistrationDate DATETIME NOT NULL DEFAULT GETDATE(),
     LastLoginDate DATETIME,
     ProfilePictureURL NVARCHAR(255),
-    CurrentMembershipPackageID INT,
+    CurrentCustomerPackageID INT,
     SubscriptionEndDate DATE,
     CoachID INT,
-    Role NVARCHAR(255) NOT NULL DEFAULT 'member',
-    Enabled BIT NOT NULL DEFAULT 0  -- Thêm trường này, mặc định là false (0)
+    Role NVARCHAR(255) NOT NULL DEFAULT 'customer',
+    Enabled BIT NOT NULL DEFAULT 0
 );
 
--- Tạo bảng MembershipPackages
-CREATE TABLE MembershipPackages (
+-- CustomerPackages (g�i th�nh vi�n)
+CREATE TABLE CustomerPackages (
     PackageID INT PRIMARY KEY IDENTITY(1,1),
     PackageName NVARCHAR(255) UNIQUE NOT NULL,
     Price DECIMAL(10,2) NOT NULL DEFAULT 0,
@@ -26,7 +28,7 @@ CREATE TABLE MembershipPackages (
     IsActive BIT NOT NULL DEFAULT 1
 );
 
--- Tạo bảng Payments
+-- Payments
 CREATE TABLE Payments (
     PaymentID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
@@ -38,7 +40,7 @@ CREATE TABLE Payments (
     Status NVARCHAR(255) NOT NULL DEFAULT 'pending'
 );
 
--- Tạo bảng SmokingStatusLogs
+-- SmokingStatusLogs
 CREATE TABLE SmokingStatusLogs (
     LogID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
@@ -49,7 +51,7 @@ CREATE TABLE SmokingStatusLogs (
     Notes NVARCHAR(MAX)
 );
 
--- Tạo bảng CessationPlans
+-- CessationPlans
 CREATE TABLE CessationPlans (
     PlanID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
@@ -64,7 +66,7 @@ CREATE TABLE CessationPlans (
     IsActive BIT NOT NULL DEFAULT 1
 );
 
--- Tạo bảng PlanStages
+-- PlanStages
 CREATE TABLE PlanStages (
     StageID INT PRIMARY KEY IDENTITY(1,1),
     PlanID INT NOT NULL,
@@ -74,13 +76,12 @@ CREATE TABLE PlanStages (
     SequenceOrder INT NOT NULL DEFAULT 0
 );
 
--- Tạo bảng DailyProgress
+-- DailyProgress (?� b? tr??ng SmokedToday)
 CREATE TABLE DailyProgress (
     ProgressID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
     PlanID INT,
     LogDate DATE NOT NULL,
-    SmokedToday BIT,
     CigarettesSmoked INT,
     CravingsLevel INT,
     Mood NVARCHAR(255),
@@ -89,7 +90,7 @@ CREATE TABLE DailyProgress (
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
 
--- Tạo bảng Badges
+-- Badges
 CREATE TABLE Badges (
     BadgeID INT PRIMARY KEY IDENTITY(1,1),
     BadgeName NVARCHAR(255) UNIQUE NOT NULL,
@@ -98,7 +99,7 @@ CREATE TABLE Badges (
     IsActive BIT NOT NULL DEFAULT 1
 );
 
--- Tạo bảng UserBadges
+-- UserBadges
 CREATE TABLE UserBadges (
     UserBadgeID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
@@ -106,20 +107,19 @@ CREATE TABLE UserBadges (
     DateAwarded DATETIME NOT NULL DEFAULT GETDATE()
 );
 
--- Tạo bảng Notifications
+-- Notifications (?� b? tr??ng IsRead)
 CREATE TABLE Notifications (
     NotificationID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
     MessageType NVARCHAR(255) NOT NULL,
     MessageContent NVARCHAR(MAX) NOT NULL,
     CreatedDate DATETIME NOT NULL DEFAULT GETDATE(),
-    IsRead BIT NOT NULL DEFAULT 0,
     ScheduledSendTime DATETIME,
     RelatedEntityID INT,
     RelatedEntityType NVARCHAR(255)
 );
 
--- Tạo bảng Coaches
+-- Coaches
 CREATE TABLE Coaches (
     CoachID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT UNIQUE,
@@ -131,18 +131,18 @@ CREATE TABLE Coaches (
     IsActive BIT NOT NULL DEFAULT 1
 );
 
--- Tạo bảng Consultations
+-- Consultations
 CREATE TABLE Consultations (
     ConsultationID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
     CoachID INT NOT NULL,
-    ScheduledTime DATETIME, -- Sửa lỗi cú pháp NOT FILL
+    ScheduledTime DATETIME,
     Status NVARCHAR(255) NOT NULL,
     Notes NVARCHAR(MAX),
     MeetingLink NVARCHAR(255)
 );
 
--- Tạo bảng Feedback
+-- Feedback
 CREATE TABLE Feedback (
     FeedbackID INT PRIMARY KEY IDENTITY(1,1),
     UserID INT NOT NULL,
@@ -153,7 +153,7 @@ CREATE TABLE Feedback (
     SubmissionDate DATETIME NOT NULL DEFAULT GETDATE()
 );
 
--- Tạo bảng BlogPosts
+-- BlogPosts
 CREATE TABLE BlogPosts (
     PostID INT PRIMARY KEY IDENTITY(1,1),
     AuthorUserID INT NOT NULL,
@@ -170,20 +170,18 @@ CREATE TABLE BlogPosts (
     FeaturedImageURL NVARCHAR(255)
 );
 
--- Tạo bảng PostComments
+-- PostComments (?� b? CommentDate, Downvotes)
 CREATE TABLE PostComments (
     CommentID INT PRIMARY KEY IDENTITY(1,1),
     PostID INT NOT NULL,
     UserID INT NOT NULL,
     ParentCommentID INT,
     Content NVARCHAR(MAX) NOT NULL,
-    CommentDate DATETIME NOT NULL DEFAULT GETDATE(),
     IsApproved BIT NOT NULL DEFAULT 1,
-    Upvotes INT NOT NULL DEFAULT 0,
-    Downvotes INT NOT NULL DEFAULT 0
+    Upvotes INT NOT NULL DEFAULT 0
 );
 
--- Tạo các chỉ mục (INDEX)
+-- Indexes
 CREATE INDEX IX_Users_Email ON Users (Email);
 CREATE INDEX IX_Users_Username ON Users (Username);
 CREATE INDEX IX_Users_CoachID ON Users (CoachID);
@@ -197,13 +195,14 @@ CREATE INDEX IX_BlogPosts_Slug ON BlogPosts (Slug);
 CREATE INDEX IX_BlogPosts_AuthorUserID ON BlogPosts (AuthorUserID);
 CREATE INDEX IX_BlogPosts_Category ON BlogPosts (Category);
 CREATE INDEX IX_BlogPosts_Status ON BlogPosts (Status);
-CREATE INDEX IX_PostComments_PostID_CommentDate ON PostComments (PostID, CommentDate);
+-- ?� b? ch? m?c li�n quan CommentDate, Downvotes
+CREATE INDEX IX_PostComments_PostID ON PostComments (PostID);
 CREATE INDEX IX_PostComments_UserID ON PostComments (UserID);
 CREATE INDEX IX_PostComments_ParentCommentID ON PostComments (ParentCommentID);
 
--- Tạo các khóa ngoại (FOREIGN KEY)
+-- Foreign Keys
 ALTER TABLE Users
-ADD CONSTRAINT FK_Users_MembershipPackages FOREIGN KEY (CurrentMembershipPackageID) REFERENCES MembershipPackages (PackageID);
+ADD CONSTRAINT FK_Users_CustomerPackages FOREIGN KEY (CurrentCustomerPackageID) REFERENCES CustomerPackages (PackageID);
 
 ALTER TABLE Users
 ADD CONSTRAINT FK_Users_Coaches FOREIGN KEY (CoachID) REFERENCES Coaches (CoachID);
@@ -212,7 +211,7 @@ ALTER TABLE Payments
 ADD CONSTRAINT FK_Payments_Users FOREIGN KEY (UserID) REFERENCES Users (UserID);
 
 ALTER TABLE Payments
-ADD CONSTRAINT FK_Payments_MembershipPackages FOREIGN KEY (PackageID) REFERENCES MembershipPackages (PackageID);
+ADD CONSTRAINT FK_Payments_CustomerPackages FOREIGN KEY (PackageID) REFERENCES CustomerPackages (PackageID);
 
 ALTER TABLE SmokingStatusLogs
 ADD CONSTRAINT FK_SmokingStatusLogs_Users FOREIGN KEY (UserID) REFERENCES Users (UserID);
@@ -261,4 +260,5 @@ ADD CONSTRAINT FK_PostComments_Users FOREIGN KEY (UserID) REFERENCES Users (User
 
 ALTER TABLE PostComments
 ADD CONSTRAINT FK_PostComments_ParentComment FOREIGN KEY (ParentCommentID) REFERENCES PostComments (CommentID);
+
 GO

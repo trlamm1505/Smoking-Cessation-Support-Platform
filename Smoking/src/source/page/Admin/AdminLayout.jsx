@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 import { Menu, Modal, Button } from 'antd';
+import AdminHeader from './AdminHeader';
 import {
     HomeOutlined,
     TeamOutlined,
     BookOutlined,
     DollarOutlined,
     LogoutOutlined,
-    UserOutlined,
     ReadOutlined,
     MessageOutlined
 } from '@ant-design/icons';
@@ -57,6 +57,11 @@ const AdminLayout = () => {
             label: 'Cộng đồng',
         },
         {
+            key: 'blog',
+            icon: <ReadOutlined />,
+            label: 'Quản lý Blog',
+        },
+        {
             key: 'reports',
             icon: <MessageOutlined />,
             label: 'Quản lý Báo cáo & Phản hồi',
@@ -78,7 +83,7 @@ const AdminLayout = () => {
             >
                 <div className="p-4 border-b border-gray-200">
                     <Link to="/admin/dashboard" className="flex items-center space-x-2 flex-shrink-0 no-underline">
-                       <UserOutlined className="text-xl text-[#5FB8B3]" />
+                       <img src="/Images/logo.jpg" alt="SmokeFree Logo" className="w-14 h-14 rounded-full"/>
                        <span className="text-xl font-semibold text-[#5FB8B3]">Admin Portal</span>
                     </Link>
                 </div>
@@ -108,12 +113,7 @@ const AdminLayout = () => {
             </nav>
 
             <main className="flex-1 flex flex-col" style={{ marginLeft: '16rem' }}>
-                <header className="bg-white shadow-sm p-4 flex items-center justify-between">
-                    <h1 className="text-xl font-semibold text-gray-800">
-                        {menuItems.find(item => location.pathname.startsWith(`/admin/${item.key}`))?.label || 'Admin Dashboard'}
-                    </h1>
-                </header>
-
+                <AdminHeader className="sticky top-0 w-full z-10" />
                 <div className="flex-1 overflow-y-auto p-6">
                     <div className="bg-white rounded-xl shadow-md p-6 h-full">
                         <Outlet />
