@@ -1,6 +1,10 @@
 package com.example.SWP_Backend.controller;
 
+
+import com.example.SWP_Backend.dto.PurchaseRequest;
+
 import com.example.SWP_Backend.DTO.PurchaseRequest;
+
 import com.example.SWP_Backend.entity.Payment;
 import com.example.SWP_Backend.service.PurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;

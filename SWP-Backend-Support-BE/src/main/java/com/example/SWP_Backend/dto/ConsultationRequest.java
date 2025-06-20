@@ -1,8 +1,4 @@
-
 package com.example.SWP_Backend.dto;
-
-package com.example.SWP_Backend.DTO;
-
 
 
 import lombok.Data;
