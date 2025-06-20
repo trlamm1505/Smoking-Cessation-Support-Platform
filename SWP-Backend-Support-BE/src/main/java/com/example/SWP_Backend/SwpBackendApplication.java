@@ -9,7 +9,7 @@ public class SwpBackendApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SwpBackendApplication.class, args);
 		System.out.println("SWP Backend Application Started!" +
-				"Phạm Võ Khải Anh");
+				"Phạm Võ Khải Anh Vũ");
 	}
 
 }
