@@ -1,3 +1,4 @@
+
 package com.example.SWP_Backend.dto;
 
 import lombok.Getter;
@@ -5,6 +6,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
+
+package com.example.SWP_Backend.DTO;
+
+
 public class UpdateProfileRequest {
     private Long userId;
     private String fullName;

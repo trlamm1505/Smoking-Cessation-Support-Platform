@@ -1,7 +1,14 @@
 package com.example.SWP_Backend.entity;
 
 import jakarta.persistence.*;
+
 import lombok.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hibernate.annotations.Nationalized;
 
 import java.time.LocalDate;
@@ -15,7 +22,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class User {
 
+
     // Khóa chính UserID (tự tăng)
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "UserID")
@@ -23,6 +32,7 @@ public class User {
 
     @Column(name = "Username", nullable = false, unique = true, length = 255)
     @Nationalized
+
     private String username; // Tên đăng nhập
 
     @Column(name = "PasswordHash", nullable = false, length = 255)
@@ -67,6 +77,45 @@ public class User {
 
     // ========== Các trường bổ sung cho member (hoặc dùng cho coach nếu muốn) ==========
 
+
+    private String username;
+
+    @Column(name = "PasswordHash", nullable = false, length = 255)
+    private String passwordHash;
+
+    @Column(name = "Email", nullable = false, unique = true, length = 255)
+    private String email;
+
+    @Column(name = "FullName", length = 255)
+    @Nationalized
+    private String fullName;
+
+    @Column(name = "RegistrationDate", nullable = false)
+    private LocalDateTime registrationDate;
+
+    @Column(name = "LastLoginDate")
+    private LocalDateTime lastLoginDate;
+
+    @Column(name = "ProfilePictureURL", length = 255)
+    private String profilePictureUrl;
+
+    @Column(name = "CurrentMembershipPackageID")
+    private Integer currentMembershipPackageId;
+
+    @Column(name = "SubscriptionEndDate")
+    private LocalDate subscriptionEndDate;
+
+    @Column(name = "CoachID")
+    private long coachId;
+
+    @Column(name = "Role", nullable = false, length = 255)
+    private String role = "member";
+
+    @Column(name = "Enabled", nullable = false)
+    private boolean enabled = false;
+
+    // ======= Các thuộc tính bổ sung =======
+
     @Column(name = "PhoneNumber", length = 20)
     private String phoneNumber;
 
@@ -87,11 +136,18 @@ public class User {
 
     @Column(name = "Gender", length = 20)
     @Nationalized
+
     private String gender; // Có thể String (Nam/Nữ), hoặc Integer nếu dùng code
 
     /**
      * Thiết lập mặc định khi tạo mới user
      */
+
+    private String gender; // Có thể để String (Nam/Nữ), hoặc Integer nếu dùng code (0,1,2)
+
+    // ... getter & setter như cũ hoặc để Lombok xử lý
+
+
     @PrePersist
     protected void onCreate() {
         if (registrationDate == null) {

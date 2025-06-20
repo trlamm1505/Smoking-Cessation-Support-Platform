@@ -1,11 +1,17 @@
 package com.example.SWP_Backend.controller;
 
+
 import com.example.SWP_Backend.dto.AdminCreateCoachRequest;
 import com.example.SWP_Backend.dto.CreateCoachRequest;
 import com.example.SWP_Backend.entity.Coach;
 import com.example.SWP_Backend.entity.User;
 import com.example.SWP_Backend.service.CoachService;
 import com.example.SWP_Backend.repository.UserRepository;
+
+
+import com.example.SWP_Backend.entity.Coach;
+import com.example.SWP_Backend.service.CoachService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,22 +26,27 @@ public class CoachController {
     @Autowired
     private CoachService coachService;
 
+
     @Autowired
     private UserRepository userRepository;
 
     // Lấy toàn bộ coach (có thể tạo DTO cho response nếu muốn đẹp hơn)
+
     @GetMapping("/all")
     public ResponseEntity<List<Coach>> getAllCoaches() {
         return ResponseEntity.ok(coachService.getAllCoaches());
     }
 
+
     // Lấy coach theo id
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getCoachById(@PathVariable Long id) {
         Optional<Coach> coach = coachService.getCoachById(id);
         return coach.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
 
     // Tạo mới coach bằng DTO, FE chỉ gửi userId và các trường khác
     @PostMapping("/create")
@@ -58,9 +69,14 @@ public class CoachController {
         coach.setAvailability(request.getAvailability());
         coach.setProfilePictureUrl(request.getProfilePictureUrl());
         coach.setActive(request.isActive());
+
+    @PostMapping("/create")
+    public ResponseEntity<Coach> createCoach(@RequestBody Coach coach) {
+
         Coach savedCoach = coachService.saveCoach(coach);
         return ResponseEntity.ok(savedCoach);
     }
+
 
     // Cập nhật coach - NÊN dùng DTO cho update coach nếu cần kiểm soát field chặt chẽ
     @PutMapping("/update/{id}")
@@ -95,12 +111,24 @@ public class CoachController {
     }
 
     // Xóa coach
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateCoach(@PathVariable Long id, @RequestBody Coach updatedCoach) {
+        Optional<Coach> existingCoach = coachService.getCoachById(id);
+        if (existingCoach.isEmpty()) return ResponseEntity.notFound().build();
+
+        updatedCoach.setCoachId(id);
+        return ResponseEntity.ok(coachService.saveCoach(updatedCoach));
+    }
+
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteCoach(@PathVariable Long id) {
         if (!coachService.existsById(id)) return ResponseEntity.notFound().build();
         coachService.deleteCoach(id);
         return ResponseEntity.ok().build();
     }
+
 
 
     @PostMapping("/admin-create")
@@ -142,3 +170,6 @@ public class CoachController {
         return ResponseEntity.ok(savedCoach);
     }
 }
+
+}
+

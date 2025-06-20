@@ -1,5 +1,6 @@
 package com.example.SWP_Backend.service;
 
+
 import com.example.SWP_Backend.dto.PurchaseRequest;
 import com.example.SWP_Backend.entity.MembershipPackage;
 import com.example.SWP_Backend.entity.Payment;
@@ -9,6 +10,14 @@ import org.springframework.stereotype.Service;
 import com.example.SWP_Backend.repository.UserRepository;
 import com.example.SWP_Backend.repository.MembershipPackageRepository;
 import com.example.SWP_Backend.repository.PaymentRepository;
+
+import com.example.SWP_Backend.DTO.PurchaseRequest;
+import com.example.SWP_Backend.entity.*;
+import com.example.SWP_Backend.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+
 import java.time.LocalDate;
 import java.util.UUID;
 

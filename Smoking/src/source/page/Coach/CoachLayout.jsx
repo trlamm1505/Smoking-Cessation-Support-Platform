@@ -97,6 +97,14 @@ const CoachLayout = () => {
             </Link>
           </li>
           <li>
+            <Link to="/coach/blog" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
+              isActive('/coach/blog') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
+            }`}>
+              <ReadOutlined className="text-lg" />
+              <span className="text-base">Blog</span>
+            </Link>
+          </li>
+          <li>
             <Link to="/coach/profile" className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${
               isActive('/coach/profile') ? 'bg-[#f0f9f8] text-[#5FB8B3] font-semibold' : 'text-gray-700 hover:bg-[#f0f9f8] hover:text-[#5FB8B3]'
             }`}>

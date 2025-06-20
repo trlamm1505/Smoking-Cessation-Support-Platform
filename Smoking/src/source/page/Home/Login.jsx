@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../../CSS/Login.css';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axiosClient from '../Axios/AxiosCLients';
+import axios from 'axios';
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -41,6 +43,8 @@ const Login = () => {
   const location = useLocation();
   const from = location.state?.from?.pathname || '/guest/home';
 
+
+
   // Thông báo
   const showNotification = (message, type) => {
     setNotification({ visible: true, message, type });
@@ -53,63 +57,73 @@ const Login = () => {
 
   // ======= Đăng nhập =======
   const handleLogin = async (e) => {
-  e.preventDefault();
-  try {
-    const response = await fetch('http://localhost:8080/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(loginData)
-    });
-    const data = await response.json();
+    e.preventDefault();
+    console.log('loginData:', loginData);
+    try {
+      const response = await axiosClient.post('/api/auth/login', loginData);
+      const data = response.data;
+      console.log('Login response:', data);
 
-    if (response.ok && data.token) {
-      // Store authentication data
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userRole', data.role);
-      localStorage.setItem('userId', data.userId);
+      if (data.success) {
+        // Lưu thông tin user vào localStorage
+        localStorage.setItem('token', data.user.token);
+        localStorage.setItem('userRole', data.user.role);
+        localStorage.setItem('userId', data.user.id);
 
-      showNotification('Đăng nhập thành công!', 'success');
+        showNotification(data.message || 'Đăng nhập thành công!', 'success');
 
-      // Kiểm tra trạng thái gói thành viên
-      const userId = data.userId;
-      const token = data.token;
-      // Lưu ý: thêm Authorization nếu backend yêu cầu
-      const userRes = await fetch(`http://localhost:8080/api/user/${userId}`, {
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+        // Kiểm tra role và điều hướng
+        const userRole = data.user.role?.toUpperCase();
+        
+        if (userRole === 'ADMIN') {
+          navigate('/admin/dashboard', { replace: true });
+          return;
         }
-      });
-      const userInfo = await userRes.json();
+        
+        if (userRole === 'COACH') {
+          navigate('/coach/home', { replace: true });
+          return;
+        }
 
-      // Ngày hiện tại
-      const today = new Date().toISOString().split('T')[0];
+        // Nếu là user thường, kiểm tra membership
+        try {
+          const userRes = await axiosClient8080.get(`/api/user/${data.user.id}`, {
+            headers: { 'Authorization': `Bearer ${data.user.token}` }
+          });
+          
+          const userInfo = userRes.data;
+          console.log('User Info:', userInfo);
 
-      // Nếu chưa có gói hoặc đã hết hạn thì vào guest/home
-      if (
-        !userInfo.currentMembershipPackage ||
-        !userInfo.subscriptionEndDate ||
-        userInfo.subscriptionEndDate < today
-      ) {
-        navigate('/guest/home', { replace: true });
+          const today = new Date().toISOString().split('T')[0];
+          const hasMembership = userInfo.currentMembershipPackage && 
+                              userInfo.subscriptionEndDate && 
+                              userInfo.subscriptionEndDate >= today;
+
+          if (hasMembership) {
+            console.log('Redirecting to user home');
+            navigate('/users/home', { replace: true });
+          } else {
+            console.log('Redirecting to guest home');
+            navigate('/guest/home', { replace: true });
+          }
+        } catch (userError) {
+          console.error('Error fetching user info:', userError);
+          navigate('/guest/home', { replace: true });
+        }
       } else {
-        navigate('/users/home', { replace: true });
+        showNotification(data.message || 'Đăng nhập thất bại!', 'error');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userId');
       }
-    } else {
-      showNotification(data.message || 'Đăng nhập thất bại!', 'error');
+    } catch (error) {
+      console.log('Login error:', error?.response?.data || error.message || error);
+      showNotification(error?.response?.data?.message || error?.response?.data || 'Lỗi kết nối server!', 'error');
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
       localStorage.removeItem('userId');
     }
-  } catch (error) {
-    showNotification('Lỗi kết nối server!', 'error');
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
-  }
-};
-
-
+  };
 
   // ======= Đăng ký 2 bước =======
   // Bước 1: Gửi info -> gửi OTP về email
@@ -120,18 +134,14 @@ const Login = () => {
       return;
     }
     try {
-      const res = await fetch('http://localhost:8080/api/auth/register-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName: registerData.name,
-          email: registerData.email,
-          password: registerData.password,
-          confirmPassword: registerData.confirmPassword
-        })
+      const res = await axiosClient.post('/api/auth/register-request', {
+        fullName: registerData.name,
+        email: registerData.email,
+        password: registerData.password,
+        confirmPassword: registerData.confirmPassword
       });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = res.data;
+      if (data.success) {
         showNotification(data.message || 'OTP đã gửi về email. Vui lòng nhập mã xác nhận.', 'success');
         setRegisteringEmail(registerData.email);
         setRegisterStep(2);
@@ -151,16 +161,12 @@ const Login = () => {
       return;
     }
     try {
-      const res = await fetch('http://localhost:8080/api/auth/register-verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: registeringEmail,
-          otp: registerOtp
-        })
+      const res = await axiosClient.post('/api/auth/register-verify-otp', {
+        email: registeringEmail,
+        otp: registerOtp
       });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = res.data;
+      if (data.success) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userRole', data.user?.role || 'member');
         localStorage.setItem('userId', data.user?.id);
@@ -173,13 +179,12 @@ const Login = () => {
           case 'coach':
             navigate('/coach/home', { replace: true });
             break;
-          case 'member': // hoặc 'user'
+          case 'member':
             navigate('/users/home', { replace: true });
             break;
           default:
             navigate('/guest/home', { replace: true });
         }
-        // Reset form
         setRegisterStep(1);
         setIsSignUp(false);
         setRegisterData({ name: '', email: '', password: '', confirmPassword: '' });
@@ -206,16 +211,12 @@ const Login = () => {
       return;
     }
     try {
-      const res = await fetch('http://localhost:8080/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: forgotEmail,
-          newPassword: forgotNewPassword
-        })
+      const res = await axiosClient.post('/api/auth/forgot-password', {
+        email: forgotEmail,
+        newPassword: forgotNewPassword
       });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = res.data;
+      if (data.success) {
         setForgotStep(2);
         showNotification(data.message || 'OTP đã gửi về email. Nhập mã để xác nhận.', 'success');
       } else {
@@ -234,16 +235,12 @@ const Login = () => {
       return;
     }
     try {
-      const res = await fetch('http://localhost:8080/api/auth/reset-password-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: forgotEmail,
-          otp: forgotOtp
-        })
+      const res = await axiosClient.post('/api/auth/reset-password-otp', {
+        email: forgotEmail,
+        otp: forgotOtp
       });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = res.data;
+      if (data.success) {
         showNotification(data.message || 'Đổi mật khẩu thành công!', 'success');
         setTimeout(() => {
           setShowForgotPassword(false);
@@ -458,6 +455,7 @@ const Login = () => {
                   className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
                   value={loginData.email}
                   onChange={e => setLoginData({ ...loginData, email: e.target.value })}
+                  required
                 />
                 <input
                   type="password"
@@ -465,6 +463,7 @@ const Login = () => {
                   className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
                   value={loginData.password}
                   onChange={e => setLoginData({ ...loginData, password: e.target.value })}
+                  required
                 />
                 <a
                   href="#"

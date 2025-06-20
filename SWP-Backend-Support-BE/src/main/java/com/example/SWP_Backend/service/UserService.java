@@ -1,11 +1,17 @@
 package com.example.SWP_Backend.service;
 
 import com.example.SWP_Backend.entity.User;
+
 import com.example.SWP_Backend.entity.Coach;
 import com.example.SWP_Backend.entity.Token;
 import com.example.SWP_Backend.repository.UserRepository;
 import com.example.SWP_Backend.repository.TokenRepository;
 import com.example.SWP_Backend.repository.CoachRepository;
+
+import com.example.SWP_Backend.entity.Token;
+import com.example.SWP_Backend.repository.UserRepository;
+import com.example.SWP_Backend.repository.TokenRepository;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -27,15 +33,18 @@ public class UserService {
     TokenRepository tokenRepository;
 
     @Autowired
+
     CoachRepository coachRepository; // Thêm dòng này!
 
     @Autowired
+
     EmailService emailService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     // ========================= ĐĂNG KÝ OTP 2 BƯỚC =========================
+
 
     public void registerUserWithOtp(User user) {
         if (isUsernameExists(user.getUsername()) || isEmailExists(user.getEmail())) {
@@ -44,12 +53,26 @@ public class UserService {
         user.setEnabled(false);
         user.setRegistrationDate(LocalDateTime.now());
 
+    /**
+     * BƯỚC 1: Gửi OTP về email, lưu user tạm vào VerificationToken (type = REGISTER_OTP)
+     */
+    public void registerUserWithOtp(User user) {
+        // 1. Check username/email đã tồn tại trong DB chưa
+        if (isUsernameExists(user.getUsername()) || isEmailExists(user.getEmail())) {
+            throw new IllegalArgumentException("Username or Email already exists!");
+        }
+        user.setEnabled(false); // Đánh dấu chưa xác thực
+        user.setRegistrationDate(LocalDateTime.now());
+
+        // 2. Serialize toàn bộ user thành JSON
+
         String userJson;
         try {
             userJson = objectMapper.writeValueAsString(user);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Cannot serialize user data", e);
         }
+
 
         String otp = generateOtp();
         tokenRepository.findByEmailAndType(user.getEmail(), "REGISTER_OTP")
@@ -66,23 +89,65 @@ public class UserService {
         emailService.sendOtpResetPassword(user.getEmail(), otp);
     }
 
+
+        // 3. Sinh OTP (4 số)
+        String otp = generateOtp();
+
+        // 4. Xóa OTP cũ nếu có
+        tokenRepository.findByEmailAndType(user.getEmail(), "REGISTER_OTP")
+                .ifPresent(tokenRepository::delete);
+
+        // 5. Lưu vào bảng VerificationToken
+        Token vt = new Token();
+        vt.setToken(otp); // Lưu OTP
+        vt.setEmail(user.getEmail());
+        vt.setUserInfo(userJson); // Lưu tạm user
+        vt.setExpiryDate(LocalDateTime.now().plusMinutes(10)); // OTP sống 10 phút
+        vt.setType("REGISTER_OTP");
+        tokenRepository.save(vt);
+
+        // 6. Gửi OTP qua email
+        emailService.sendOtpResetPassword(user.getEmail(), otp); // Tên hàm này dùng cho OTP, nếu bạn muốn custom nội dung thì tạo hàm riêng cho đăng ký
+    }
+
+    /**
+     * BƯỚC 2: Xác thực OTP và lưu user vào bảng User
+     */
+
     public boolean verifyOtpAndRegister(String email, String otp) {
         Optional<Token> vtOpt = tokenRepository.findByEmailAndType(email, "REGISTER_OTP");
         if (vtOpt.isEmpty()) return false;
         Token vt = vtOpt.get();
+
+
+
+        // Kiểm tra OTP đúng và chưa hết hạn
 
         if (!vt.getToken().equals(otp) || vt.getExpiryDate().isBefore(LocalDateTime.now())) {
             tokenRepository.delete(vt);
             return false;
         }
 
+
         try {
             User user = objectMapper.readValue(vt.getUserInfo(), User.class);
+
+        // Deserialize user từ userInfo
+        try {
+            User user = objectMapper.readValue(vt.getUserInfo(), User.class);
+
+            // Check lại email có tồn tại không (tránh double register)
+
             if (userRepository.existsByEmail(user.getEmail())) {
                 tokenRepository.delete(vt);
                 return false;
             }
+
             user.setEnabled(true);
+
+
+            user.setEnabled(true); // Đã xác thực OTP
+
             userRepository.save(user);
             tokenRepository.delete(vt);
             return true;
@@ -94,19 +159,47 @@ public class UserService {
 
     // ======================= OTP cho QUÊN MẬT KHẨU ==========================
 
+
     private String generateOtp() {
         Random random = new Random();
         int otp = 1000 + random.nextInt(9000);
         return String.valueOf(otp);
     }
 
+
+    /**
+     * Sinh ra OTP 4 số ngẫu nhiên dưới dạng String.
+     */
+    private String generateOtp() {
+        Random random = new Random();
+        int otp = 1000 + random.nextInt(9000); // Số từ 1000 - 9999
+        return String.valueOf(otp);
+    }
+
+    /**
+     * Gửi OTP về email để xác thực đổi mật khẩu.
+     * - Lưu OTP vào VerificationToken (type = PASSWORD_RESET_OTP)
+     * - Lưu tạm mật khẩu mới vào userInfo
+     */
+
     public boolean sendPasswordResetOtp(String email, String newPassword) {
         User user = userRepository.findByEmail(email);
         if (user == null) return false;
 
+
         String otp = generateOtp();
         tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP")
                 .ifPresent(tokenRepository::delete);
+
+
+        // 1. Sinh OTP
+        String otp = generateOtp();
+
+        // 2. Xóa OTP cũ (nếu có)
+        tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP")
+                .ifPresent(tokenRepository::delete);
+
+        // 3. Lưu VerificationToken
 
         Token vt = new Token();
         vt.setToken(otp);
@@ -116,19 +209,36 @@ public class UserService {
         vt.setType("PASSWORD_RESET_OTP");
         tokenRepository.save(vt);
 
+
+
+        // 4. Gửi OTP qua email
+
         emailService.sendOtpResetPassword(email, otp);
         return true;
     }
+
+
+
+    /**
+     * Kiểm tra OTP đổi mật khẩu, nếu đúng thì đổi mật khẩu mới cho user.
+     */
 
     public boolean verifyOtpAndResetPassword(String email, String otp) {
         Optional<Token> vtOpt = tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP");
         if (vtOpt.isEmpty()) return false;
         Token vt = vtOpt.get();
 
+
+        // Kiểm tra OTP đúng & chưa hết hạn
+
         if (!vt.getToken().equals(otp) || vt.getExpiryDate().isBefore(LocalDateTime.now())) {
             tokenRepository.delete(vt);
             return false;
         }
+
+
+
+        // Đổi mật khẩu mới (userInfo lưu tạm mật khẩu mới)
 
         User user = userRepository.findByEmail(email);
         if (user == null) {
@@ -139,7 +249,11 @@ public class UserService {
         user.setPasswordHash(vt.getUserInfo());
         userRepository.save(user);
 
+
         tokenRepository.delete(vt);
+
+        tokenRepository.delete(vt); // Xóa OTP đã dùng
+
         return true;
     }
 
@@ -177,13 +291,19 @@ public class UserService {
                     if (updatedUser.getSubscriptionEndDate() != null) {
                         user.setSubscriptionEndDate(updatedUser.getSubscriptionEndDate());
                     }
+
                     // ====== SỬA ĐOẠN NÀY ======
                     if (updatedUser.getCoach() != null) { // Kiểu Coach object, không còn coachId
                         user.setCoach(updatedUser.getCoach());
+
+                    if (updatedUser.getCoachId() != 0) {
+                        user.setCoachId(updatedUser.getCoachId());
+
                     }
                     if (updatedUser.getRole() != null && !updatedUser.getRole().trim().isEmpty()) {
                         user.setRole(updatedUser.getRole());
                     }
+
                     // ====== Các trường bổ sung ======
                     if (updatedUser.getPhoneNumber() != null) user.setPhoneNumber(updatedUser.getPhoneNumber());
                     if (updatedUser.getHometown() != null) user.setHometown(updatedUser.getHometown());
@@ -191,6 +311,8 @@ public class UserService {
                     if (updatedUser.getAge() != null) user.setAge(updatedUser.getAge());
                     if (updatedUser.getAddress() != null) user.setAddress(updatedUser.getAddress());
                     if (updatedUser.getGender() != null) user.setGender(updatedUser.getGender());
+
+
                     return userRepository.save(user);
                 })
                 .orElse(null);
@@ -247,9 +369,11 @@ public class UserService {
         return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     }
 
+
     /**
      * Update user profile: cập nhật coach mới (theo coachId), và các trường khác.
      */
+
     public boolean updateUserProfile(Long userId,
                                      String fullName,
                                      String profilePictureUrl,
@@ -260,7 +384,11 @@ public class UserService {
                                      String occupation,
                                      Integer age,
                                      String address,
+
                                      String gender
+
+                                     String gender // <-- Thêm trường này!
+
     ) {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isEmpty()) return false;
@@ -269,6 +397,7 @@ public class UserService {
 
         if (fullName != null) user.setFullName(fullName);
         if (profilePictureUrl != null) user.setProfilePictureUrl(profilePictureUrl);
+
 
         // XỬ LÝ ĐỔI/CHỌN/BỎ coach đúng nghiệp vụ
         if (coachId != null) {
@@ -282,12 +411,22 @@ public class UserService {
         // Nếu coachId == null => giữ nguyên coach cũ
 
         if (membershipId != null) user.setCurrentMembershipPackageId(membershipId);
+
+        if (coachId != null) user.setCoachId(coachId);
+        if (membershipId != null) user.setCurrentMembershipPackageId(membershipId);
+
+        // Bổ sung các trường mới
+
         if (phoneNumber != null) user.setPhoneNumber(phoneNumber);
         if (hometown != null) user.setHometown(hometown);
         if (occupation != null) user.setOccupation(occupation);
         if (age != null) user.setAge(age);
         if (address != null) user.setAddress(address);
+
         if (gender != null) user.setGender(gender);
+
+        if (gender != null) user.setGender(gender); // <-- Thêm dòng này
+
 
         userRepository.save(user);
         return true;
@@ -300,7 +439,11 @@ public class UserService {
 
         User user = optionalUser.get();
         if (!user.getPasswordHash().equals(currentPassword)) {
+
             return false;
+
+            return false; // Sai mật khẩu cũ
+
         }
 
         user.setPasswordHash(newPassword);
@@ -318,5 +461,13 @@ public class UserService {
         Coach coach = coachRepository.findById(coachId).orElse(null);
         if (coach == null) return List.of();
         return userRepository.findByCoach(coach);
+
+    public List<User> getUsersWithCoach() {
+        return userRepository.findByCoachIdIsNotNull();
+    }
+
+    public List<User> getUsersByCoachId(Long coachId) {
+        return userRepository.findByCoachId(coachId);
+
     }
 }

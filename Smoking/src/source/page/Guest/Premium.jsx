@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider } from 'antd';
+
+import React, { useState, useEffect } from 'react';
+
+import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider, Spin } from 'antd';
 import { CheckOutlined, CrownOutlined, DollarOutlined, SafetyCertificateOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const { Step } = Steps;
 const { Title } = Typography;
@@ -505,6 +508,30 @@ const AnimatedPremiumCard = styled(PremiumCard)`
   opacity: 0;
 `;
 
+const LoaderContainer = styled(Modal)`
+  .ant-modal-content {
+    background: none; /* Remove modal background */
+    box-shadow: none; /* Remove modal shadow */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+`;
+
+const Loader = styled.div`
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #5FB8B3; /* Blue - changed to brand color */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
 const Premium = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
@@ -512,55 +539,29 @@ const Premium = () => {
     const [form] = Form.useForm();
     const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const plans = [
-        {
-            title: 'Gói 1 tháng',
-            price: '100,000',
-            duration: '1 tháng',
-            features: [
-                'Truy cập tất cả tính năng cơ bản',
-                'Tham gia cộng đồng',
-                'Các tài liệu hướng dẫn',
-                'Huy hiệu thành viên đặc biệt',
-                'Báo cáo chi tiết',
-                'Đặt lịch tư vấn'
-            ]
-        },
-        {
-            title: 'Gói 3 tháng',
-            price: '550,000',
-            duration: '3 tháng',
-            featured: true,
-            features: [
-                'Truy cập tất cả tính năng cơ bản',
-                'Tham gia cộng đồng',
-                'Các tài liệu hướng dẫn',
-                'Huy hiệu thành viên đặc biệt',
-                'Báo cáo chi tiết',
-                'Đặt lịch tư vấn'
-            ]
-        },
-        {
-            title: 'Gói 6 tháng',
-            price: '1000,000',
-            duration: '6 tháng',
-            features: [
-                'Truy cập tất cả tính năng cơ bản',
-                'Tham gia cộng đồng',
-                'Các tài liệu hướng dẫn',
-                'Huy hiệu thành viên đặc biệt',
-                'Báo cáo chi tiết',
-                'Đặt lịch tư vấn'
-            ]
-        }
-    ];
+    const [packageList, setPackageList] = useState([]);
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchPackages = async () => {
+            try {
+                const res = await fetch('http://localhost:8080/api/packages');
+                const data = await res.json();
+                setPackageList(data);
+            } catch (err) {
+                // Xử lý lỗi nếu cần
+            }
+        };
+        fetchPackages();
+    }, []);
+
+    // Chỉ cho phép chọn 1 phương thức thanh toán là VNPAY
 
     const paymentMethods = [
-        { value: 'momo', label: 'Ví MoMo' },
-        { value: 'zalopay', label: 'ZaloPay' },
-        { value: 'banking', label: 'Chuyển khoản ngân hàng' },
-        { value: 'visa', label: 'Thẻ Visa/Mastercard' }
+        { value: 'vnpay', label: 'VNPAY' }
     ];
 
     const showModal = (plan) => {
@@ -578,11 +579,38 @@ const Premium = () => {
         setCurrentStep(currentStep - 1);
     };
 
-    const handlePayment = () => {
-        message.success('Đăng ký thành công! Cảm ơn bạn đã tin tưởng SmokeFree');
-        setIsModalVisible(false);
-        setCurrentStep(0);
-        form.resetFields();
+
+    const handlePayment = async () => {
+        setIsLoading(true);
+        const userId = Number(localStorage.getItem('userId'));
+        const packageId = selectedPlan?.packageID;
+        const paymentMethod = 'vnpay';
+
+        try {
+            const res = await fetch('http://localhost:8080/api/purchase/buy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, packageId, paymentMethod })
+            });
+            const data = await res.json();
+            if (data.success) {
+                message.success('Đăng ký thành công! Cảm ơn bạn đã tin tưởng SmokeFree');
+                setTimeout(() => {
+                    setIsModalVisible(false);
+                    setCurrentStep(0);
+                    form.resetFields();
+                    setIsLoading(false);
+                    navigate('/users/home');
+                }, 2000);
+            } else {
+                message.error(data.message || 'Mua gói thất bại!');
+                setIsLoading(false);
+            }
+        } catch (err) {
+            message.error('Lỗi kết nối server!');
+            setIsLoading(false);
+        }
+
     };
 
     const handleRenew = () => {
@@ -590,7 +618,7 @@ const Premium = () => {
             message.info('Gói của bạn vẫn còn hạn sử dụng');
             return;
         }
-        showModal(plans.find(p => p.title === currentSubscription.plan));
+        showModal(packageList.find(p => p.name === currentSubscription.plan));
     };
 
     const handleChangePlan = () => {
@@ -633,29 +661,31 @@ const Premium = () => {
         {
             title: 'Xác nhận',
             content: (
-                <ConfirmationSection>
-                    <h3>Thông tin đăng ký</h3>
-                    <div className="info-row">
-                        <span className="label">Gói thành viên:</span>
-                        <span className="value">{selectedPlan?.title}</span>
-                    </div>
-                    <div className="info-row">
-                        <span className="label">Thời hạn:</span>
-                        <span className="value">{selectedPlan?.duration}</span>
-                    </div>
-                    <div className="info-row">
-                        <span className="label">Phương thức thanh toán:</span>
-                        <span className="value">{selectedPaymentMethod?.label}</span>
-                    </div>
-                    <div className="info-row total-row">
-                        <span className="label">Tổng thanh toán:</span>
-                        <span className="value">{selectedPlan?.price}đ</span>
-                    </div>
-                    <Tag color="green" style={{ marginTop: '16px', padding: '8px 16px' }}>
-                        <SafetyCertificateOutlined style={{ marginRight: '8px' }} />
-                        Bạn sẽ được kích hoạt ngay sau khi thanh toán thành công
-                    </Tag>
-                </ConfirmationSection>
+                <>
+                    <ConfirmationSection>
+                        <h3>Thông tin đăng ký</h3>
+                        <div className="info-row">
+                            <span className="label">Gói thành viên:</span>
+                            <span className="value">{selectedPlan?.packageName}</span>
+                        </div>
+                        <div className="info-row">
+                            <span className="label">Thời hạn:</span>
+                            <span className="value">{selectedPlan?.durationDays} ngày</span>
+                        </div>
+                        <div className="info-row">
+                            <span className="label">Phương thức thanh toán:</span>
+                            <span className="value">VNPAY</span>
+                        </div>
+                        <div className="info-row total-row">
+                            <span className="label">Tổng thanh toán:</span>
+                            <span className="value">{selectedPlan?.price}đ</span>
+                        </div>
+                        <Tag color="green" style={{ marginTop: '16px', padding: '8px 16px' }}>
+                            <SafetyCertificateOutlined style={{ marginRight: '8px' }} />
+                            Bạn sẽ được kích hoạt ngay sau khi thanh toán thành công
+                        </Tag>
+                    </ConfirmationSection>
+                </>
             )
         }
     ];
@@ -723,31 +753,32 @@ const Premium = () => {
             </PageHeader>
 
             <Row gutter={[24, 24]}>
-                {plans.map((plan, index) => (
-                    <Col xs={24} md={8} key={index}>
+                {packageList.map((plan, index) => (
+                    <Col xs={24} md={8} key={plan.packageID}>
                         <AnimatedPremiumCard
-                            featured={plan.featured}
-                            title={plan.title}
-                            extra={plan.featured && <Tag color="#5FB8B3">Phổ biến nhất</Tag>}
+                            title={plan.packageName}
                             delay={`${0.15 + index * 0.1}s`}
                         >
                             <div className="price">
                                 {plan.price}đ
                             </div>
+                            <div style={{ textAlign: 'center', color: '#666', marginBottom: 8 }}>
+                                Thời hạn: {plan.durationDays} ngày
+                            </div>
                             <ul className="feature-list">
-                                {plan.features.map((feature, idx) => (
+                                {plan.description.split(';').map((feature, idx) => (
                                     <li key={idx}>
                                         <CheckOutlined />
-                                        {feature}
+                                        {feature.trim()}
                                     </li>
                                 ))}
                             </ul>
                             <Button
-                                type={plan.featured ? 'primary' : 'default'}
+                                type="primary"
                                 block
                                 size="large"
                                 onClick={() => showModal(plan)}
-                                style={plan.featured ? { backgroundColor: '#5FB8B3', borderColor: '#5FB8B3' } : {}}
+                                style={{ backgroundColor: '#5FB8B3', borderColor: '#5FB8B3' }}
                             >
                                 Đăng ký ngay
                             </Button>
@@ -847,20 +878,20 @@ const Premium = () => {
                     />
                 </div>
                 <Row gutter={[16, 16]}>
-                    {plans.map((plan, index) => (
+                    {packageList.map((plan, index) => (
                         <Col key={index} xs={24} md={8}>
                             <AnimatedPremiumCard
                                 featured={plan.featured}
-                                title={plan.title}
+                                title={plan.name}
                                 extra={plan.featured && <Tag color="#5FB8B3">Phổ biến nhất</Tag>}
-                                style={{ opacity: plan.title === currentSubscription.plan ? 0.7 : 1 }}
+                                style={{ opacity: plan.name === currentSubscription.plan ? 0.7 : 1 }}
                                 delay={`${0.1 + index * 0.08}s`}
                             >
                                 <div className="price">
                                     {plan.price}đ
                                 </div>
                                 <ul className="feature-list">
-                                    {plan.features.map((feature, idx) => (
+                                    {(plan.features || []).map((feature, idx) => (
                                         <li key={idx}>
                                             <CheckOutlined />
                                             {feature}
@@ -871,7 +902,7 @@ const Premium = () => {
                                     type={plan.featured ? 'primary' : 'default'}
                                     block
                                     size="large"
-                                    disabled={plan.title === currentSubscription.plan}
+                                    disabled={plan.name === currentSubscription.plan}
                                     onClick={() => {
                                         setIsChangeModalVisible(false);
                                         showModal(plan);
@@ -882,13 +913,26 @@ const Premium = () => {
                                             : { marginTop: '20px' }
                                     }
                                 >
-                                    {plan.title === currentSubscription.plan ? 'Gói hiện tại' : 'Chọn gói này'}
+                                    {plan.name === currentSubscription.plan ? 'Gói hiện tại' : 'Chọn gói này'}
                                 </Button>
                             </AnimatedPremiumCard>
                         </Col>
                     ))}
                 </Row>
             </Modal>
+
+            {/* Loader Modal */}
+            <LoaderContainer
+                open={isLoading}
+                footer={null}
+                closable={false}
+                centered
+                maskClosable={false}
+                width={150}
+                bodyStyle={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '150px' }}
+            >
+                <Loader />
+            </LoaderContainer>
         </PageContainer>
     );
 };

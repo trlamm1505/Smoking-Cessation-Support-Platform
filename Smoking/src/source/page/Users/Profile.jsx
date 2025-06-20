@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { CameraOutlined, TrophyOutlined, HeartOutlined, CrownOutlined, TeamOutlined, MailOutlined, PhoneOutlined, HomeOutlined, CalendarOutlined, UserOutlined, EnvironmentOutlined, EditOutlined, SaveOutlined, CloseOutlined, ManOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import userApi from '../Axios/userAxios';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -812,103 +813,87 @@ const AddAchievementSection = styled.div`
 `;
 
 const Profile = () => {
+  // State for profile
   const [isEditingIntro, setIsEditingIntro] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [accountForm, setAccountForm] = useState({
-    username: 'nguyenvana',
+    username: '',
     oldPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
   const [accountError, setAccountError] = useState('');
 
-  const [introText, setIntroText] = useState(
-    "Xin chào! Tôi đang trong hành trình cai thuốc lá và đã đạt được nhiều tiến bộ. Tôi tin rằng với sự hỗ trợ của cộng đồng, chúng ta có thể cùng nhau vượt qua thử thách này."
-  );
-  const [tempIntroText, setTempIntroText] = useState(introText);
+  // API data states
+  const [introText, setIntroText] = useState('');
+  const [tempIntroText, setTempIntroText] = useState('');
+  const [profileData, setProfileData] = useState({});
+  const [tempProfileData, setTempProfileData] = useState({});
+  const [personalInfo, setPersonalInfo] = useState([]);
+  const [tempPersonalInfo, setTempPersonalInfo] = useState([]);
 
-  const [profileData, setProfileData] = useState({
-    name: 'Nguyễn Văn A',
-    isPremium: true,
-    premiumTitle: 'Thành viên Premium'
-  });
-  const [tempProfileData, setTempProfileData] = useState({ ...profileData });
+  // Lấy userId từ localStorage (hoặc context/auth thực tế)
+  const userId = localStorage.getItem('userId');
 
-  const [personalInfo, setPersonalInfo] = useState([
-    {
-      icon: <MailOutlined />,
-      label: 'Email',
-      value: 'nguyenvana@example.com',
-      key: 'email'
-    },
-    {
-      icon: <PhoneOutlined />,
-      label: 'Số điện thoại',
-      value: '0123456789',
-      key: 'phone'
-    },
-    {
-      icon: <UserOutlined />,
-      label: 'Tuổi',
-      value: '28',
-      key: 'age'
-    },
-    {
-      icon: <ManOutlined />,
-      label: 'Giới tính',
-      value: 'Nam',
-      key: 'gender'
-    },
-    {
-      icon: <UserOutlined />,
-      label: 'Nghề nghiệp',
-      value: 'Kỹ sư phần mềm',
-      key: 'job'
-    },
-    {
-      icon: <EnvironmentOutlined />,
-      label: 'Địa chỉ',
-      value: 'Số 123, Đường ABC, Quận Ba Đình, Hà Nội',
-      key: 'address'
-    },
-    {
-      icon: <HomeOutlined />,
-      label: 'Quê quán',
-      value: 'Nam Định, Việt Nam',
-      key: 'hometown'
-    },
-    {
-      icon: <CalendarOutlined />,
-      label: 'Ngày tham gia',
-      value: '01/01/2024',
-      key: 'joinDate'
-    },
-    {
-      icon: <HeartOutlined />,
-      label: 'Số năm hút thuốc',
-      value: '',
-      key: 'smokingYears'
-    },
-    {
-      icon: <HeartOutlined />,
-      label: 'Số điếu mỗi ngày',
-      value: '',
-      key: 'cigarettesPerDay'
-    },
-    {
-      icon: <HeartOutlined />,
-      label: 'Vấn đề sức khỏe liên quan (nếu có)',
-      value: '',
-      key: 'healthIssues'
+  // Thêm state và hàm thông báo custom
+  const [notification, setNotification] = useState({ visible: false, message: '', type: '' });
+  const showNotification = (message, type) => {
+    setNotification({ visible: true, message, type });
+    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 3000);
+  };
+
+  // Định nghĩa các trường personalInfo mặc định giống guest (chỉ dùng để merge key/label/icon, không hardcode value)
+  const defaultPersonalInfo = [
+    { icon: <MailOutlined />, label: 'Email', key: 'email' },
+    { icon: <PhoneOutlined />, label: 'Số điện thoại', key: 'phone' },
+    { icon: <UserOutlined />, label: 'Tuổi', key: 'age' },
+    { icon: <ManOutlined />, label: 'Giới tính', key: 'gender' },
+    { icon: <UserOutlined />, label: 'Nghề nghiệp', key: 'job' },
+    { icon: <EnvironmentOutlined />, label: 'Địa chỉ', key: 'address' },
+    { icon: <HomeOutlined />, label: 'Quê quán', key: 'hometown' },
+    { icon: <CalendarOutlined />, label: 'Ngày tham gia', key: 'joinDate' },
+    { icon: <HeartOutlined />, label: 'Số năm hút thuốc', key: 'smokingYears' },
+    { icon: <HeartOutlined />, label: 'Số điếu mỗi ngày', key: 'cigarettesPerDay' },
+    { icon: <HeartOutlined />, label: 'Vấn đề sức khỏe liên quan (nếu có)', key: 'healthIssues' }
+  ];
+
+  // Khi fetch xong dữ liệu từ API, merge các trường để đảm bảo đủ key/label/icon, value lấy từ API hoặc để trống
+  useEffect(() => {
+    if (userId) {
+      const fetchProfile = async () => {
+        try {
+          const res = await userApi.get(userId);
+          setProfileData(res.profile || {});
+          setTempProfileData(res.profile || {});
+          setIntroText(res.intro || '');
+          setTempIntroText(res.intro || '');
+          // Merge personalInfo từ API với defaultPersonalInfo
+          const apiInfo = res.personalInfo || [];
+          const merged = defaultPersonalInfo.map(def => {
+            const found = apiInfo.find(i => i.key === def.key);
+            return found ? { ...def, ...found } : { ...def, value: '' };
+          });
+          setPersonalInfo(merged);
+          setTempPersonalInfo(merged);
+        } catch (err) {
+          // Handle error
+        }
+      };
+      fetchProfile();
     }
-  ]);
+    // eslint-disable-next-line
+  }, [userId]);
 
-  const [tempPersonalInfo, setTempPersonalInfo] = useState([...personalInfo]);
-
-  const handleSaveIntro = () => {
-    setIntroText(tempIntroText);
-    setIsEditingIntro(false);
+  const handleSaveIntro = async () => {
+    try {
+      // Gửi intro mới lên API
+      await userApi.put(userId, { intro: tempIntroText });
+      setIntroText(tempIntroText);
+      setIsEditingIntro(false);
+    } catch (err) {
+      // Handle error
+    }
   };
 
   const handleCancelIntro = () => {
@@ -922,10 +907,19 @@ const Profile = () => {
     setShowEditModal(true);
   };
 
-  const handleSaveProfile = () => {
-    setProfileData({ ...tempProfileData });
-    setPersonalInfo([...tempPersonalInfo]);
-    setShowEditModal(false);
+  const handleSaveProfile = async () => {
+    try {
+      // Gửi profile và personalInfo mới lên API
+      await userApi.put(userId, {
+        ...tempProfileData,
+        personalInfo: tempPersonalInfo
+      });
+      setProfileData({ ...tempProfileData });
+      setPersonalInfo([...tempPersonalInfo]);
+      setShowEditModal(false);
+    } catch (err) {
+      // Handle error
+    }
   };
 
   const handleCancelProfile = () => {
@@ -940,8 +934,9 @@ const Profile = () => {
     setTempPersonalInfo(updated);
   };
 
-  const handleFileUpload = (type) => {
-    // Xử lý upload file cho avatar hoặc cover photo
+  const handleFileUpload = async (type) => {
+    // TODO: Call API to upload avatar or cover photo
+    // Bạn có thể dùng userApi.put(userId, { avatar: ... }) hoặc endpoint riêng
     console.log(`Uploading ${type}`);
   };
 
@@ -981,11 +976,13 @@ const Profile = () => {
               onChange={() => handleFileUpload('avatar')}
             />
           </AvatarContainer>
-          <UserName>{profileData.name}</UserName>
-          <PremiumTag>
-            <CrownOutlined />
-            {profileData.premiumTitle}
-          </PremiumTag>
+          <UserName>{profileData.name || ''}</UserName>
+          {profileData.premiumTitle && (
+            <PremiumTag>
+              <CrownOutlined />
+              {profileData.premiumTitle}
+            </PremiumTag>
+          )}
         </ProfileContent>
       </ProfileHeader>
 
@@ -1059,7 +1056,7 @@ const Profile = () => {
               </h3>
               <FormGrid>
                 <FormField>
-                  <label>Tên hiển thị</label>
+                  <label>TÊN HIỂN THỊ</label>
                   <EditableInput
                     value={tempProfileData.name}
                     onChange={(e) => setTempProfileData({ ...tempProfileData, name: e.target.value })}
@@ -1148,15 +1145,6 @@ const Profile = () => {
             </ModalHeader>
             <FormSection>
               <FormField className="full-width">
-                <label>Tài khoản đăng nhập</label>
-                <EditableInput
-                  type="text"
-                  value={accountForm.username}
-                  onChange={e => setAccountForm({ ...accountForm, username: e.target.value })}
-                  placeholder="Nhập tài khoản đăng nhập"
-                />
-              </FormField>
-              <FormField className="full-width">
                 <label>Mật khẩu cũ</label>
                 <EditableInput
                   type="password"
@@ -1190,27 +1178,48 @@ const Profile = () => {
                 <CloseOutlined />
                 Hủy
               </ActionButton>
-              <ActionButton className="primary" onClick={() => {
+              <ActionButton className="primary" onClick={async () => {
+                console.log('Đã bấm nút Lưu thay đổi');
+                console.log('accountForm:', accountForm);
                 // Validate
-                if (!accountForm.username) {
-                  setAccountError('Vui lòng nhập tài khoản đăng nhập.');
-                  return;
-                }
                 if (!accountForm.oldPassword) {
                   setAccountError('Vui lòng nhập mật khẩu cũ.');
+                 
                   return;
                 }
                 if (!accountForm.newPassword) {
                   setAccountError('Vui lòng nhập mật khẩu mới.');
+                 
                   return;
                 }
                 if (accountForm.newPassword !== accountForm.confirmPassword) {
                   setAccountError('Mật khẩu mới và xác nhận không khớp.');
+                  
                   return;
                 }
                 setAccountError('');
-                setShowAccountModal(false);
-                // Thực hiện lưu thông tin ở đây nếu cần
+                try {
+                  const userId = localStorage.getItem('userId');
+                  console.log('userId:', userId);
+                  const res = await userApi.changePassword({
+                    userId,
+                    currentPassword: accountForm.oldPassword,
+                    newPassword: accountForm.newPassword,
+                    confirmNewPassword: accountForm.confirmPassword
+                  });
+                  console.log('API response:', res.data);
+                  if (res.data && res.data.success) {
+                    showNotification(res.data.message || 'Đổi mật khẩu thành công!', 'success');
+                    setShowAccountModal(false);
+                  } else {
+                    setAccountError(res.data.message || 'Đổi mật khẩu thất bại!');
+                    showNotification(res.data.message || 'Đổi mật khẩu thất bại!', 'error');
+                    console.log('API báo lỗi:', res.data.message || 'Đổi mật khẩu thất bại!');
+                  }
+                } catch (err) {
+                  console.log('API error:', err?.response?.data || err.message || err);
+                  setAccountError(err?.response?.data?.message || 'Lỗi kết nối server!');
+                }
               }}>
                 <SaveOutlined />
                 Lưu thay đổi
@@ -1218,6 +1227,27 @@ const Profile = () => {
             </ModalActions>
           </ModalContent>
         </Modal>
+      )}
+
+      {notification.visible && (
+        <div className={`custom-notification ${notification.type}`} style={{
+          position: 'fixed',
+          top: 24,
+          right: 24,
+          zIndex: 2000,
+          background: notification.type === 'success' ? '#5FB8B3' : '#ff4d4f',
+          color: '#fff',
+          padding: '16px 32px',
+          borderRadius: 8,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+          fontSize: 16,
+          fontWeight: 500,
+          transition: 'all 0.3s',
+          minWidth: 220,
+          textAlign: 'center',
+        }}>
+          {notification.message}
+        </div>
       )}
     </Container>
   );
