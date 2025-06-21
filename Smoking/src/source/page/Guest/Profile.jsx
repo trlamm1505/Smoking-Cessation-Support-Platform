@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { CameraOutlined, TrophyOutlined, HeartOutlined, CrownOutlined, TeamOutlined, MailOutlined, PhoneOutlined, HomeOutlined, CalendarOutlined, UserOutlined, EnvironmentOutlined, EditOutlined, SaveOutlined, CloseOutlined, ManOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import userApi from '../Axios/userAxios';
@@ -813,103 +813,87 @@ const AddAchievementSection = styled.div`
 `;
 
 const Profile = () => {
+  // State for profile
   const [isEditingIntro, setIsEditingIntro] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [accountForm, setAccountForm] = useState({
-    username: 'nguyenvana',
+    username: '',
     oldPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
   const [accountError, setAccountError] = useState('');
 
-  const [introText, setIntroText] = useState(
-    "Xin chào! Tôi đang trong hành trình cai thuốc lá và đã đạt được nhiều tiến bộ. Tôi tin rằng với sự hỗ trợ của cộng đồng, chúng ta có thể cùng nhau vượt qua thử thách này."
-  );
-  const [tempIntroText, setTempIntroText] = useState(introText);
+  // API data states
+  const [introText, setIntroText] = useState('');
+  const [tempIntroText, setTempIntroText] = useState('');
+  const [profileData, setProfileData] = useState({});
+  const [tempProfileData, setTempProfileData] = useState({});
+  const [personalInfo, setPersonalInfo] = useState([]);
+  const [tempPersonalInfo, setTempPersonalInfo] = useState([]);
 
-  const [profileData, setProfileData] = useState({
-    name: 'Nguyễn Văn A',
-    isPremium: true,
-    premiumTitle: 'Thành viên Premium'
-  });
-  const [tempProfileData, setTempProfileData] = useState({ ...profileData });
+  // Lấy userId từ localStorage (hoặc context/auth thực tế)
+  const userId = localStorage.getItem('userId');
 
-  const [personalInfo, setPersonalInfo] = useState([
-    {
-      icon: <MailOutlined />,
-      label: 'Email',
-      value: 'nguyenvana@example.com',
-      key: 'email'
-    },
-    {
-      icon: <PhoneOutlined />,
-      label: 'Số điện thoại',
-      value: '0123456789',
-      key: 'phone'
-    },
-    {
-      icon: <UserOutlined />,
-      label: 'Tuổi',
-      value: '28',
-      key: 'age'
-    },
-    {
-      icon: <ManOutlined />,
-      label: 'Giới tính',
-      value: 'Nam',
-      key: 'gender'
-    },
-    {
-      icon: <UserOutlined />,
-      label: 'Nghề nghiệp',
-      value: 'Kỹ sư phần mềm',
-      key: 'job'
-    },
-    {
-      icon: <EnvironmentOutlined />,
-      label: 'Địa chỉ',
-      value: 'Số 123, Đường ABC, Quận Ba Đình, Hà Nội',
-      key: 'address'
-    },
-    {
-      icon: <HomeOutlined />,
-      label: 'Quê quán',
-      value: 'Nam Định, Việt Nam',
-      key: 'hometown'
-    },
-    {
-      icon: <CalendarOutlined />,
-      label: 'Ngày tham gia',
-      value: '01/01/2024',
-      key: 'joinDate'
-    },
-    {
-      icon: <HeartOutlined />,
-      label: 'Số năm hút thuốc',
-      value: '',
-      key: 'smokingYears'
-    },
-    {
-      icon: <HeartOutlined />,
-      label: 'Số điếu mỗi ngày',
-      value: '',
-      key: 'cigarettesPerDay'
-    },
-    {
-      icon: <HeartOutlined />,
-      label: 'Vấn đề sức khỏe liên quan (nếu có)',
-      value: '',
-      key: 'healthIssues'
+  // Thêm state và hàm thông báo custom
+  const [notification, setNotification] = useState({ visible: false, message: '', type: '' });
+  const showNotification = (message, type) => {
+    setNotification({ visible: true, message, type });
+    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 3000);
+  };
+
+  // Định nghĩa các trường personalInfo mặc định giống guest (chỉ dùng để merge key/label/icon, không hardcode value)
+  const defaultPersonalInfo = [
+    { icon: <PhoneOutlined />, label: 'Số điện thoại', key: 'phoneNumber' },
+    { icon: <UserOutlined />, label: 'Tuổi', key: 'age' },
+    { icon: <UserOutlined />, label: 'Nghề nghiệp', key: 'occupation' },
+    { icon: <EnvironmentOutlined />, label: 'Địa chỉ', key: 'address' },
+    { icon: <HomeOutlined />, label: 'Quê quán', key: 'hometown' },
+    { icon: <ManOutlined />, label: 'Giới tính', key: 'gender' },
+
+  ];
+
+  // Khi fetch xong dữ liệu từ API, merge các trường để đảm bảo đủ key/label/icon, value lấy từ API hoặc để trống
+  useEffect(() => {
+    if (userId) {
+      const fetchProfile = async () => {
+        try {
+          const res = await userApi.get(userId); // gọi API lấy thông tin user
+          const user = res.data;
+  
+          // Gán thông tin chính
+          setProfileData(user);
+          setTempProfileData(user);
+          setIntroText(user.intro || '');
+          setTempIntroText(user.intro || '');
+  
+          // Tạo lại danh sách thông tin cá nhân (gán trực tiếp từ object user)
+          const merged = defaultPersonalInfo.map((item) => ({
+            ...item,
+            value: user[item.key] ?? '',  // dùng user[item.key] trực tiếp
+          }));
+  
+          setPersonalInfo(merged);
+          setTempPersonalInfo(merged);
+  
+        } catch (err) {
+          console.error("Lỗi khi lấy dữ liệu user:", err);
+        }
+      };
+  
+      fetchProfile();
     }
-  ]);
-
-  const [tempPersonalInfo, setTempPersonalInfo] = useState([...personalInfo]);
-
-  const handleSaveIntro = () => {
+  }, [userId]);
+  const handleSaveIntro = async () => {
+    try {
+      // Gửi intro mới lên API
+      await userApi.put(userId, { intro: tempIntroText });
     setIntroText(tempIntroText);
     setIsEditingIntro(false);
+    } catch (err) {
+      // Handle error
+    }
   };
 
   const handleCancelIntro = () => {
@@ -923,10 +907,48 @@ const Profile = () => {
     setShowEditModal(true);
   };
 
-  const handleSaveProfile = () => {
-    setProfileData({ ...tempProfileData });
-    setPersonalInfo([...tempPersonalInfo]);
-    setShowEditModal(false);
+  const handleSaveProfile = async () => {
+    console.log('ĐÃ BẤM LƯU THAY ĐỔI');
+    try {
+      // B1: Chuyển tempPersonalInfo (array) thành object key-value
+      const personalInfoMap = tempPersonalInfo.reduce((acc, item) => {
+        acc[item.key] = item.value || '';
+        return acc;
+      }, {});
+  
+      // B2: Tạo object gửi lên backend (merge cả profile lẫn info)
+      const updatedProfile = {
+        userId: profileData.userId || userId,
+        fullName: tempProfileData.fullName || tempProfileData.name || profileData.fullName || profileData.name || '',
+        profilePictureUrl: tempProfileData.profilePictureUrl || profileData.profilePictureUrl || '',
+        coachId: tempProfileData.coachId || profileData.coachId || 0,
+        currentMembershipPackageId: tempProfileData.currentMembershipPackageId || profileData.currentMembershipPackageId || 0,
+        phoneNumber: personalInfoMap.phoneNumber || '',
+        age: parseInt(personalInfoMap.age) || 0,
+        gender: personalInfoMap.gender || '',
+        occupation: personalInfoMap.occupation || '',
+        address: personalInfoMap.address || '',
+        hometown: personalInfoMap.hometown || '',
+       
+      };
+  
+      console.log('Dữ liệu gửi lên:', updatedProfile);
+      
+      // B3: Gửi PUT request
+      await userApi.updateProfile(updatedProfile);
+  
+      // B4: Cập nhật lại dữ liệu trong state (hiển thị mới)
+      setProfileData({ ...profileData, ...updatedProfile });
+      setTempProfileData({ ...tempProfileData, ...updatedProfile });
+      setPersonalInfo([...tempPersonalInfo]);
+      setShowEditModal(false);
+  
+      // B5: Thông báo thành công
+      showNotification('Cập nhật thông tin thành công!', 'success');
+    } catch (err) {
+      console.error('Lỗi cập nhật:', err.response?.data || err.message);
+      showNotification('Lỗi khi cập nhật thông tin!', 'error');
+    }
   };
 
   const handleCancelProfile = () => {
@@ -941,19 +963,66 @@ const Profile = () => {
     setTempPersonalInfo(updated);
   };
 
-  const handleFileUpload = (type) => {
-    // Xử lý upload file cho avatar hoặc cover photo
-    console.log(`Uploading ${type}`);
+  // Thêm hàm upload ảnh lên Cloudinary
+  const handleUploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "avatarUploadClient"); // preset bạn đã tạo
+    formData.append("cloud_name", "dp4gsczko"); 
+
+    const res = await fetch("https://api.cloudinary.com/v1_1/dp4gsczko/image/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    return data.secure_url; // Trả về URL ảnh sau khi upload thành công
+  };
+
+  const [newAvatar, setNewAvatar] = useState(null);
+  const [newAvatarFile, setNewAvatarFile] = useState(null);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewAvatar(URL.createObjectURL(file));
+      setNewAvatarFile(file);
+    }
+  };
+
+  const handleConfirmAvatar = async () => {
+    if (!newAvatarFile) return;
+    try {
+      const imageUrl = await handleUploadImage(newAvatarFile);
+      // Gửi đầy đủ schema backend yêu cầu, giữ lại các trường hiện tại
+      const updatedProfile = {
+        userId: profileData.userId || userId,
+        fullName: profileData.fullName || profileData.name || '',
+        profilePictureUrl: imageUrl,
+        coachId: profileData.coachId || 0,
+        currentMembershipPackageId: profileData.currentMembershipPackageId || 0,
+        phoneNumber: profileData.phoneNumber || profileData.phone || '',
+        hometown: profileData.hometown || '',
+        occupation: profileData.occupation || profileData.job || '',
+        age: profileData.age || 0,
+        address: profileData.address || ''
+      };
+      await userApi.put(userId, updatedProfile);
+      setProfileData(prev => ({ ...prev, profilePictureUrl: imageUrl }));
+      setTempProfileData(prev => ({ ...prev, profilePictureUrl: imageUrl }));
+      setNewAvatar(null);
+      setNewAvatarFile(null);
+      showNotification('Cập nhật ảnh đại diện thành công!', 'success');
+    } catch (err) {
+      showNotification('Lỗi khi upload ảnh!', 'error');
+    }
   };
 
   return (
     <Container>
       <ProfileHeader>
         <HeaderButtons>
-          <Button onClick={() => document.getElementById('coverInput').click()}>
-            <CameraOutlined />
-            Thay đổi ảnh bìa
-          </Button>
+          
           <FileInput
             id="coverInput"
             type="file"
@@ -971,7 +1040,13 @@ const Profile = () => {
         </HeaderButtons>
         <ProfileContent>
           <AvatarContainer>
-            <TeamOutlined style={{ fontSize: '48px', color: '#5FB8B3' }} />
+            {newAvatar ? (
+              <img src={newAvatar} alt="avatar-preview" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            ) : profileData.profilePictureUrl ? (
+              <img src={profileData.profilePictureUrl} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            ) : (
+              <TeamOutlined style={{ fontSize: '48px', color: '#5FB8B3' }} />
+            )}
             <div className="camera-icon" onClick={() => document.getElementById('avatarInput').click()}>
               <CameraOutlined />
             </div>
@@ -979,14 +1054,40 @@ const Profile = () => {
               id="avatarInput"
               type="file"
               accept="image/*"
-              onChange={() => handleFileUpload('avatar')}
+              onChange={handleAvatarChange}
             />
+            {newAvatar && (
+              <Button
+                style={{
+                  marginTop: 16,
+                  background: '#5FB8B3',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 20,
+                  fontWeight: 600,
+                  fontSize: 16,
+                  boxShadow: '0 4px 16px rgba(95,184,179,0.15)',
+                  padding: '10px 28px',
+                  cursor: 'pointer',
+                  position: 'absolute',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  bottom: -40,
+                  zIndex: 20
+                }}
+                onClick={handleConfirmAvatar}
+              >
+                <SaveOutlined style={{ marginRight: 8 }} /> Xác nhận
+              </Button>
+            )}
           </AvatarContainer>
-          <UserName>{profileData.name}</UserName>
+          <UserName>{profileData.name || ''}</UserName>
+          {profileData.premiumTitle && (
           <PremiumTag>
             <CrownOutlined />
             {profileData.premiumTitle}
           </PremiumTag>
+          )}
         </ProfileContent>
       </ProfileHeader>
 
@@ -1060,10 +1161,16 @@ const Profile = () => {
               </h3>
               <FormGrid>
                 <FormField>
-                  <label>Tên hiển thị</label>
+                  <label>TÊN HIỂN THỊ</label>
                   <EditableInput
-                    value={tempProfileData.name}
-                    onChange={(e) => setTempProfileData({ ...tempProfileData, name: e.target.value })}
+                    value={tempProfileData.fullName || tempProfileData.name || ""}
+                    onChange={(e) =>
+                      setTempProfileData({
+                        ...tempProfileData,
+                        fullName: e.target.value,
+                        name: e.target.value,
+                      })
+                    }
                     placeholder="Nhập tên hiển thị"
                   />
                 </FormField>
@@ -1188,17 +1295,17 @@ const Profile = () => {
                 // Validate
                 if (!accountForm.oldPassword) {
                   setAccountError('Vui lòng nhập mật khẩu cũ.');
-                  console.log('Thiếu mật khẩu cũ');
+                 
                   return;
                 }
                 if (!accountForm.newPassword) {
                   setAccountError('Vui lòng nhập mật khẩu mới.');
-                  console.log('Thiếu mật khẩu mới');
+                 
                   return;
                 }
                 if (accountForm.newPassword !== accountForm.confirmPassword) {
                   setAccountError('Mật khẩu mới và xác nhận không khớp.');
-                  console.log('Mật khẩu mới và xác nhận không khớp');
+                  
                   return;
                 }
                 setAccountError('');
@@ -1213,10 +1320,11 @@ const Profile = () => {
                   });
                   console.log('API response:', res.data);
                   if (res.data && res.data.success) {
-                    alert('Đổi mật khẩu thành công!');
+                    showNotification(res.data.message || 'Đổi mật khẩu thành công!', 'success');
                 setShowAccountModal(false);
                   } else {
                     setAccountError(res.data.message || 'Đổi mật khẩu thất bại!');
+                    showNotification(res.data.message || 'Đổi mật khẩu thất bại!', 'error');
                     console.log('API báo lỗi:', res.data.message || 'Đổi mật khẩu thất bại!');
                   }
                 } catch (err) {
@@ -1230,6 +1338,27 @@ const Profile = () => {
             </ModalActions>
           </ModalContent>
         </Modal>
+      )}
+
+      {notification.visible && (
+        <div className={`custom-notification ${notification.type}`} style={{
+          position: 'fixed',
+          top: 24,
+          right: 24,
+          zIndex: 2000,
+          background: notification.type === 'success' ? '#5FB8B3' : '#ff4d4f',
+          color: '#fff',
+          padding: '16px 32px',
+          borderRadius: 8,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+          fontSize: 16,
+          fontWeight: 500,
+          transition: 'all 0.3s',
+          minWidth: 220,
+          textAlign: 'center',
+        }}>
+          {notification.message}
+        </div>
       )}
     </Container>
   );
