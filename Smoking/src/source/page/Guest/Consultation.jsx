@@ -70,24 +70,7 @@ const timeSlots = [
     '13:00', '14:00', '15:00', '16:00', '17:00'
 ];
 
-const coaches = [
-    {
-        id: 1,
-        name: 'Nguyễn Văn A',
-        title: 'Chuyên gia tư vấn cai thuốc lá',
-        avatar: 'https://xsgames.co/randomusers/avatar.php?g=male',
-        experience: '5 năm',
-        rating: 4.8
-    },
-    {
-        id: 2,
-        name: 'Trần Thị B',
-        title: 'Chuyên gia tâm lý học',
-        avatar: 'https://xsgames.co/randomusers/avatar.php?g=female',
-        experience: '7 năm',
-        rating: 4.9
-    }
-];
+
 
 const CustomTable = styled(Table)`
   .ant-table-thead > tr > th {
@@ -148,6 +131,11 @@ const Consultation = () => {
     const [selectedCoach, setSelectedCoach] = useState(null);
     const [appointments, setAppointments] = useState([]);
     const [form] = Form.useForm();
+
+    // Helper function to get meeting link from either meetingLink or meetLink field
+    const getMeetingLink = (record) => {
+        return record.meetingLink || record.meetLink || null;
+    };
 
     const handleBooking = (coach) => {
         setSelectedCoach(coach);
@@ -230,8 +218,25 @@ const Consultation = () => {
                         { title: 'Ngày', dataIndex: 'date', key: 'date', render: date => dayjs(date).format('DD/MM/YYYY') },
                         { title: 'Giờ', dataIndex: 'time', key: 'time' },
                         { title: 'Ghi chú', dataIndex: 'notes', key: 'notes' },
-                        { title: 'Trạng thái', dataIndex: 'status', key: 'status', render: status => status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xác nhận' },
-                        { title: 'Link Google Meet', dataIndex: 'meetLink', key: 'meetLink', render: (link, record) => link && record.status === 'confirmed' ? <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a> : '-' }
+                        { 
+                            title: 'Trạng thái', 
+                            dataIndex: 'status', 
+                            key: 'status', 
+                            render: status =>
+                                status === 'approved' || status === 'confirmed'
+                                    ? 'Đã xác nhận'
+                                    : 'Chờ xác nhận'
+                        },
+                        { 
+                            title: 'Link Google Meet', 
+                            key: 'meetingLink', 
+                            render: (_, record) => {
+                                const link = getMeetingLink(record);
+                                return link && (record.status === 'approved' || record.status === 'confirmed') ? 
+                                    <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a> : 
+                                    '-';
+                            }
+                        }
                     ]}
                     dataSource={appointments.map((item, idx) => ({ ...item, key: idx }))}
                     pagination={false}
