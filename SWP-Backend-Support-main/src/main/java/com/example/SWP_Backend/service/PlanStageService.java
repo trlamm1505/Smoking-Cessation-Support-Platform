@@ -13,6 +13,14 @@ import java.util.List;
 @Service
 public class PlanStageService {
 
+    /// Sau đây là phần tính mức độ
+    public static String tinhMucDo(int years, int cigarettesPerDay) {
+        double packYear = (cigarettesPerDay / 20.0) * years;
+        if (packYear < 5) return "Nhẹ";
+        else if (packYear < 20) return "Trung bình";
+        else return "Nặng";
+    }
+
     /**
      * Đọc từng dòng từ file Excel và trả về từng ngày (DayPlanDTO).
      * Có log debug để kiểm tra từng bước khi đọc file.
