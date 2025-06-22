@@ -1,3 +1,153 @@
+
+-- Database: smoking
+bảng mới
+CREATE TABLE cessation_plan_detail (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    activity1 VARCHAR(255),
+    activity2 VARCHAR(255),
+    activity3 VARCHAR(255),
+    activity4 VARCHAR(255),
+    activity5 VARCHAR(255),
+    day INT NOT NULL,
+    goal VARCHAR(255),
+    planid BIGINT NOT NULL
+);
+
+CREATE TABLE cessation_plans (
+    planid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    cigarettes_per_day INT,
+    cost_per_pack NUMERIC(38,2),
+    custom_details VARCHAR(255),
+    is_active BIT NOT NULL,
+    notes VARCHAR(255),
+    reason_to_quit VARCHAR(255),
+    smoking_frequency VARCHAR(255),
+    start_date DATE,
+    target_quit_date DATE,
+    userid BIGINT NOT NULL
+);
+
+CREATE TABLE coaches (
+    coachid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    availability NVARCHAR(255),
+    bio NVARCHAR(255),
+    full_name NVARCHAR(255) NOT NULL,
+    is_active BIT NOT NULL,
+    profile_pictureurl VARCHAR(255),
+    specialization NVARCHAR(255),
+    userid BIGINT,
+    address NVARCHAR(255),
+    degree NVARCHAR(255),
+    experience NVARCHAR(255),
+    gender VARCHAR(10),
+    phone_number VARCHAR(20),
+    rating FLOAT
+);
+
+CREATE TABLE consultations (
+    consultation_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    coach_id BIGINT,
+    meeting_link VARCHAR(255),
+    notes NVARCHAR(255),
+    scheduled_time DATETIME2(6),
+    status VARCHAR(255),
+    user_id BIGINT
+);
+
+CREATE TABLE membership_packages (
+    packageid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    description NVARCHAR(255) NOT NULL,
+    duration_days INT NOT NULL,
+    is_active BIT NOT NULL,
+    package_name NVARCHAR(255) NOT NULL UNIQUE,
+    price FLOAT NOT NULL
+);
+
+CREATE TABLE payments (
+    paymentid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    amount FLOAT,
+    payment_date DATETIME2(6),
+    payment_method VARCHAR(255),
+    status VARCHAR(255) NOT NULL,
+    transactionid VARCHAR(255),
+    packageid BIGINT NOT NULL,
+    userid BIGINT NOT NULL
+);
+
+CREATE TABLE plan_stages (
+    stageid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    description VARCHAR(255),
+    sequence_order INT,
+    stage_name VARCHAR(255),
+    target_duration_days INT,
+    planid BIGINT NOT NULL
+);
+
+CREATE TABLE smoking_status_logs (
+    log_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    cigarettes_per_day INT,
+    cost_per_pack NUMERIC(38,2),
+    log_date DATE,
+    notes VARCHAR(255),
+    smoking_frequency VARCHAR(255),
+    userid BIGINT
+);
+
+CREATE TABLE token (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    expiry_date DATETIME2(6) NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    type VARCHAR(255) NOT NULL,
+    user_info TEXT NOT NULL
+);
+
+CREATE TABLE users (
+    userid BIGINT IDENTITY(1,1) PRIMARY KEY,
+    address NVARCHAR(255),
+    age INT,
+    coachid BIGINT,
+    current_membership_packageid INT,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    enabled BIT NOT NULL,
+    full_name NVARCHAR(255),
+    hometown NVARCHAR(255),
+    last_login_date DATETIME2(6),
+    occupation NVARCHAR(255),
+    password_hash VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20),
+    profile_pictureurl VARCHAR(255),
+    registration_date DATETIME2(6) NOT NULL,
+    role VARCHAR(255) NOT NULL,
+    subscription_end_date DATE,
+    username NVARCHAR(255) NOT NULL UNIQUE,
+    gender NVARCHAR(20)
+);
+
+-- Foreign Keys
+ALTER TABLE cessation_plan_detail ADD CONSTRAINT FK_cessation_plan_detail_planid FOREIGN KEY (planid) REFERENCES cessation_plans(planid);
+ALTER TABLE cessation_plans ADD CONSTRAINT FK_cessation_plans_userid FOREIGN KEY (userid) REFERENCES users(userid);
+ALTER TABLE coaches ADD CONSTRAINT FK_coaches_userid FOREIGN KEY (userid) REFERENCES users(userid);
+ALTER TABLE payments ADD CONSTRAINT FK_payments_userid FOREIGN KEY (userid) REFERENCES users(userid);
+ALTER TABLE payments ADD CONSTRAINT FK_payments_packageid FOREIGN KEY (packageid) REFERENCES membership_packages(packageid);
+ALTER TABLE plan_stages ADD CONSTRAINT FK_plan_stages_planid FOREIGN KEY (planid) REFERENCES cessation_plans(planid);
+ALTER TABLE smoking_status_logs ADD CONSTRAINT FK_smoking_status_logs_userid FOREIGN KEY (userid) REFERENCES users(userid);
+ALTER TABLE users ADD CONSTRAINT FK_users_coachid FOREIGN KEY (coachid) REFERENCES coaches(coachid);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Create database Smoking
 use Smoking 
 CREATE TABLE Users (
