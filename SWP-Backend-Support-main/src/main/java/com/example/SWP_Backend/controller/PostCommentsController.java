@@ -1,5 +1,6 @@
 package com.example.SWP_Backend.controller;
 
+import com.example.SWP_Backend.dto.PostCommentsDTO;
 import com.example.SWP_Backend.entity.PostComments;
 import com.example.SWP_Backend.service.PostCommentsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller cho API quản lý bình luận bài viết (PostComments).
+ */
 @RestController
 @RequestMapping("/api/comments")
 public class PostCommentsController {
@@ -14,32 +18,32 @@ public class PostCommentsController {
     @Autowired
     private PostCommentsService postCommentsService;
 
-    // Create
+    /** Tạo mới comment, nhận entity, trả về DTO. */
     @PostMapping
-    public PostComments createComment(@RequestBody PostComments comment) {
+    public PostCommentsDTO createComment(@RequestBody PostComments comment) {
         return postCommentsService.createComment(comment);
     }
 
-    // Read all
+    /** Lấy toàn bộ comment, trả về list DTO. */
     @GetMapping
-    public List<PostComments> getAllComments() {
+    public List<PostCommentsDTO> getAllComments() {
         return postCommentsService.getAllComments();
     }
 
-    // Read by ID
+    /** Lấy comment theo ID, trả về DTO. */
     @GetMapping("/{id}")
-    public PostComments getCommentById(@PathVariable Long id) {
+    public PostCommentsDTO getCommentById(@PathVariable Long id) {
         return postCommentsService.getCommentById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found with id " + id));
     }
 
-    // Update
+    /** Update comment theo ID, trả về DTO mới. */
     @PutMapping("/{id}")
-    public PostComments updateComment(@PathVariable Long id, @RequestBody PostComments comment) {
+    public PostCommentsDTO updateComment(@PathVariable Long id, @RequestBody PostComments comment) {
         return postCommentsService.updateComment(id, comment);
     }
 
-    // Delete
+    /** Xóa comment. */
     @DeleteMapping("/{id}")
     public void deleteComment(@PathVariable Long id) {
         postCommentsService.deleteComment(id);

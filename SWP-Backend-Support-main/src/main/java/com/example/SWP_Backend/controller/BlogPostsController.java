@@ -1,5 +1,6 @@
 package com.example.SWP_Backend.controller;
 
+import com.example.SWP_Backend.dto.BlogPostsDTO;
 import com.example.SWP_Backend.entity.BlogPosts;
 import com.example.SWP_Backend.service.BlogPostsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller cho API quản lý bài viết cộng đồng (BlogPosts).
+ */
 @RestController
 @RequestMapping("/api/blogposts")
 public class BlogPostsController {
@@ -14,32 +18,32 @@ public class BlogPostsController {
     @Autowired
     private BlogPostsService blogPostsService;
 
-    // Create
+    /** Tạo mới bài viết, trả về DTO. */
     @PostMapping
-    public BlogPosts createBlogPost(@RequestBody BlogPosts blogPost) {
+    public BlogPostsDTO createBlogPost(@RequestBody BlogPosts blogPost) {
         return blogPostsService.createBlogPost(blogPost);
     }
 
-    // Read all
+    /** Lấy toàn bộ bài viết, trả về list DTO. */
     @GetMapping
-    public List<BlogPosts> getAllBlogPosts() {
+    public List<BlogPostsDTO> getAllBlogPosts() {
         return blogPostsService.getAllBlogPosts();
     }
 
-    // Read by ID
+    /** Lấy bài viết theo ID, trả về DTO. */
     @GetMapping("/{id}")
-    public BlogPosts getBlogPostById(@PathVariable Long id) {
+    public BlogPostsDTO getBlogPostById(@PathVariable Long id) {
         return blogPostsService.getBlogPostById(id)
                 .orElseThrow(() -> new RuntimeException("BlogPost not found with id " + id));
     }
 
-    // Update
+    /** Update bài viết theo ID, trả về DTO mới. */
     @PutMapping("/{id}")
-    public BlogPosts updateBlogPost(@PathVariable Long id, @RequestBody BlogPosts blogPost) {
+    public BlogPostsDTO updateBlogPost(@PathVariable Long id, @RequestBody BlogPosts blogPost) {
         return blogPostsService.updateBlogPost(id, blogPost);
     }
 
-    // Delete
+    /** Xóa bài viết. */
     @DeleteMapping("/{id}")
     public void deleteBlogPost(@PathVariable Long id) {
         blogPostsService.deleteBlogPost(id);

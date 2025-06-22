@@ -1,5 +1,6 @@
 package com.example.SWP_Backend.controller;
 
+import com.example.SWP_Backend.dto.FeedbackDTO;
 import com.example.SWP_Backend.entity.Feedback;
 import com.example.SWP_Backend.service.FeedbackService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller cho API quản lý Feedback.
+ */
 @RestController
 @RequestMapping("/api/feedback")
 public class FeedbackController {
@@ -14,32 +18,32 @@ public class FeedbackController {
     @Autowired
     private FeedbackService feedbackService;
 
-    // Create
+    /** Tạo mới feedback, trả về DTO. */
     @PostMapping
-    public Feedback createFeedback(@RequestBody Feedback feedback) {
+    public FeedbackDTO createFeedback(@RequestBody Feedback feedback) {
         return feedbackService.createFeedback(feedback);
     }
 
-    // Read all
+    /** Lấy toàn bộ feedback, trả về list DTO. */
     @GetMapping
-    public List<Feedback> getAllFeedback() {
+    public List<FeedbackDTO> getAllFeedback() {
         return feedbackService.getAllFeedback();
     }
 
-    // Read by ID
+    /** Lấy feedback theo ID, trả về DTO. */
     @GetMapping("/{id}")
-    public Feedback getFeedbackById(@PathVariable Long id) {
+    public FeedbackDTO getFeedbackById(@PathVariable Long id) {
         return feedbackService.getFeedbackById(id)
                 .orElseThrow(() -> new RuntimeException("Feedback not found with id " + id));
     }
 
-    // Update
+    /** Update feedback theo ID, trả về DTO mới. */
     @PutMapping("/{id}")
-    public Feedback updateFeedback(@PathVariable Long id, @RequestBody Feedback feedback) {
+    public FeedbackDTO updateFeedback(@PathVariable Long id, @RequestBody Feedback feedback) {
         return feedbackService.updateFeedback(id, feedback);
     }
 
-    // Delete
+    /** Xóa feedback. */
     @DeleteMapping("/{id}")
     public void deleteFeedback(@PathVariable Long id) {
         feedbackService.deleteFeedback(id);
