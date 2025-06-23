@@ -18,6 +18,11 @@ public class PostCommentsService {
     @Autowired
     private PostCommentsRepository postCommentsRepository;
 
+    public Optional<PostComments> getEntityById(Long id) {
+        return postCommentsRepository.findById(id);
+    }
+
+
     /**
      * Tạo mới comment, trả về DTO.
      */

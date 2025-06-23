@@ -18,6 +18,12 @@ public class FeedbackService {
     @Autowired
     private FeedbackRepository feedbackRepository;
 
+
+    public Optional<Feedback> getEntityById(Long id) {
+        return feedbackRepository.findById(id);
+    }
+
+
     /**
      * Tạo mới feedback, trả về DTO.
      */
