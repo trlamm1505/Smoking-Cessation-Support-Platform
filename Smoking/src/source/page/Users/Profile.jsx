@@ -1081,7 +1081,7 @@ const Profile = () => {
               </Button>
             )}
           </AvatarContainer>
-          <UserName>{profileData.name || ''}</UserName>
+          <UserName>{profileData.fullName || ''}</UserName>
           {profileData.premiumTitle && (
           <PremiumTag>
             <CrownOutlined />
