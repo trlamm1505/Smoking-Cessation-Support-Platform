@@ -18,6 +18,13 @@ public class BlogPostsService {
     @Autowired
     private BlogPostsRepository blogPostsRepository;
 
+    // Trả về entity BlogPosts gốc, dùng cho update
+    public Optional<BlogPosts> getEntityById(Long id) {
+        return blogPostsRepository.findById(id);
+    }
+
+
+
     /**
      * Tạo mới một bài viết, nhận entity BlogPosts, trả về DTO sau khi lưu.
      */
@@ -87,4 +94,5 @@ public class BlogPostsService {
         dto.setFeaturedImageURL(post.getFeaturedImageURL());
         return dto;
     }
+
 }
