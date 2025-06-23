@@ -15,6 +15,15 @@ const coachApi = {
 
   // Xóa coach
   delete: (id) => axiosClient.delete(`/api/coaches/delete/${id}`),
+
+  // Lấy danh sách coach (cho admin)
+  getAllAdmin: () => axiosClient.get('/api/coaches/all'),
+
+  // Thêm coach mới (admin)
+  adminCreate: (data) => axiosClient.post('/api/coaches/admin-create', data),
+
+  // Xóa coach theo id (admin)
+  adminDelete: (id) => axiosClient.delete(`/api/coaches/delete/${id}`),
 };
 
 export default coachApi; 

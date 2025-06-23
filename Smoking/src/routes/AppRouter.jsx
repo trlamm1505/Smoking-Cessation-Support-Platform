@@ -19,6 +19,7 @@ import UserReviews from '../source/page/Users/UserReviews'
 import CoachLayout from '../source/page/Coach/CoachLayout'
 import CoachHome from '../source/page/Coach/Home'
 import CoachProfile from '../source/page/Coach/CoachProfile'
+import CoachBlog from '../source/page/Coach/CoachBlog';
 import Schedule from '../source/page/Coach/Schedule'
 import Members from '../source/page/Coach/Members'
 import Statistics from '../source/page/Coach/Statistics'
@@ -41,6 +42,7 @@ import GuestConsultation from '../source/page/Guest/Consultation'
 import GuestPremium from '../source/page/Guest/Premium'
 import GuestLayout from '../source/page/Guest/Layout'
 import LoginRequired from '../source/page/Home/LoginRequired'
+import UserCoachManagement from '../source/page/Admin/UserCoachManagement'
 
 export default function AppRouter() {
   return (
@@ -96,7 +98,7 @@ export default function AppRouter() {
         <Route path='statistics' element={<Statistics />} />
         <Route path='community' element={<Community />} />
         <Route path='report' element={<ReportPage />} />
-        <Route path='blog' element={<GuestBlog />} />
+        <Route path='blog' element={<CoachBlog />} />
       </Route>
 
       {/* Admin Routes */}
@@ -104,10 +106,12 @@ export default function AppRouter() {
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path='dashboard' element={<Dashboard />} />
         <Route path='community-manage' element={<CommunityManagement />} />
+        <Route path='community' element={<CommunityManagement />} />
         <Route path='blog-manage' element={<BlogManagementAdmin />} />
         <Route path='revenue' element={<RevenueStatistics />} />
         <Route path='blog' element={<AdminBlog />} />
         <Route path='reports' element={<AdminReports />} />
+        <Route path='user-coach' element={<UserCoachManagement />} />
       </Route>
 
       {/* Error Route */}
