@@ -66,8 +66,10 @@ const Login = () => {
 
       if (data.success && data.user) {
         // --- ROBUST ID FINDING ---
-        const userId = data.user.userId || data.user.id; 
-        
+
+        const userId = data.user.userId || data.user.id;
+
+
         if (!userId) {
           console.error("CRITICAL: userId or id not found in data.user object from login response.", data.user);
           showNotification('Lỗi đăng nhập: Không tìm thấy User ID.', 'error');
@@ -85,12 +87,12 @@ const Login = () => {
         showNotification(data.message || 'Đăng nhập thành công!', 'success');
 
         const userRole = data.user.role?.toUpperCase();
-        
+
         if (userRole === 'ADMIN') {
           navigate('/admin/dashboard', { replace: true });
           return;
         }
-        
+
         if (userRole === 'COACH') {
           // Try multiple possible field names for coachId
           const coachId = data.user.coachId || data.user.id || data.user.userId;
@@ -100,10 +102,12 @@ const Login = () => {
             userId: data.user.userId,
             selectedCoachId: coachId
           });
-          
+
+
           if (coachId) {
-             localStorage.setItem('coachId', coachId);
-             console.log('Stored coachId in localStorage:', coachId);
+            localStorage.setItem('coachId', coachId);
+            console.log('Stored coachId in localStorage:', coachId);
+
           } else {
             console.error('No coachId found in login response for coach user:', data.user);
           }
@@ -117,14 +121,14 @@ const Login = () => {
           const userRes = await axiosClient.get(`/api/user/${userId}`, {
             headers: { 'Authorization': `Bearer ${data.user.token}` }
           });
-          
+
           const userInfo = userRes.data;
           console.log('User Info:', userInfo);
 
           const today = new Date().toISOString().split('T')[0];
-          const hasMembership = userInfo.currentMembershipPackage && 
-                              userInfo.subscriptionEndDate && 
-                              userInfo.subscriptionEndDate >= today;
+          const hasMembership = userInfo.currentMembershipPackage &&
+            userInfo.subscriptionEndDate &&
+            userInfo.subscriptionEndDate >= today;
 
           if (hasMembership) {
             navigate('/users/home', { replace: true });
@@ -197,24 +201,10 @@ const Login = () => {
       });
       const data = res.data;
       if (data.success) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userRole', data.user?.role || 'member');
-        localStorage.setItem('userId', data.user?.userId);
-        localStorage.setItem('userName', data.user?.fullName || '');
-        showNotification(data.message || 'Đăng ký thành công!', 'success');
-        switch (data.user?.role) {
-          case 'admin':
-            navigate('/admin/dashboard', { replace: true });
-            break;
-          case 'coach':
-            navigate('/coach', { replace: true });
-            break;
-          case 'member':
-            navigate('/users/home', { replace: true });
-            break;
-          default:
-            navigate('/guest/home', { replace: true });
-        }
+
+        showNotification(data.message || 'Đăng ký thành công! Vui lòng đăng nhập.', 'success');
+        // Reset form và chuyển về giao diện đăng nhập
+
         setRegisterStep(1);
         setIsSignUp(false);
         setRegisterData({ name: '', email: '', password: '', confirmPassword: '' });

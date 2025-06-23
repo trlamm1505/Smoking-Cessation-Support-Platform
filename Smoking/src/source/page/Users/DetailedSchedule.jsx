@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, List, Typography, Button, message, InputNumber, Space, Calendar, Modal, Badge, Steps } from 'antd';
 import {
     CheckCircleOutlined,
@@ -424,89 +424,43 @@ function CustomStepBar({ phases, currentPhase }) {
 }
 
 const DetailedSchedule = () => {
-    const [tasks, setTasks] = useState([
-        {
-            id: 1,
-            title: 'Mục tiêu giảm thuốc hôm nay',
-            description: 'Giảm từ 10 điếu xuống còn 8 điếu',
-            isTarget: true,
-            currentAmount: 10,
-            targetAmount: 8,
-            status: null
-        },
-        {
-            id: 2,
-            title: 'Thực hành hít thở sâu',
-            description: 'Khi cảm thấy thèm thuốc, hãy thực hiện 5-10 hơi thở sâu để kiểm soát cảm giác',
-            status: null
-        },
-        {
-            id: 3,
-            title: 'Uống nhiều nước',
-            description: 'Uống ít nhất 2 lít nước mỗi ngày để giảm cơn thèm thuốc',
-            status: null
-        },
-        {
-            id: 4,
-            title: 'Hoạt động thay thế',
-            description: 'Khi muốn hút thuốc, hãy nhai kẹo cao su hoặc ăn nhẹ đồ healthy',
-            status: null
-        },
-        {
-            id: 5,
-            title: 'Tránh trigger',
-            description: 'Tránh xa những địa điểm hoặc tình huống có thể gây thèm thuốc',
-            status: null
-        },
-        {
-            id: 6,
-            title: 'Vận động nhẹ nhàng',
-            description: 'Đi bộ hoặc tập thể dục 15 phút khi cảm thấy thèm thuốc',
-            status: null
-        }
-    ]);
-
-    // Tạo dữ liệu mẫu cho 30 ngày (15 ngày trước và 15 ngày tới)
-    const generateSampleData = () => {
-        const data = {};
-        const today = dayjs();
-        const startDate = today.subtract(15, 'day');
-
-        // Tạo dữ liệu cho 30 ngày
-        for (let i = 0; i < 30; i++) {
-            const currentDate = startDate.add(i, 'day');
-            const dateStr = currentDate.format('YYYY-MM-DD');
-
-            // Tạo dữ liệu khác nhau cho mỗi ngày
-            if (currentDate.isBefore(today, 'day')) {
-                // Ngày đã qua - có trạng thái hoàn thành ngẫu nhiên
-                data[dateStr] = tasks.map(task => ({
-                    ...task,
-                    status: Math.random() > 0.3, // 70% khả năng hoàn thành
-                    currentAmount: task.isTarget ? Math.floor(Math.random() * 3) + 8 : undefined, // 8-10 điếu
-                    targetAmount: task.isTarget ? Math.floor(Math.random() * 3) + 5 : undefined  // 5-7 điếu
-                }));
-            } else if (currentDate.isSame(today, 'day')) {
-                // Ngày hiện tại - giữ nguyên tasks
-                data[dateStr] = tasks;
-            } else {
-                // Ngày tương lai - tạo mục tiêu giảm dần
-                const daysFromToday = currentDate.diff(today, 'day');
-                const targetCigarettes = Math.max(0, 8 - Math.floor(daysFromToday / 2));
-                data[dateStr] = tasks.map(task => ({
-                    ...task,
-                    status: null,
-                    currentAmount: task.isTarget ? 8 : undefined,
-                    targetAmount: task.isTarget ? targetCigarettes : undefined
-                }));
-            }
-        }
-        return data;
-    };
-
-    const [taskHistory, setTaskHistory] = useState(generateSampleData());
+    const [tasks, setTasks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [taskHistory, setTaskHistory] = useState({});
     const [selectedDate, setSelectedDate] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [planStartDate, setPlanStartDate] = useState(null);
+    const [soNgay, setSoNgay] = useState(30);
+
+    useEffect(() => {
+        // Fetch kế hoạch cai thuốc để lấy years, cigarettesPerDay
+        const userId = Number(localStorage.getItem('userId')) || 1;
+        fetch(`http://localhost:8080/api/cessation-plans/user/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                let plan = Array.isArray(data) ? data[0] : data;
+                const years = plan.smokingFrequency || 1;
+                const cigarettesPerDay = plan.cigarettesPerDay || 10;
+                // Lấy số ngày đúng từ kế hoạch
+                const soNgayValue = plan.targetQuitDate && plan.startDate
+                    ? dayjs(plan.targetQuitDate).diff(dayjs(plan.startDate), 'day')
+                    : 30;
+                setSoNgay(soNgayValue);
+                setPlanStartDate(plan.startDate ? dayjs(plan.startDate) : null);
+                // Gọi API sinh lịch trình
+                return fetch('http://localhost:8080/stages/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ years, cigarettesPerDay, soNgay: soNgayValue })
+                });
+            })
+            .then(res => res.json())
+            .then(schedule => {
+                setTasks(schedule);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, []);
 
     const handleTaskComplete = (taskId, completed) => {
         const updatedTasks = tasks.map(task => {
@@ -761,18 +715,13 @@ const DetailedSchedule = () => {
         { title: 'Cai hoàn toàn', description: 'Ngừng hút thuốc', duration: 7 },
         { title: 'Duy trì', description: 'Duy trì thói quen không hút thuốc', duration: 7 }
     ];
-    const planStartDate = dayjs().startOf('day'); // Giả sử bắt đầu từ hôm nay
-    const daysPassed = dayjs().diff(planStartDate, 'day');
-    let currentPhase = 2; // Giai đoạn số 3: Cai hoàn toàn
-    let phaseStartDay = 0;
-    for (let i = 0; i < phases.length; i++) {
-        phaseStartDay += phases[i].duration;
-        if (daysPassed < phaseStartDay) {
-            // currentPhase = i;
-            break;
-        }
+    const today = dayjs();
+    let todayIndex = 1;
+    if (planStartDate) {
+        todayIndex = today.diff(planStartDate, 'day') + 1;
     }
-    const phaseOrder = phases.map((p, idx) => `${idx + 1}. ${p.title}`);
+    const todayTask = tasks.find(item => item.day === todayIndex);
+    const otherTasks = tasks.filter(item => item.day !== todayIndex);
 
     return (
         <PageContainer>
@@ -785,7 +734,7 @@ const DetailedSchedule = () => {
             {/* Giai đoạn cai thuốc */}
             <AnimatedCard delay="0.5s">
                 <Card style={{ marginBottom: 24, borderRadius: 12, border: '1px solid #E3F6F5', boxShadow: '0 2px 8px rgba(95,184,179,0.07)', padding: 0 }}>
-                    <StyledSteps current={currentPhase}>
+                    <StyledSteps current={todayIndex - 1}>
                         {phases.map(phase => (
                             <Steps.Step
                                 key={phase.title}
@@ -800,7 +749,7 @@ const DetailedSchedule = () => {
             <AnimatedCard delay="1s">
                 <Card className="schedule-card">
                     <List
-                        dataSource={tasks}
+                        dataSource={todayTask ? [todayTask] : []}
                         renderItem={task => (
                             <List.Item className={task.status === true ? 'completed' : ''}>
                                 {renderTaskContent(task)}
@@ -849,6 +798,47 @@ const DetailedSchedule = () => {
 
             {/* History Modal */}
             {renderHistoryModal()}
+
+            {/* Kế hoạch hôm nay */}
+            {todayTask && (
+                <List
+                    dataSource={[todayTask]}
+                    renderItem={item => (
+                        <List.Item style={{ background: '#e8f4f3', borderRadius: 8, marginBottom: 16, boxShadow: '0 2px 8px rgba(95,184,179,0.07)', border: '1px solid #5FB8B3', padding: 24 }}>
+                            <div style={{ width: '100%' }}>
+                                <div style={{ fontWeight: 700, fontSize: 20, color: '#2c7a75', marginBottom: 4 }}>
+                                    Kế hoạch hôm nay (Ngày {item.day} - {item.stageName})
+                                </div>
+                                <div style={{ color: '#5FB8B3', fontWeight: 500, marginBottom: 4 }}>Mục tiêu: {item.goal}</div>
+                                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                    {item.activities && item.activities.map((act, idx) => (
+                                        <li key={idx} style={{ color: '#444', marginBottom: 2 }}>{act}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </List.Item>
+                    )}
+                />
+            )}
+            {/* Các ngày khác */}
+            <List
+                dataSource={otherTasks}
+                renderItem={item => (
+                    <List.Item style={{ background: '#f8fdfc', borderRadius: 8, marginBottom: 16, boxShadow: '0 2px 8px rgba(95,184,179,0.07)', border: '1px solid #E3F6F5', padding: 24 }}>
+                        <div style={{ width: '100%' }}>
+                            <div style={{ fontWeight: 700, fontSize: 18, color: '#2c7a75', marginBottom: 4 }}>
+                                Ngày {item.day} - {item.stageName}
+                            </div>
+                            <div style={{ color: '#5FB8B3', fontWeight: 500, marginBottom: 4 }}>Mục tiêu: {item.goal}</div>
+                            <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                {item.activities && item.activities.map((act, idx) => (
+                                    <li key={idx} style={{ color: '#444', marginBottom: 2 }}>{act}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    </List.Item>
+                )}
+            />
         </PageContainer>
     );
 };

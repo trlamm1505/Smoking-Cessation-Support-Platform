@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Form, InputNumber, Select, Button, Typography, TimePicker, Space, Table, DatePicker, Input } from 'antd';
 import { PlusOutlined, SaveOutlined, ClockCircleOutlined, EnvironmentOutlined, DollarOutlined, SmileOutlined, CalendarOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
@@ -207,14 +207,50 @@ const SmokingTrackerPage = () => {
   const [maxCigarettesPerDay, setMaxCigarettesPerDay] = useState(20);
   const [pricePerPack, setPricePerPack] = useState(30000);
 
-  const onFinish = (values) => {
-    const newEntry = {
-      ...values,
-      id: Date.now(),
-      date: new Date().toLocaleDateString()
+  const fetchLogs = async () => {
+    const userId = Number(localStorage.getItem('userId')) || 1;
+    const res = await fetch(`http://localhost:8080/habit-logs/${userId}`);
+    const data = await res.json();
+    const logs = Array.isArray(data) ? data : [data];
+    setEntries(logs.map(log => ({
+      ...log,
+      id: log.id,
+      date: log.logDate,
+      cigaretteCount: log.cigarettesSmoked,
+      price: log.moneySaved,
+      cravingLevel: log.cravingsLevel,
+      healthNote: log.notes,
+    })));
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
+  const onFinish = async (values) => {
+    const userId = Number(localStorage.getItem('userId')) || 1;
+    const payload = {
+      userId,
+      logDate: values.logDate ? values.logDate.format('YYYY-MM-DD') : new Date().toISOString().slice(0, 10),
+      smokedToday: values.smokedToday !== undefined ? values.smokedToday : true,
+      cigarettesSmoked: values.cigaretteCount,
+      cravingsLevel: Number(values.cravingLevel),
+      mood: values.mood,
+      notes: values.healthNote || '',
+      moneySaved: values.price || 0
     };
-    setEntries([...entries, newEntry]);
-    form.resetFields();
+    try {
+      const res = await fetch('http://localhost:8080/habit-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Lưu ghi nhận thất bại!');
+      await fetchLogs(); // fetch lại danh sách sau khi lưu thành công
+      form.resetFields();
+    } catch (err) {
+      // Có thể thêm message.error(err.message || 'Lỗi khi lưu!') nếu muốn
+    }
   };
 
   const columns = [
