@@ -40,11 +40,21 @@ public class PurchaseService {
         payment.setTransactionID(UUID.randomUUID().toString());
         payment.setStatus("completed");
 
-        // Cập nhật thông tin gói hiện tại của người dùng
+        // ======= THÊM ĐOẠN SAU ĐỂ SET CÁC TRƯỜNG NGÀY ==========
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusDays(membershipPackage.getDurationDays());
+        LocalDate renewalDate = endDate.plusDays(1); // hoặc renewalDate = endDate
+
+        payment.setStartDate(startDate);
+        payment.setEndDate(endDate);
+        payment.setRenewalDate(renewalDate);
+
+        // ======= Cập nhật thông tin user ========
         user.setCurrentMembershipPackageId(Math.toIntExact(membershipPackage.getPackageID()));
-        user.setSubscriptionEndDate(LocalDate.now().plusDays(membershipPackage.getDurationDays()));
+        user.setSubscriptionEndDate(endDate);
         userRepository.save(user);
 
         return paymentRepository.save(payment);
     }
+
 }

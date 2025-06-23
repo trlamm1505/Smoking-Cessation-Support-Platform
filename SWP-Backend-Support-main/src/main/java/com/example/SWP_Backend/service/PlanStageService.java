@@ -98,6 +98,7 @@ public class PlanStageService {
 
                     // Tạo DTO từng ngày
                     DayPlanDTO dayDTO = new DayPlanDTO();
+                    dayDTO.setMucDoKeHoach(mucDoKeHoach);
                     dayDTO.setDay(day);
                     dayDTO.setStageOrder(giaiDoan);
                     dayDTO.setStageName("Giai đoạn " + giaiDoan); // FE có thể tự map tên nếu muốn

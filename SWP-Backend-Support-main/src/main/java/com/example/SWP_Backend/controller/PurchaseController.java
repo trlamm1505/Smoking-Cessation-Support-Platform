@@ -1,5 +1,6 @@
 package com.example.SWP_Backend.controller;
 
+import com.example.SWP_Backend.dto.PaymentResponse;
 import com.example.SWP_Backend.dto.PurchaseRequest;
 import com.example.SWP_Backend.entity.Payment;
 import com.example.SWP_Backend.service.PurchaseService;
@@ -21,7 +22,15 @@ public class PurchaseController {
     public ResponseEntity<?> buyPackage(@RequestBody PurchaseRequest request) {
         try {
             Payment payment = purchaseService.purchasePackage(request);
-            return ResponseEntity.ok(payment);
+            PaymentResponse response = new PaymentResponse(
+                    payment.getPackageInfo().getPackageName(),
+                    payment.getAmount(),
+                    payment.getStartDate(),
+                    payment.getEndDate(),
+                    payment.getRenewalDate(),
+                    payment.getStatus()
+            );
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

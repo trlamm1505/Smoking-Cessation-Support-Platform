@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "MembershipPackages")
@@ -20,7 +19,6 @@ public class MembershipPackage {
     private Long packageID;
 
     @Column(nullable = false, unique = true)
-    @Nationalized
     private String packageName;
 
     @Column(nullable = false)
@@ -29,8 +27,6 @@ public class MembershipPackage {
     @Column(nullable = false)
     private int durationDays;
 
-    @Column(nullable = false)
-    @Nationalized
     private String description;
 
     @Column(nullable = false)

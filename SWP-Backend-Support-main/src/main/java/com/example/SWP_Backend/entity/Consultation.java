@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Nationalized;
 
 import java.time.LocalDateTime;
 
@@ -29,7 +28,6 @@ public class Consultation {
 
     private String status; // pending / approved / rejected
 
-    @Nationalized
     private String notes;
 
     private String meetingLink;
