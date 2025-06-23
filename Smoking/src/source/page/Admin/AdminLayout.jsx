@@ -9,7 +9,8 @@ import {
     DollarOutlined,
     LogoutOutlined,
     ReadOutlined,
-    MessageOutlined
+    MessageOutlined,
+    UserOutlined
 } from '@ant-design/icons';
 
 const AdminLayout = () => {
@@ -65,6 +66,11 @@ const AdminLayout = () => {
             key: 'reports',
             icon: <MessageOutlined />,
             label: 'Quản lý Báo cáo & Phản hồi',
+        },
+        {
+            key: 'user-coach',
+            icon: <UserOutlined />,
+            label: 'Quản lý Người dùng & Coach',
         },
     ];
 
