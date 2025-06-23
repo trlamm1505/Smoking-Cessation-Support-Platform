@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Card,
     Form,
@@ -259,11 +259,82 @@ const Plan = () => {
         { value: 'smell', label: 'Khác' }
     ];
 
-    const onFinish = (values) => {
-        console.log('Plan data:', values);
-        setPlanData(values);
-        setIsEditing(false);
-        message.success('Kế hoạch cai thuốc đã được lưu thành công!');
+    useEffect(() => {
+        const userId = Number(localStorage.getItem('userId')) || 1;
+        fetch(`http://localhost:8080/api/cessation-plans/user/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    const plan = data[0];
+                    setPlanData({
+                        planID: plan.planID,
+                        yearsSmoking: plan.smokingFrequency || '',
+                        cigarettesPerDay: plan.cigarettesPerDay,
+                        moneyPerDay: plan.costPerPack,
+                        startDate: plan.startDate ? dayjs(plan.startDate) : null,
+                        endDate: plan.targetQuitDate ? dayjs(plan.targetQuitDate) : null,
+                        endDays: plan.targetQuitDate && plan.startDate ? dayjs(plan.targetQuitDate).diff(dayjs(plan.startDate), 'day') : 10,
+                        quitReasons: plan.reasonToQuit ? plan.reasonToQuit.split(',').map(s => s.trim()) : [],
+                        additionalNotes: plan.notes || ''
+                    });
+                    setIsEditing(false);
+                }
+            })
+            .catch(() => { });
+    }, []);
+
+    const onFinish = async (values) => {
+        const userId = Number(localStorage.getItem('userId')) || 1;
+        const startDate = values.startDate ? values.startDate.format('YYYY-MM-DD') : '';
+        const endDays = values.endDays || 10;
+        const targetQuitDate = values.startDate ? values.startDate.clone().add(endDays, 'day').format('YYYY-MM-DD') : '';
+        const planPayload = {
+            userId,
+            smokingFrequency: values.yearsSmoking,
+            reasonToQuit: (values.quitReasons || []).join(', '),
+            startDate,
+            targetQuitDate,
+            cigarettesPerDay: values.cigarettesPerDay,
+            costPerPack: values.moneyPerDay || 0,
+            notes: values.additionalNotes || '',
+            customDetails: '',
+            isActive: true,
+            active: true
+        };
+        try {
+            let res;
+            if (planData && planData.planID) {
+                // Update (PUT)
+                res = await fetch(`http://localhost:8080/api/cessation-plans/${planData.planID}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(planPayload)
+                });
+            } else {
+                // Create (POST)
+                res = await fetch('http://localhost:8080/api/cessation-plans', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(planPayload)
+                });
+            }
+            if (!res.ok) throw new Error('Lưu kế hoạch thất bại!');
+            // Tính lại ngày kết thúc cho state hiển thị
+            const calcEndDate = values.startDate && values.endDays !== undefined
+                ? values.startDate.clone().add(values.endDays, 'day')
+                : undefined;
+            setPlanData({
+                ...values,
+                planID: planData?.planID,
+                startDate: values.startDate,
+                endDate: calcEndDate,
+                targetQuitDate: calcEndDate ? calcEndDate.format('YYYY-MM-DD') : undefined
+            });
+            setIsEditing(false);
+            message.success('Kế hoạch cai thuốc đã được lưu thành công!');
+        } catch (err) {
+            message.error(err.message || 'Lỗi khi lưu kế hoạch!');
+        }
     };
 
     return (
@@ -281,12 +352,12 @@ const Plan = () => {
                         onFinish={onFinish}
                         layout="vertical"
                         initialValues={{
-                            yearsSmoking: 1,
-                            cigarettesPerDay: 10,
-                            moneyPerDay: 20000,
+                            yearsSmoking: undefined,
+                            cigarettesPerDay: undefined,
+                            moneyPerDay: undefined,
                             goalType: 'temporary',
                             goalDays: 2,
-                            startDate: dayjs()
+                            startDate: undefined
                         }}
                     >
                         {/* Lịch Sử Hút Thuốc */}
@@ -514,7 +585,7 @@ const Plan = () => {
                             borderRadius: '8px'
                         }}>
                             <div style={{
-                               
+
                                 padding: '0 16px',
                                 borderRadius: '8px',
                                 color: '#2c7a75'
@@ -523,7 +594,7 @@ const Plan = () => {
                             </div>
                             <div style={{ color: '#444' }}>
                                 <p>• Ngày bắt đầu: {planData.startDate?.format('DD/MM/YYYY')}</p>
-                                <p>• Ngày kết thúc: {planData.endDate?.format('DD/MM/YYYY')}</p>
+                                <p>• Ngày kết thúc: {planData.endDate?.format('DD/MM/YYYY') || (planData.targetQuitDate && dayjs(planData.targetQuitDate).format('DD/MM/YYYY'))}</p>
                             </div>
                         </div>
                     </div>
@@ -613,7 +684,12 @@ const Plan = () => {
                             type="primary"
                             icon={<EditOutlined />}
                             onClick={() => {
-                                form.setFieldsValue(planData);
+                                form.setFieldsValue({
+                                    ...planData,
+                                    endDays: planData.endDate && planData.startDate
+                                        ? planData.endDate.diff(planData.startDate, 'day')
+                                        : 10
+                                });
                                 setIsEditing(true);
                             }}
                             style={{
