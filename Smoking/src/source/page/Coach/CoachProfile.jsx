@@ -7,6 +7,7 @@ import {
 } from '@ant-design/icons';
 import { Typography, Space, Tag, Button as AntButton, Modal, Form, Input, message, Spin } from 'antd';
 import axiosClient from '../Axios/AxiosCLients';
+import { toast } from 'react-toastify';
 
 const { Title, Text } = Typography;
 
@@ -526,7 +527,7 @@ const CoachProfile = () => {
   useEffect(() => {
     const userId = localStorage.getItem('coachId');
     if (!userId) {
-      message.error('Không tìm thấy userId!');
+      toast.error('Không tìm thấy userId!');
       setLoading(false);
       return;
     }
@@ -539,7 +540,7 @@ const CoachProfile = () => {
         setLoading(false);
       })
       .catch(() => {
-        message.error('Không lấy được thông tin coach!');
+        toast.error('Không lấy được thông tin coach!');
         setLoading(false);
       });
   }, []);
@@ -564,7 +565,7 @@ const CoachProfile = () => {
     try {
       const userId = localStorage.getItem('coachId');
       if (!userId) {
-        message.error('Không tìm thấy userId!');
+        toast.error('Không tìm thấy userId!');
         return;
       }
       const body = { ...tempProfileData, bio: tempIntroText };
@@ -572,9 +573,9 @@ const CoachProfile = () => {
       setProfileData(body);
       setShowEditModal(false);
       setIntroText(tempIntroText);
-      message.success('Cập nhật thông tin thành công!');
+      toast.success('Cập nhật thông tin thành công!');
     } catch (err) {
-      message.error('Lỗi khi cập nhật thông tin!');
+      toast.error('Lỗi khi cập nhật thông tin!');
     }
   };
 
@@ -616,10 +617,10 @@ const CoachProfile = () => {
       if (userId) {
         const body = { ...profileData, profilePictureUrl: imageUrl };
         await axiosClient.put(`/api/coaches/update-profile?userId=${userId}`, body);
-        message.success('Cập nhật ảnh đại diện thành công!');
+        toast.success('Cập nhật ảnh đại diện thành công!');
       }
     } catch (err) {
-      message.error('Lỗi khi upload ảnh!');
+      toast.error('Lỗi khi upload ảnh!');
     }
   };
 

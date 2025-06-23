@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { CameraOutlined, TrophyOutlined, HeartOutlined, CrownOutlined, TeamOutlined, MailOutlined, PhoneOutlined, HomeOutlined, CalendarOutlined, UserOutlined, EnvironmentOutlined, EditOutlined, SaveOutlined, CloseOutlined, ManOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import userApi from '../Axios/userAxios';
+import { toast } from 'react-toastify';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -836,13 +837,6 @@ const Profile = () => {
   // Lấy userId từ localStorage (hoặc context/auth thực tế)
   const userId = localStorage.getItem('userId');
 
-  // Thêm state và hàm thông báo custom
-  const [notification, setNotification] = useState({ visible: false, message: '', type: '' });
-  const showNotification = (message, type) => {
-    setNotification({ visible: true, message, type });
-    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 3000);
-  };
-
   // Định nghĩa các trường personalInfo mặc định giống guest (chỉ dùng để merge key/label/icon, không hardcode value)
   const defaultPersonalInfo = [
     { icon: <PhoneOutlined />, label: 'Số điện thoại', key: 'phoneNumber' },
@@ -944,10 +938,10 @@ const Profile = () => {
       setShowEditModal(false);
   
       // B5: Thông báo thành công
-      showNotification('Cập nhật thông tin thành công!', 'success');
+      toast.success('Cập nhật thông tin thành công!');
     } catch (err) {
       console.error('Lỗi cập nhật:', err.response?.data || err.message);
-      showNotification('Lỗi khi cập nhật thông tin!', 'error');
+      toast.error('Lỗi khi cập nhật thông tin!');
     }
   };
 
@@ -1012,9 +1006,9 @@ const Profile = () => {
       setTempProfileData(prev => ({ ...prev, profilePictureUrl: imageUrl }));
       setNewAvatar(null);
       setNewAvatarFile(null);
-      showNotification('Cập nhật ảnh đại diện thành công!', 'success');
+      toast.success('Cập nhật ảnh đại diện thành công!');
     } catch (err) {
-      showNotification('Lỗi khi upload ảnh!', 'error');
+      toast.error('Lỗi khi upload ảnh!');
     }
   };
 
@@ -1320,11 +1314,11 @@ const Profile = () => {
                   });
                   console.log('API response:', res.data);
                   if (res.data && res.data.success) {
-                    showNotification(res.data.message || 'Đổi mật khẩu thành công!', 'success');
+                    toast.success(res.data.message || 'Đổi mật khẩu thành công!');
                 setShowAccountModal(false);
                   } else {
                     setAccountError(res.data.message || 'Đổi mật khẩu thất bại!');
-                    showNotification(res.data.message || 'Đổi mật khẩu thất bại!', 'error');
+                    toast.error(res.data.message || 'Đổi mật khẩu thất bại!');
                     console.log('API báo lỗi:', res.data.message || 'Đổi mật khẩu thất bại!');
                   }
                 } catch (err) {
@@ -1338,27 +1332,6 @@ const Profile = () => {
             </ModalActions>
           </ModalContent>
         </Modal>
-      )}
-
-      {notification.visible && (
-        <div className={`custom-notification ${notification.type}`} style={{
-          position: 'fixed',
-          top: 24,
-          right: 24,
-          zIndex: 2000,
-          background: notification.type === 'success' ? '#5FB8B3' : '#ff4d4f',
-          color: '#fff',
-          padding: '16px 32px',
-          borderRadius: 8,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-          fontSize: 16,
-          fontWeight: 500,
-          transition: 'all 0.3s',
-          minWidth: 220,
-          textAlign: 'center',
-        }}>
-          {notification.message}
-        </div>
       )}
     </Container>
   );

@@ -3,6 +3,7 @@ import { Table, Button, Modal, Form, Input, Tabs, message, Popconfirm, Select, U
 import { PlusOutlined, DeleteOutlined, UserOutlined, TeamOutlined } from '@ant-design/icons';
 import userApi from '../Axios/userAxios';
 import coachApi from '../Axios/coachApi';
+import { toast } from 'react-toastify';
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -53,10 +54,10 @@ const UserCoachManagement = () => {
   const handleDeleteUser = async (id) => {
     try {
       await userApi.delete(id);
-      message.success('Đã xóa người dùng');
+      toast.success('Đã xóa người dùng');
       fetchUsers();
     } catch {
-      message.error('Xóa thất bại');
+      toast.error('Xóa thất bại');
     }
   };
 
@@ -64,10 +65,10 @@ const UserCoachManagement = () => {
   const handleDeleteCoach = async (id) => {
     try {
       await coachApi.adminDelete(id);
-      message.success('Đã xóa coach');
+      toast.success('Đã xóa coach');
       fetchCoaches();
     } catch {
-      message.error('Xóa thất bại');
+      toast.error('Xóa thất bại');
     }
   };
 
@@ -101,20 +102,20 @@ const UserCoachManagement = () => {
   const handleAddCoach = async (values) => {
     try {
       await coachApi.adminCreate(values);
-      message.success('Đã thêm coach mới');
+      toast.success('Đã thêm coach mới');
       setIsAddCoachModal(false);
       addCoachForm.resetFields();
       setAvatarPreview(null);
       setAvatarFile(null);
       fetchCoaches();
     } catch {
-      message.error('Thêm coach thất bại');
+      toast.error('Thêm coach thất bại');
     }
   };
 
   // Cột bảng user
   const userColumns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
+    { title: 'ID', dataIndex: 'userId', key: 'userId' },
     { title: 'Tên', dataIndex: 'fullName', key: 'fullName' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Vai trò', dataIndex: 'role', key: 'role' },
@@ -122,7 +123,7 @@ const UserCoachManagement = () => {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
-        <Popconfirm title="Xóa người dùng này?" onConfirm={() => handleDeleteUser(record.id)} okText="Xóa" cancelText="Hủy">
+        <Popconfirm title="Xóa người dùng này?" onConfirm={() => handleDeleteUser(record.userId)} okText="Xóa" cancelText="Hủy">
           <Button icon={<DeleteOutlined />} danger size="small">Xóa</Button>
         </Popconfirm>
       ),
@@ -155,7 +156,7 @@ const UserCoachManagement = () => {
           <Table
             dataSource={users}
             columns={userColumns}
-            rowKey="id"
+            rowKey="userId"
             loading={loadingUsers}
             pagination={{ pageSize: 10 }}
           />
