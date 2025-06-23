@@ -13,6 +13,7 @@ import {
     BookOutlined
 } from '@ant-design/icons';
 import styled from 'styled-components';
+import UserCoachManagement from './UserCoachManagement';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -280,6 +281,8 @@ const Admin = () => {
                         </Card>
                     </>
                 );
+            case 'user-coach':
+                return <UserCoachManagement />;
             default:
                 return null;
         }
@@ -306,6 +309,9 @@ const Admin = () => {
                     </Menu.Item>
                     <Menu.Item key="4" icon={<DollarOutlined />}>
                         Thống kê doanh thu
+                    </Menu.Item>
+                    <Menu.Item key="user-coach" icon={<UserOutlined />}>
+                        Quản lý người dùng & coach
                     </Menu.Item>
                 </Menu>
             </Sider>

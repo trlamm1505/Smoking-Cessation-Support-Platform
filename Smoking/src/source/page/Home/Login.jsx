@@ -66,7 +66,9 @@ const Login = () => {
 
       if (data.success && data.user) {
         // --- ROBUST ID FINDING ---
+
         const userId = data.user.userId || data.user.id;
+
 
         if (!userId) {
           console.error("CRITICAL: userId or id not found in data.user object from login response.", data.user);
@@ -77,11 +79,13 @@ const Login = () => {
         // --- Store correct info ---
         localStorage.setItem('token', data.user.token);
         localStorage.setItem('userRole', data.user.role);
-        localStorage.setItem('userId', data.user.id);
+        localStorage.setItem('userId', userId); // Store the found ID with a consistent key
+
+        // Clean up coachId if it's a regular user
+        localStorage.removeItem('coachId');
 
         showNotification(data.message || 'Đăng nhập thành công!', 'success');
 
-        // Kiểm tra role và điều hướng
         const userRole = data.user.role?.toUpperCase();
 
         if (userRole === 'ADMIN') {
@@ -99,9 +103,11 @@ const Login = () => {
             selectedCoachId: coachId
           });
 
+
           if (coachId) {
             localStorage.setItem('coachId', coachId);
             console.log('Stored coachId in localStorage:', coachId);
+
           } else {
             console.error('No coachId found in login response for coach user:', data.user);
           }
@@ -109,9 +115,10 @@ const Login = () => {
           return;
         }
 
-        // Nếu là user thường, kiểm tra membership
+        // --- USER-specific logic ---
         try {
-          const userRes = await axiosClient8080.get(`/api/user/${data.user.id}`, {
+          // Use the ID we just found
+          const userRes = await axiosClient.get(`/api/user/${userId}`, {
             headers: { 'Authorization': `Bearer ${data.user.token}` }
           });
 
@@ -124,28 +131,31 @@ const Login = () => {
             userInfo.subscriptionEndDate >= today;
 
           if (hasMembership) {
-            console.log('Redirecting to user home');
             navigate('/users/home', { replace: true });
           } else {
-            console.log('Redirecting to guest home');
             navigate('/guest/home', { replace: true });
           }
         } catch (userError) {
-          console.error('Error fetching user info:', userError);
+          console.error('Error fetching user info (inside login):', userError);
           navigate('/guest/home', { replace: true });
         }
+
       } else {
         showNotification(data.message || 'Đăng nhập thất bại!', 'error');
+        // Clear all session-related storage on failure
         localStorage.removeItem('token');
         localStorage.removeItem('userRole');
         localStorage.removeItem('userId');
+        localStorage.removeItem('coachId');
       }
     } catch (error) {
-      console.log('Login error:', error?.response?.data || error.message || error);
-      showNotification(error?.response?.data?.message || error?.response?.data || 'Lỗi kết nối server!', 'error');
+      console.error('Login error:', error?.response?.data || error.message || error);
+      showNotification(error?.response?.data?.message || 'Lỗi kết nối server!', 'error');
+      // Clear all session-related storage on failure
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
       localStorage.removeItem('userId');
+      localStorage.removeItem('coachId');
     }
   };
 
@@ -191,8 +201,10 @@ const Login = () => {
       });
       const data = res.data;
       if (data.success) {
+
         showNotification(data.message || 'Đăng ký thành công! Vui lòng đăng nhập.', 'success');
         // Reset form và chuyển về giao diện đăng nhập
+
         setRegisterStep(1);
         setIsSignUp(false);
         setRegisterData({ name: '', email: '', password: '', confirmPassword: '' });

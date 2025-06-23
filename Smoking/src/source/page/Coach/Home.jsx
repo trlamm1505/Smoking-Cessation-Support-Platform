@@ -1,7 +1,8 @@
-import React from 'react';
-import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag, message } from 'antd';
 import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, TeamOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
+import axiosClient from '../Axios/AxiosCLients';
 
 const { Title, Text } = Typography;
 
@@ -142,46 +143,34 @@ const TimelineCard = styled(StyledCard)`
 `;
 
 const CoachHome = () => {
-  // Mock data - replace with real data from your backend
-  const coachData = {
-    activeClients: 12,
-    pendingConsultations: 5,
-    successRate: 78,
-    recentActivities: [
-      {
-        date: '15/03/2024',
-        content: 'Tư vấn thành công cho Nguyễn Văn A',
-        type: 'success'
-      },
-      {
-        date: '14/03/2024',
-        content: 'Nhận thêm 2 khách hàng mới',
-        type: 'success'
-      },
-      {
-        date: '13/03/2024',
-        content: 'Cập nhật kế hoạch tư vấn',
-        type: 'process'
-      }
-    ],
-    achievements: [
-      {
-        title: 'Tư Vấn Viên Xuất Sắc',
-        description: 'Đạt được 100% hài lòng từ khách hàng',
-        date: '10/03/2024'
-      },
-      {
-        title: 'Chuyên Gia Tư Vấn',
-        description: 'Hoàn thành 50 buổi tư vấn thành công',
-        date: '12/03/2024'
-      }
-    ]
-  };
+  const [coachData, setCoachData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const coachId = localStorage.getItem('coachId');
+    if (!coachId) {
+      message.error('Không tìm thấy coachId!');
+      setLoading(false);
+      return;
+    }
+    axiosClient.get(`/api/coaches/${coachId}`)
+      .then(res => {
+        setCoachData(res.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        message.error('Không lấy được thông tin coach!');
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <PageContainer><Title>Đang tải dữ liệu...</Title></PageContainer>;
+  if (!coachData) return <PageContainer><Title>Không có dữ liệu coach</Title></PageContainer>;
 
   return (
     <PageContainer>
       <WelcomeTitle level={2}>
-        Xin chào, Coach!
+        Xin chào, {coachData.fullName || 'Coach'}!
       </WelcomeTitle>
 
       <Row gutter={[24, 24]}>
@@ -190,7 +179,7 @@ const CoachHome = () => {
             <TeamOutlined className="icon" />
             <Statistic
               title="Khách Hàng Đang Tư Vấn"
-              value={coachData.activeClients}
+              value={coachData.activeClients || 0}
               suffix="người"
             />
           </StatisticCard>
@@ -200,7 +189,7 @@ const CoachHome = () => {
             <CheckCircleOutlined className="icon" />
             <Statistic
               title="Tỷ Lệ Thành Công"
-              value={coachData.successRate}
+              value={coachData.successRate || 0}
               suffix="%"
             />
           </StatisticCard>
@@ -210,7 +199,7 @@ const CoachHome = () => {
             <CalendarOutlined className="icon" />
             <Statistic
               title="Buổi Tư Vấn Đang Chờ"
-              value={coachData.pendingConsultations}
+              value={coachData.pendingConsultations || 0}
               suffix="buổi"
             />
           </StatisticCard>
@@ -221,7 +210,7 @@ const CoachHome = () => {
             <Col xs={24}>
               <TimelineCard title="Hoạt Động Gần Đây">
                 <Timeline>
-                  {coachData.recentActivities.map((activity, index) => (
+                  {(coachData.recentActivities || []).map((activity, index) => (
                     <Timeline.Item
                       key={index}
                       color={activity.type === 'success' ? '#5FB8B3' : '#1890ff'}
@@ -239,7 +228,7 @@ const CoachHome = () => {
 
         <Col xs={24} lg={8}>
           <StyledCard title="Thành Tích Đạt Được">
-            {coachData.achievements.map((achievement, index) => (
+            {(coachData.achievements || []).map((achievement, index) => (
               <div key={index} style={{ 
                 display: 'flex', 
                 alignItems: 'center', 

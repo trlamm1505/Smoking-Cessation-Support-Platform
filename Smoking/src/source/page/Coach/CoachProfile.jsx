@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
   CameraOutlined, TrophyOutlined, HeartOutlined, CrownOutlined, TeamOutlined, MailOutlined,
@@ -6,6 +6,8 @@ import {
   SaveOutlined, CloseOutlined, ManOutlined, PlusOutlined, DeleteOutlined, LockOutlined
 } from '@ant-design/icons';
 import { Typography, Space, Tag, Button as AntButton, Modal, Form, Input, message, Spin } from 'antd';
+import axiosClient from '../Axios/AxiosCLients';
+import { toast } from 'react-toastify';
 
 const { Title, Text } = Typography;
 
@@ -504,90 +506,50 @@ const SelectInput = styled.select`
 `;
 
 const CoachProfile = () => {
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isEditingIntro, setIsEditingIntro] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [tempProfileData, setTempProfileData] = useState({});
   const [accountForm, setAccountForm] = useState({
-    username: 'coachnguyenvanb',
+    username: '',
     oldPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
   const [accountError, setAccountError] = useState('');
+  const [introText, setIntroText] = useState('');
+  const [tempIntroText, setTempIntroText] = useState('');
+  const [newAvatar, setNewAvatar] = useState(null);
+  const [newAvatarFile, setNewAvatarFile] = useState(null);
 
-  const [introText, setIntroText] = useState(
-    "Xin chào! Tôi là một chuyên gia tư vấn với nhiều năm kinh nghiệm trong lĩnh vực cai thuốc lá. Tôi đã giúp đỡ nhiều người vượt qua thử thách này và tôi tin rằng với sự hỗ trợ phù hợp, ai cũng có thể thành công."
-  );
-  const [tempIntroText, setTempIntroText] = useState(introText);
-
-  const [profileData, setProfileData] = useState({
-        name: 'Coach Nguyễn Văn B',
-        title: 'Chuyên gia tư vấn cai thuốc',
-    avatarUrl: '/Images/default-avatar.jpg',
-        activeClients: 35,
-        consultationsCompleted: 120,
-        successRate: 85,
-    yearsExperience: 5
-  });
-  const [tempProfileData, setTempProfileData] = useState({ ...profileData });
-
-  const [personalInfo, setPersonalInfo] = useState([
-    {
-      icon: <MailOutlined />,
-      label: 'Email',
-      value: 'coachnguyenvanb@example.com',
-      key: 'email'
-    },
-    {
-      icon: <PhoneOutlined />,
-      label: 'Số điện thoại',
-      value: '0987654321',
-      key: 'phone'
-    },
-    {
-      icon: <UserOutlined />,
-      label: 'Tuổi',
-      value: '35',
-      key: 'age'
-    },
-    {
-      icon: <ManOutlined />,
-      label: 'Giới tính',
-      value: 'Nam',
-      key: 'gender'
-    },
-    {
-      icon: <TrophyOutlined />,
-      label: 'Bằng cấp',
-      value: 'Chứng chỉ A, B',
-      key: 'qualifications'
-    },
-    {
-      icon: <TeamOutlined />,
-      label: 'Lĩnh vực mạnh',
-      value: 'Tư vấn cá nhân, liệu pháp nhóm',
-      key: 'expertise'
-    },
-    {
-      icon: <EnvironmentOutlined />,
-      label: 'Địa chỉ',
-      value: 'TP Hồ Chí Minh, Việt Nam',
-      key: 'address'
-    },
-    {
-      icon: <CalendarOutlined />,
-      label: 'Ngày tham gia',
-      value: '01/05/2019',
-      key: 'joinDate'
+  useEffect(() => {
+    const userId = localStorage.getItem('coachId');
+    if (!userId) {
+      toast.error('Không tìm thấy userId!');
+      setLoading(false);
+      return;
     }
-  ]);
-
-  const [tempPersonalInfo, setTempPersonalInfo] = useState([...personalInfo]);
+    axiosClient.get(`/api/coaches/${userId}`)
+      .then(res => {
+        setProfileData(res.data);
+        setTempProfileData(res.data);
+        setIntroText(res.data.bio || '');
+        setTempIntroText(res.data.bio || '');
+        setLoading(false);
+      })
+      .catch(() => {
+        toast.error('Không lấy được thông tin coach!');
+        setLoading(false);
+      });
+  }, []);
 
   const handleSaveIntro = () => {
     setIntroText(tempIntroText);
+    setTempProfileData({ ...tempProfileData, bio: tempIntroText });
     setIsEditingIntro(false);
-    };
+  };
 
   const handleCancelIntro = () => {
     setTempIntroText(introText);
@@ -596,85 +558,147 @@ const CoachProfile = () => {
 
   const handleOpenEditModal = () => {
     setTempProfileData({ ...profileData });
-    setTempPersonalInfo([...personalInfo]);
     setShowEditModal(true);
   };
 
-  const handleSaveProfile = () => {
-    setProfileData({ ...tempProfileData });
-    setPersonalInfo([...tempPersonalInfo]);
-    setShowEditModal(false);
+  const handleSaveProfile = async () => {
+    try {
+      const userId = localStorage.getItem('coachId');
+      if (!userId) {
+        toast.error('Không tìm thấy userId!');
+        return;
+      }
+      const body = { ...tempProfileData, bio: tempIntroText };
+      await axiosClient.put(`/api/coaches/update-profile?userId=${userId}`, body);
+      setProfileData(body);
+      setShowEditModal(false);
+      setIntroText(tempIntroText);
+      toast.success('Cập nhật thông tin thành công!');
+    } catch (err) {
+      toast.error('Lỗi khi cập nhật thông tin!');
+    }
   };
 
   const handleCancelProfile = () => {
     setTempProfileData({ ...profileData });
-    setTempPersonalInfo([...personalInfo]);
     setShowEditModal(false);
   };
 
-  const handleInfoChange = (index, newValue) => {
-    const updated = [...tempPersonalInfo];
-    updated[index].value = newValue;
-    setTempPersonalInfo(updated);
-    };
-
-  const handleFileUpload = (type) => {
-    // Xử lý upload file cho avatar hoặc cover photo
-    console.log(`Uploading ${type}`);
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewAvatar(URL.createObjectURL(file));
+      setNewAvatarFile(file);
+    }
   };
 
-  const stats = [
-    { icon: <TeamOutlined />, value: profileData.activeClients, label: 'Khách hàng đang tư vấn' },
-    { icon: <CalendarOutlined />, value: profileData.consultationsCompleted, label: 'Buổi tư vấn hoàn thành' },
-    { icon: <HeartOutlined />, value: `${profileData.successRate}%`, label: 'Tỷ lệ thành công' },
-    { icon: <TrophyOutlined />, value: profileData.yearsExperience, label: 'Năm kinh nghiệm' }
+  const handleUploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'avatarUploadClient');
+    formData.append('cloud_name', 'dp4gsczko');
+    const res = await fetch('https://api.cloudinary.com/v1_1/dp4gsczko/image/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  const handleConfirmAvatar = async () => {
+    if (!newAvatarFile) return;
+    try {
+      const imageUrl = await handleUploadImage(newAvatarFile);
+      setTempProfileData(prev => ({ ...prev, profilePictureUrl: imageUrl }));
+      setProfileData(prev => ({ ...prev, profilePictureUrl: imageUrl }));
+      setNewAvatar(null);
+      setNewAvatarFile(null);
+      const userId = localStorage.getItem('coachId');
+      if (userId) {
+        const body = { ...profileData, profilePictureUrl: imageUrl };
+        await axiosClient.put(`/api/coaches/update-profile?userId=${userId}`, body);
+        toast.success('Cập nhật ảnh đại diện thành công!');
+      }
+    } catch (err) {
+      toast.error('Lỗi khi upload ảnh!');
+    }
+  };
+
+  if (loading) return <Spin tip="Đang tải dữ liệu..." />;
+  if (!profileData) return <div>Không có dữ liệu coach</div>;
+
+  // Thông tin cá nhân
+  const personalInfo = [
+    { icon: <MailOutlined />, label: 'Email', value: profileData.email },
+    { icon: <PhoneOutlined />, label: 'Số điện thoại', value: profileData.phoneNumber },
+    { icon: <UserOutlined />, label: 'Giới tính', value: profileData.gender },
+    { icon: <TrophyOutlined />, label: 'Bằng cấp', value: profileData.degree },
+    { icon: <TeamOutlined />, label: 'Chuyên môn', value: profileData.specialization },
+    { icon: <EnvironmentOutlined />, label: 'Địa chỉ', value: profileData.address },
+    { icon: <CalendarOutlined />, label: 'Kinh nghiệm', value: profileData.experience },
   ];
 
-    return (
-        <Container>
-            <ProfileHeader>
-                <HeaderButtons>
-          <Button onClick={() => document.getElementById('coverInput').click()}>
-            <CameraOutlined />
-            Thay đổi ảnh bìa
-          </Button>
-          <FileInput
-            id="coverInput"
-            type="file"
-            accept="image/*"
-            onChange={() => handleFileUpload('cover')}
-          />
-          <Button onClick={() => setShowAccountModal(true)}>
-            <LockOutlined />
-            Đổi mật khẩu
-          </Button>
+  return (
+    <Container>
+      <ProfileHeader>
+        <HeaderButtons>
           <Button onClick={handleOpenEditModal}>
             <EditOutlined />
             Chỉnh sửa profile
           </Button>
-                </HeaderButtons>
-                <ProfileContent>
-                    <AvatarContainer>
-            <TeamOutlined style={{ fontSize: '48px', color: '#5FB8B3' }} />
+        </HeaderButtons>
+        <ProfileContent>
+          <AvatarContainer>
+            {newAvatar ? (
+              <img src={newAvatar} alt="avatar-preview" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            ) : profileData.profilePictureUrl ? (
+              <img src={profileData.profilePictureUrl} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            ) : (
+              <TeamOutlined style={{ fontSize: '48px', color: '#5FB8B3' }} />
+            )}
             <div className="camera-icon" onClick={() => document.getElementById('avatarInput').click()}>
               <CameraOutlined />
             </div>
-                        <FileInput
-                            id="avatarInput"
-                            type="file"
-                            accept="image/*"
-              onChange={() => handleFileUpload('avatar')}
-                        />
-                    </AvatarContainer>
-          <UserName>{profileData.name}</UserName>
-                    <CoachTitle>
+            <FileInput
+              id="avatarInput"
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+            />
+            {newAvatar && (
+              <Button
+                style={{
+                  marginTop: 16,
+                  background: '#5FB8B3',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 20,
+                  fontWeight: 600,
+                  fontSize: 16,
+                  boxShadow: '0 4px 16px rgba(95,184,179,0.15)',
+                  padding: '10px 28px',
+                  cursor: 'pointer',
+                  position: 'absolute',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  bottom: -40,
+                  zIndex: 20
+                }}
+                onClick={handleConfirmAvatar}
+              >
+                <SaveOutlined style={{ marginRight: 8 }} /> Xác nhận
+              </Button>
+            )}
+          </AvatarContainer>
+          <UserName>{profileData.fullName}</UserName>
+          <CoachTitle>
             <UserOutlined />
-            {profileData.title}
-                    </CoachTitle>
-                </ProfileContent>
-            </ProfileHeader>
+            {profileData.specialization}
+          </CoachTitle>
+        </ProfileContent>
+      </ProfileHeader>
 
-            <ContentGrid>
+      <ContentGrid>
         <Card>
           <EditableSection>
             <SectionTitle>Giới thiệu</SectionTitle>
@@ -712,21 +736,8 @@ const CoachProfile = () => {
         </Card>
 
         <Card>
-          <SectionTitle>Thống kê hoạt động</SectionTitle>
-                            <StatsGrid>
-                                {stats.map((stat, index) => (
-                                    <StatCard key={index}>
-                                        <div className="icon">{stat.icon}</div>
-                                        <div className="value">{stat.value}</div>
-                                        <div className="label">{stat.label}</div>
-                                    </StatCard>
-                                ))}
-                            </StatsGrid>
-        </Card>
-
-        <Card>
           <SectionTitle>Thông tin cá nhân</SectionTitle>
-                            <InfoList>
+          <InfoList>
             {personalInfo.map((info, index) => (
               <InfoItem key={index}>
                 <div className="icon">{info.icon}</div>
@@ -738,7 +749,7 @@ const CoachProfile = () => {
             ))}
           </InfoList>
         </Card>
-            </ContentGrid>
+      </ContentGrid>
 
       {showEditModal && (
         <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancelProfile()}>
@@ -759,41 +770,86 @@ const CoachProfile = () => {
                 <FormField>
                   <label>Tên hiển thị</label>
                   <EditableInput
-                    value={tempProfileData.name}
-                    onChange={(e) => setTempProfileData({ ...tempProfileData, name: e.target.value })}
+                    value={tempProfileData.fullName}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, fullName: e.target.value })}
                     placeholder="Nhập tên hiển thị"
                   />
                 </FormField>
-                {tempPersonalInfo.filter(info => info.key !== 'joinDate').map((info, index) => (
-                  <FormField key={index} className={info.key === 'address' || info.key === 'expertise' ? 'full-width' : ''}>
-                    <label>{info.label}</label>
-                    {info.key === 'gender' ? (
-                      <SelectInput
-                        value={info.value}
-                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
-                      >
-                        <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
-                        <option value="Khác">Khác</option>
-                      </SelectInput>
-                    ) : info.key === 'age' ? (
-                      <EditableInput
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={info.value}
-                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
-                        placeholder="Nhập tuổi"
-                      />
-                    ) : (
-                      <EditableInput
-                        value={info.value}
-                        onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
-                        placeholder={`Nhập ${info.label.toLowerCase()}`}
-                      />
-                    )}
-                  </FormField>
-                ))}
+                <FormField>
+                  <label>Email</label>
+                  <EditableInput
+                    value={tempProfileData.email}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, email: e.target.value })}
+                    placeholder="Nhập email"
+                  />
+                </FormField>
+                <FormField>
+                  <label>Số điện thoại</label>
+                  <EditableInput
+                    value={tempProfileData.phoneNumber}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, phoneNumber: e.target.value })}
+                    placeholder="Nhập số điện thoại"
+                  />
+                </FormField>
+                <FormField>
+                  <label>Địa chỉ</label>
+                  <EditableInput
+                    value={tempProfileData.address}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, address: e.target.value })}
+                    placeholder="Nhập địa chỉ"
+                  />
+                </FormField>
+                <FormField>
+                  <label>Giới tính</label>
+                  <SelectInput
+                    value={tempProfileData.gender}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, gender: e.target.value })}
+                  >
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                  </SelectInput>
+                </FormField>
+                <FormField>
+                  <label>Bằng cấp</label>
+                  <EditableInput
+                    value={tempProfileData.degree}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, degree: e.target.value })}
+                    placeholder="Nhập bằng cấp"
+                  />
+                </FormField>
+                <FormField>
+                  <label>Chuyên môn</label>
+                  <EditableInput
+                    value={tempProfileData.specialization}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, specialization: e.target.value })}
+                    placeholder="Nhập chuyên môn"
+                  />
+                </FormField>
+                <FormField>
+                  <label>Kinh nghiệm</label>
+                  <EditableInput
+                    value={tempProfileData.experience}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, experience: e.target.value })}
+                    placeholder="Nhập số năm kinh nghiệm"
+                  />
+                </FormField>
+                <FormField>
+                  <label>Ảnh đại diện (URL)</label>
+                  <EditableInput
+                    value={tempProfileData.profilePictureUrl}
+                    onChange={(e) => setTempProfileData({ ...tempProfileData, profilePictureUrl: e.target.value })}
+                    placeholder="Nhập link ảnh đại diện"
+                  />
+                </FormField>
+                <FormField>
+                  <label>Bio</label>
+                  <EditableTextarea
+                    value={tempIntroText}
+                    onChange={(e) => setTempIntroText(e.target.value)}
+                    placeholder="Viết giới thiệu về bản thân..."
+                  />
+                </FormField>
               </FormGrid>
             </FormSection>
 
@@ -804,97 +860,14 @@ const CoachProfile = () => {
               </ActionButton>
               <ActionButton className="primary" onClick={handleSaveProfile}>
                 <SaveOutlined />
-                            Lưu thay đổi
-              </ActionButton>
-            </ModalActions>
-          </ModalContent>
-        </ModalOverlay>
-      )}
-
-      {showAccountModal && (
-        <ModalOverlay onClick={e => e.target === e.currentTarget && setShowAccountModal(false)}>
-          <ModalContent>
-            <ModalHeader>
-              <h2>Chỉnh sửa tài khoản & mật khẩu</h2>
-              <CloseButton onClick={() => setShowAccountModal(false)}>
-                <CloseOutlined />
-              </CloseButton>
-            </ModalHeader>
-            <FormSection>
-              <FormField className="full-width">
-                <label>Tài khoản đăng nhập</label>
-                <EditableInput
-                  type="text"
-                  value={accountForm.username}
-                  onChange={e => setAccountForm({ ...accountForm, username: e.target.value })}
-                  placeholder="Nhập tài khoản đăng nhập"
-                />
-              </FormField>
-              <FormField className="full-width">
-                <label>Mật khẩu cũ</label>
-                <EditableInput
-                  type="password"
-                  value={accountForm.oldPassword}
-                  onChange={e => setAccountForm({ ...accountForm, oldPassword: e.target.value })}
-                  placeholder="Nhập mật khẩu cũ"
-                />
-              </FormField>
-              <FormField className="full-width">
-                <label>Mật khẩu mới</label>
-                <EditableInput
-                  type="password"
-                  value={accountForm.newPassword}
-                  onChange={e => setAccountForm({ ...accountForm, newPassword: e.target.value })}
-                  placeholder="Nhập mật khẩu mới"
-                />
-              </FormField>
-              <FormField className="full-width">
-                <label>Xác nhận mật khẩu mới</label>
-                <EditableInput
-                  type="password"
-                  value={accountForm.confirmPassword}
-                  onChange={e => setAccountForm({ ...accountForm, confirmPassword: e.target.value })}
-                  placeholder="Nhập lại mật khẩu mới"
-                />
-              </FormField>
-              {accountError && <div style={{ color: 'red', marginTop: 8 }}>{accountError}</div>}
-            </FormSection>
-            <ModalActions>
-              <ActionButton className="secondary" onClick={() => setShowAccountModal(false)}>
-                <CloseOutlined />
-                Hủy
-              </ActionButton>
-              <ActionButton className="primary" onClick={() => {
-                // Validate
-                if (!accountForm.username) {
-                  setAccountError('Vui lòng nhập tài khoản đăng nhập.');
-                  return;
-                }
-                if (!accountForm.oldPassword) {
-                  setAccountError('Vui lòng nhập mật khẩu cũ.');
-                  return;
-                }
-                if (!accountForm.newPassword) {
-                  setAccountError('Vui lòng nhập mật khẩu mới.');
-                  return;
-                }
-                if (accountForm.newPassword !== accountForm.confirmPassword) {
-                  setAccountError('Mật khẩu mới và xác nhận không khớp.');
-                  return;
-                }
-                setAccountError('');
-                setShowAccountModal(false);
-                // Thực hiện lưu thông tin ở đây nếu cần
-              }}>
-                <SaveOutlined />
                 Lưu thay đổi
               </ActionButton>
             </ModalActions>
           </ModalContent>
         </ModalOverlay>
       )}
-        </Container>
-    );
+    </Container>
+  );
 };
 
 export default CoachProfile; 

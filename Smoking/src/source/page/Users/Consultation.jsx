@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Typography, Avatar, Button, Modal, Form, DatePicker, Select, Input, message, Table } from 'antd';
 import { MessageOutlined, UserOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
 import dayjs from 'dayjs';
+import axiosClient from '../Axios/AxiosCLients';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -62,29 +63,29 @@ const BookingModal = styled(Modal)`
   .ant-modal-content { border-radius: 8px; }
 `;
 
-const timeSlots = [
-    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00'
+// Define coach working slots to generate selectable times
+const workingSlots = [
+    { start: '07:00', end: '09:00' },
+    { start: '09:30', end: '11:30' },
+    { start: '12:30', end: '14:30' },
+    { start: '15:00', end: '17:00' },
 ];
 
-const coaches = [
-    {
-        id: 1,
-        name: 'Nguyễn Văn A',
-        title: 'Chuyên gia tư vấn cai thuốc lá',
-        avatar: 'https://xsgames.co/randomusers/avatar.php?g=male',
-        experience: '5 năm',
-        rating: 4.8
-    },
-    {
-        id: 2,
-        name: 'Trần Thị B',
-        title: 'Chuyên gia tâm lý học',
-        avatar: 'https://xsgames.co/randomusers/avatar.php?g=female',
-        experience: '7 năm',
-        rating: 4.9
-    }
-];
+const generateTimeSlots = () => {
+    const slots = [];
+    workingSlots.forEach(slot => {
+        let currentTime = dayjs(`2000-01-01T${slot.start}`);
+        const endTime = dayjs(`2000-01-01T${slot.end}`);
+
+        while (currentTime.isBefore(endTime)) {
+            slots.push(currentTime.format('HH:mm'));
+            currentTime = currentTime.add(30, 'minute');
+        }
+    });
+    return slots;
+};
+
+const timeSlots = generateTimeSlots();
 
 const CustomTable = styled(Table)`
   .ant-table-thead > tr > th {
@@ -145,45 +146,53 @@ const Consultation = () => {
     const [selectedCoach, setSelectedCoach] = useState(null);
     const [appointments, setAppointments] = useState([]);
     const [form] = Form.useForm();
+    const [coaches, setCoaches] = useState([]);
+    const userId = localStorage.getItem('userId');
+
+    // Helper function to get meeting link from either meetingLink or meetLink field
+    const getMeetingLink = (record) => {
+        return record.meetingLink || record.meetLink || null;
+    };
 
     const handleBooking = (coach) => {
         setSelectedCoach(coach);
         setIsModalVisible(true);
     };
 
-    // Hàm cập nhật trạng thái cuộc hẹn
-    const updateAppointmentStatus = (appointmentId, status, meetLink = null) => {
-        setAppointments(prev => prev.map(appointment =>
-            appointment.id === appointmentId
-                ? { ...appointment, status, meetLink }
-                : appointment
-        ));
+    const bookConsultation = async (data) => {
+        return axiosClient.post('/api/consultations/request', data);
     };
 
-    // Mô phỏng coach xác nhận sau 2s
-    const simulateCoachConfirmation = (appointmentId) => {
-        setTimeout(() => {
-            updateAppointmentStatus(appointmentId, 'confirmed', 'https://meet.google.com/abc-def-ghi');
-            message.success('Coach đã xác nhận lịch hẹn của bạn!');
-        }, 2000);
+    const fetchUserConsultations = async (userId) => {
+        return axiosClient.get(`/api/consultations/user/${userId}`);
     };
+
+    useEffect(() => {
+        fetchUserConsultations(userId).then(res => setAppointments(res.data));
+    }, [userId]);
 
     const handleModalOk = () => {
         form.validateFields().then(values => {
-            const newAppointment = {
-                id: appointments.length + 1,
-                coachName: selectedCoach.name,
-                date: values.date.format('YYYY-MM-DD'),
-                time: values.time,
-                notes: values.notes || '',
-                status: 'pending',
-                meetLink: null
-            };
-            setAppointments(prev => [...prev, newAppointment]);
+            const coachId = selectedCoach.coachId;
+            const dateStr = values.date.format('YYYY-MM-DD');
+            const timeStr = values.time;
+            const scheduledTime = dayjs(`${dateStr}T${timeStr}`).format('YYYY-MM-DDTHH:mm');
+
+            bookConsultation({
+                userId,
+                coachId,
+                scheduledTime,
+                notes: values.notes || ''
+            })
+                .then(() => {
             message.success('Đặt lịch tư vấn thành công!');
             setIsModalVisible(false);
             form.resetFields();
-            simulateCoachConfirmation(newAppointment.id);
+                    fetchUserConsultations(userId).then(res => setAppointments(res.data));
+                })
+                .catch(() => {
+                    message.error('Đặt lịch thất bại!');
+                });
         });
     };
 
@@ -191,6 +200,13 @@ const Consultation = () => {
         setIsModalVisible(false);
         form.resetFields();
     };
+
+    // Fetch danh sách coach từ API khi load trang
+    useEffect(() => {
+        axiosClient.get('/api/coaches/all')
+            .then(res => setCoaches(res.data))
+            .catch(() => setCoaches([]));
+    }, []);
 
     return (
         <PageContainer>
@@ -200,15 +216,15 @@ const Consultation = () => {
             </TitleRow>
             <Row gutter={[16, 16]}>
                 {coaches.map((coach, index) => (
-                    <Col xs={24} md={12} key={coach.id}>
+                    <Col xs={24} md={12} key={coach.coachId || coach.id || index}>
                         <AnimatedCoachCard delay={`${index * 0.1}s`}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-                                <Avatar size={64} src={coach.avatar} icon={<UserOutlined />} />
+                                <Avatar size={64} src={coach.profilePictureUrl} icon={<UserOutlined />} />
                                 <div style={{ flex: 1 }}>
-                                    <Title level={4} style={{ margin: 0 }}>{coach.name}</Title>
-                                    <Text type="secondary">{coach.title}</Text>
+                                    <Title level={4} style={{ margin: 0 }}>{coach.fullName}</Title>
+                                    <Text type="secondary">{coach.specialization}</Text>
                                     <div style={{ marginTop: 4 }}>
-                                        <Text strong>Kinh nghiệm:</Text> {coach.experience} | <Text strong>Đánh giá:</Text> {coach.rating} ⭐
+                                        <Text strong>Đánh giá:</Text> {coach.rating ? coach.rating : 'Chưa có'} ⭐
                                     </div>
                                 </div>
                             </div>
@@ -223,21 +239,33 @@ const Consultation = () => {
             <AnimatedHistoryCard title={<span style={{ fontWeight: 700, fontSize: 20, color: '#222' }}>Lịch Sử Đặt Lịch</span>}>
                 <CustomTable
                     columns={[
-                        { title: 'Tên huấn luyện viên', dataIndex: 'coachName', key: 'coachName' },
-                        { title: 'Ngày', dataIndex: 'date', key: 'date', render: date => dayjs(date).format('DD/MM/YYYY') },
-                        { title: 'Giờ', dataIndex: 'time', key: 'time' },
+                        { title: 'Ngày', dataIndex: 'scheduledTime', key: 'scheduledTime', render: date => dayjs(date).format('DD/MM/YYYY') },
+                        { title: 'Giờ', dataIndex: 'scheduledTime', key: 'time', render: date => dayjs(date).format('HH:mm') },
                         { title: 'Ghi chú', dataIndex: 'notes', key: 'notes' },
-                        { title: 'Trạng thái', dataIndex: 'status', key: 'status', render: status => status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xác nhận' },
-                        { title: 'Link Google Meet', dataIndex: 'meetLink', key: 'meetLink', render: (link, record) => link && record.status === 'confirmed' ? <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a> : '-' }
+                        { title: 'Trạng thái', dataIndex: 'status', key: 'status', render: status =>
+                            status === 'approved' || status === 'confirmed'
+                                ? 'Đã xác nhận'
+                                : 'Chờ xác nhận'
+                        },
+                        { 
+                            title: 'Link Google Meet', 
+                            key: 'meetingLink', 
+                            render: (_, record) => {
+                                const link = getMeetingLink(record);
+                                return link && (record.status === 'approved' || record.status === 'confirmed') ? 
+                                    <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a> : 
+                                    '-';
+                            }
+                        }
                     ]}
-                    dataSource={appointments.map((item, idx) => ({ ...item, key: idx }))}
+                    dataSource={appointments.map((item, idx) => ({ ...item, key: item.consultationId || item.id || idx }))}
                     pagination={false}
                     style={{ borderRadius: 0 }}
                 />
             </AnimatedHistoryCard>
 
             <BookingModal
-                title={selectedCoach ? `Đặt Lịch Tư Vấn với ${selectedCoach.name}` : 'Đặt Lịch Tư Vấn'}
+                title={selectedCoach ? `Đặt Lịch Tư Vấn với ${selectedCoach.fullName}` : 'Đặt Lịch Tư Vấn'}
                 open={isModalVisible}
                 onOk={handleModalOk}
                 onCancel={handleModalCancel}

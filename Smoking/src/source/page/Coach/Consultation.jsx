@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Modal, Form, Input, Select, message, Typography, Space, Tag, Descriptions } from 'antd';
+import { Card, Button, Modal, Form, Input, Select, message, Typography, Space, Tag, Descriptions, Table } from 'antd';
 import styled from 'styled-components';
 import { ClockCircleOutlined, UserOutlined, FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, PhoneOutlined, MailOutlined, LinkOutlined, TrophyOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import weekday from 'dayjs/plugin/weekday';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import isoWeek from 'dayjs/plugin/isoWeek';
+import axiosClient from '../Axios/AxiosCLients';
 
 dayjs.extend(weekday);
 dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
+dayjs.extend(isoWeek);
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -105,94 +108,144 @@ const TimeConsultation = () => {
   const [meetLink, setMeetLink] = useState('');
   const [confirmForm] = Form.useForm();
 
+  const [consultations, setConsultations] = useState([]);
+  const [meetLinks, setMeetLinks] = useState({});
+  const coachId = localStorage.getItem('coachId');
+  const userId = localStorage.getItem('userId'); // Fallback to userId if coachId not available
+
+  useEffect(() => {
+    const idToUse = coachId || userId;
+    if (idToUse) {
+      console.log('Fetching consultations for ID:', idToUse, 'Type:', coachId ? 'coachId' : 'userId');
+      axiosClient.get(`/api/consultations/coach/${idToUse}`)
+        .then(res => {
+          console.log('API response:', res.data);
+          setConsultations(res.data);
+        })
+        .catch((err) => {
+          console.error('Error fetching consultations:', err);
+          setConsultations([]);
+        });
+    } else {
+      console.log('No coachId or userId found in localStorage');
+      console.log('Available localStorage items:', {
+        coachId: localStorage.getItem('coachId'),
+        userId: localStorage.getItem('userId'),
+        userRole: localStorage.getItem('userRole'),
+        token: localStorage.getItem('token')
+      });
+    }
+  }, [coachId, userId]);
+
   console.log('Initial selectedDate:', selectedDate.format('YYYY-MM-DD'));
 
-  // Mock data for consultations - structured for easy lookup by date and time slot
-   const [mockConsultations, setMockConsultations] = useState({
-       '2024-03-25': { // Tuesday
-           'Slot 2': [
-               { id: 1, memberName: 'Nguyễn Văn A', time: '09:30-11:00', notes: 'Kiểm tra tiến độ', status: 'confirmed', meetLink: 'https://meet.google.com/abc-def-ghi' }
-           ]
-       },
-        '2024-03-28': { // Friday
-            'Slot 2': [
-                 { id: 2, memberName: 'Trần Thị B', time: '09:30-11:00', notes: 'Tư vấn phương pháp mới', status: 'confirmed', meetLink: 'https://meet.google.com/jkl-mno-pqr' }
-            ],
-            'Slot 3': [
-                 { id: 3, memberName: 'Nguyễn Văn A', time: '12:30-14:00', notes: 'Thảo luận yếu tố tái nghiện', status: 'pending' }
-            ]
-        },
-       // Add more mock data - Adding data for the current calculated week
-       [dayjs().startOf('week').add(1, 'day').format('YYYY-MM-DD')]: { // Monday of current week
-            'Slot 1': [
-                { id: 101, memberName: 'Thành viên Test 1', time: '07:00-09:00', notes: 'Cuộc hẹn đầu tiên', status: 'pending' } // Pending for testing confirmation
-            ]
-       },
-       [dayjs().startOf('week').add(3, 'day').format('YYYY-MM-DD')]: { // Wednesday of current week
-            'Slot 3': [
-                { id: 102, memberName: 'Thành viên Test 2', time: '12:30-14:00', notes: 'Theo dõi tiến độ', status: 'pending' }
-            ]
-       }
-   });
+  // Hàm xác định slot dựa vào giờ
+  const getSlotFromTime = (isoString) => {
+    const hour = dayjs(isoString).hour();
+    const minute = dayjs(isoString).minute();
+    const time = hour * 60 + minute;
+    if (time >= 420 && time < 540) return 'Slot 1'; // 07:00-09:00
+    if (time >= 570 && time < 690) return 'Slot 2'; // 09:30-11:30
+    if (time >= 750 && time < 870) return 'Slot 3'; // 12:30-14:30
+    if (time >= 900 && time < 1020) return 'Slot 4'; // 15:00-17:00
+    return null;
+  };
 
-    // Define time slots - adjust as needed
-    const timeSlots = [
-        { key: 'Slot 1', time: '07:00 - 09:00' },
-        { key: 'Slot 2', time: '09:30 - 11:30' },
-        { key: 'Slot 3', time: '12:30 - 14:30' },
-        { key: 'Slot 4', time: '15:00 - 17:00' },
-        // Add more slots
-    ];
+  // Define time slots - adjust as needed
+  const timeSlots = [
+      { key: 'Slot 1', time: '07:00 - 09:00' },
+      { key: 'Slot 2', time: '09:30 - 11:30' },
+      { key: 'Slot 3', time: '12:30 - 14:30' },
+      { key: 'Slot 4', time: '15:00 - 17:00' },
+      // Add more slots
+  ];
 
-    const daysOfWeek = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
-    const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const daysOfWeek = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
+  const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-    // Get the start date of the week based on selectedDate
-    const startOfWeek = dayjs(selectedDate).startOf('week'); // dayjs week starts on Sunday by default
-    const startOfWeekMonday = dayjs(startOfWeek).add(1, 'day'); // Adjust to start on Monday
+  // Get the start date of the week based on selectedDate
+  const startOfWeek = dayjs(selectedDate).startOf('week'); // dayjs week starts on Sunday by default
+  const startOfWeekMonday = dayjs(startOfWeek).add(1, 'day'); // Adjust to start on Monday
 
-    // Get dates for the current week
-    const weekDates = Array.from({ length: 7 }).map((_, i) =>
-        dayjs(startOfWeekMonday).add(i, 'day').format('YYYY-MM-DD')
-    );
+  // Get dates for the current week
+  const weekDates = Array.from({ length: 7 }).map((_, i) =>
+      dayjs(startOfWeekMonday).add(i, 'day').format('YYYY-MM-DD')
+  );
 
-    console.log('Calculated weekDates:', weekDates);
+  console.log('Calculated weekDates:', weekDates);
 
-    // Get the current year and week number based on selectedDate
-    const currentYear = selectedDate.year();
-    const currentWeek = selectedDate.week();
+  // Get the current year and week number based on selectedDate
+  const currentYear = selectedDate.year();
+  const currentWeek = selectedDate.isoWeek();
 
-    // Options for Year and Week dropdowns (simplified mock)
-     // Generate year options around the current year
-     const yearOptions = [-2, -1, 0, 1, 2].map(offset => {
-         const year = dayjs().year() + offset;
-         return { value: year, label: year };
-     });
-
-     // Generate week options for the current year
-     const weeksInYear = dayjs(currentYear + '-12-28').week(); // Alternative way to get weeks in year
-      const weekOptions = Array.from({ length: weeksInYear }).map((_, i) => {
-          const week = i + 1;
-          const startOfWeek = dayjs().year(currentYear).week(week).startOf('week').add(1, 'day'); // Adjust to Monday
-          const endOfWeek = dayjs(startOfWeek).add(6, 'day');
-          return {
-              value: week,
-              label: `Tuần ${week}: ${startOfWeek.format('DD/MM')} - ${endOfWeek.format('DD/MM')}`
-          };
-      });
-
-    const handleYearChange = (year) => {
-        console.log('handleYearChange - New year:', year);
-        // Set the date to the first week of the selected year
-        setSelectedDate(dayjs().year(year).startOf('year').startOf('week').add(1, 'day')); // First day of the first week, adjusted to Monday
+  // Generate week options for the selected year
+  const getWeeksInYear = (year) => {
+    // ISO week: tuần cuối cùng luôn chứa ngày 28/12
+    return dayjs(`${year}-12-28`).isoWeek();
+  };
+  const weekOptions = Array.from({ length: getWeeksInYear(currentYear) }).map((_, i) => {
+    const week = i + 1;
+    const startOfWeek = dayjs().year(currentYear).isoWeek(week).startOf('week').add(1, 'day'); // Thứ Hai
+    const endOfWeek = dayjs(startOfWeek).add(6, 'day');
+    return {
+      value: week,
+      label: `Tuần ${week}: ${startOfWeek.format('DD/MM')} - ${endOfWeek.format('DD/MM')}`
     };
+  });
 
-    const handleWeekChange = (week) => {
-         console.log('handleWeekChange - New week:', week);
-        // Set the date to the first day of the selected week in the current year
-        setSelectedDate(dayjs().year(currentYear).week(week).startOf('week').add(1, 'day')); // Adjust to start Monday
-    };
+  const yearOptions = [-2, -1, 0, 1, 2].map(offset => {
+    const year = dayjs().year() + offset;
+    return { value: year, label: year };
+  });
 
+  const handleYearChange = (year) => {
+      console.log('handleYearChange - New year:', year);
+      // Set the date to the first week of the selected year
+      setSelectedDate(dayjs().year(year).startOf('year').startOf('week').add(1, 'day')); // First day of the first week, adjusted to Monday
+  };
+
+  const handleWeekChange = (week) => {
+       console.log('handleWeekChange - New week:', week);
+      // Set the date to the first day of the selected week in the current year
+      setSelectedDate(dayjs().year(currentYear).week(week).startOf('week').add(1, 'day')); // Adjust to start Monday
+  };
+
+  // Chuyển đổi consultations thành object theo ngày/slot
+  const timetable = {};
+  const outOfSlotAppointments = [];
+
+  console.log('Processing consultations:', consultations);
+  console.log('Current weekDates:', weekDates);
+
+  consultations.forEach(c => {
+    const date = dayjs(c.scheduledTime).format('YYYY-MM-DD');
+    console.log('Processing consultation:', {
+      id: c.consultationId || c.id,
+      scheduledTime: c.scheduledTime,
+      date: date,
+      memberName: c.memberName,
+      isInWeek: weekDates.includes(date)
+    });
+
+    if (weekDates.includes(date)) {
+      const slot = getSlotFromTime(c.scheduledTime);
+      console.log('Slot for consultation:', slot);
+      if (slot) {
+        if (!timetable[date]) timetable[date] = {};
+        if (!timetable[date][slot]) timetable[date][slot] = [];
+        timetable[date][slot].push(c);
+        console.log('Added to timetable:', date, slot);
+      } else {
+        outOfSlotAppointments.push(c);
+        console.log('Added to out of slot:', c);
+      }
+    } else {
+      console.log('Consultation not in current week:', date);
+    }
+  });
+
+  console.log('Final timetable:', timetable);
+  console.log('Final out of slot:', outOfSlotAppointments);
 
   const handleViewPost = (post) => {
     console.log('View post:', post.id);
@@ -220,40 +273,35 @@ const TimeConsultation = () => {
    // --- New functions for confirmation ---
    const handleOpenConfirmModal = (consultation) => {
        setConfirmConsultation(consultation);
-       setMeetLink(''); // Reset link input
+       confirmForm.setFieldsValue({ meetLink: '' }); // Clear field
        setIsConfirmModalVisible(true);
    };
 
    const handleSaveConfirmation = (values) => {
        if (!confirmConsultation) return;
 
-       const updatedMockConsultations = { ...mockConsultations };
+       // Use both possible id fields
+       const consultationId = confirmConsultation.consultationId || confirmConsultation.id;
+       const { meetLink } = values;
 
-       // Find the correct date key
-       const consultationDate = weekDates.find(date => {
-           const consultationsOnDate = mockConsultations[date] || {};
-           return Object.values(consultationsOnDate).flat().some(c => c.id === confirmConsultation.id);
-       });
+       console.log('Xác nhận:', { consultationId, meetLink, confirmConsultation });
 
-       if (consultationDate) {
-           const updatedDateConsultations = { ...updatedMockConsultations[consultationDate] };
-           Object.keys(updatedDateConsultations).forEach(slotKey => {
-               updatedDateConsultations[slotKey] = updatedDateConsultations[slotKey].map(c => {
-                   if (c.id === confirmConsultation.id) {
-                       return { ...c, status: 'confirmed', meetLink: values.meetLink };
-                   }
-                   return c;
-               });
-           });
-            updatedMockConsultations[consultationDate] = updatedDateConsultations;
-            setMockConsultations(updatedMockConsultations);
-            message.success('Đã xác nhận cuộc hẹn và lưu link.');
-       }
-
-       setIsConfirmModalVisible(false);
-       setConfirmConsultation(null);
-       setMeetLink('');
-       confirmForm.resetFields();
+       axiosClient.put(`/api/consultations/${consultationId}/approve`, {}, { params: { meetingLink: meetLink } })
+         .then(() => {
+           message.success('Đã xác nhận và gửi link thành công!');
+           // Cập nhật lại danh sách appointments
+           const idToUse = coachId || userId;
+           if (idToUse) {
+             axiosClient.get(`/api/consultations/coach/${idToUse}`)
+               .then(res => setConsultations(res.data));
+           }
+           setIsConfirmModalVisible(false);
+           confirmForm.resetFields();
+         })
+         .catch((err) => {
+           console.error('Lỗi khi xác nhận:', err);
+           message.error('Xác nhận thất bại, vui lòng thử lại.');
+         });
    };
 
    const handleCancelConfirmModal = () => {
@@ -280,6 +328,22 @@ const TimeConsultation = () => {
     return <Tag color={statusColor[status]}>{statusText[status]}</Tag>;
   };
 
+const handleApprove = (consultationId) => {
+  const link = meetLinks[consultationId];
+  if (!link) {
+    message.error('Vui lòng nhập link Meet!');
+    return;
+  }
+  axiosClient.put(`/api/consultations/${consultationId}/approve`, {}, { params: { meetingLink: link } })
+    .then(() => {
+      message.success('Xác nhận thành công!');
+      // Fetch lại danh sách
+      const idToUse = coachId || userId;
+      return axiosClient.get(`/api/consultations/coach/${idToUse}`);
+    })
+    .then(res => setConsultations(res.data))
+    .catch(() => message.error('Có lỗi xảy ra!'));
+};
 
   return (
     <Container>
@@ -314,7 +378,7 @@ const TimeConsultation = () => {
       <TimeTable>
         <thead>
           <tr>
-            <th></th> {/* Corner cell */}
+          <th></th>
             {daysOfWeek.map((day, index) => (
               <th key={day}>
                 {day}<br/>{dayjs(startOfWeekMonday).add(index, 'day').format('DD/MM')}
@@ -327,10 +391,7 @@ const TimeConsultation = () => {
             <tr key={slot.key}>
               <td><SlotLabel>{slot.key}</SlotLabel>{slot.time}</td>
               {weekDates.map(date => {
-                console.log(`Checking consultations for date: ${date}`);
-                const consultationsOnDate = mockConsultations[date] || {};
-                console.log(`Consultations found for ${date}:`, consultationsOnDate);
-                const consultationsInSlot = consultationsOnDate[slot.key] || [];
+              const consultationsInSlot = timetable[date] && timetable[date][slot.key] ? timetable[date][slot.key] : [];
                 return (
                   <td key={date}>
                     {consultationsInSlot.length > 0 ? (
@@ -339,7 +400,7 @@ const TimeConsultation = () => {
                              <Text strong>{consultation.memberName}</Text><br/>
                               <Space size={4}>
                                 <ClockCircleOutlined style={{ fontSize: '12px' }} />
-                                <Text type="secondary" style={{ fontSize: '12px' }}>{consultation.time}</Text>
+                          <Text type="secondary" style={{ fontSize: '12px' }}>{dayjs(consultation.scheduledTime).format('HH:mm')}</Text>
                               </Space><br/>
                              <Space size={4} style={{ marginTop: '4px' }}>
                                  <FileTextOutlined style={{ fontSize: '12px' }} />
@@ -348,22 +409,12 @@ const TimeConsultation = () => {
                               <div style={{ marginTop: '4px' }}>
                                 {renderConsultationStatus(consultation.status)}
                               </div>
-                              {/* Add buttons for actions */}
                                <Space size={4} style={{ marginTop: '8px' }}>
                                   {consultation.status === 'pending' && (
                                       <Button size="small" type="primary" icon={<CheckCircleOutlined />} onClick={() => handleOpenConfirmModal(consultation)}>
                                          Xác nhận
                                       </Button>
                                   )}
-                                   {consultation.status === 'confirmed' && (
-                                       <Button size="small" icon={<CloseCircleOutlined />} danger >
-                                          Hủy
-                                       </Button>
-                                   )}
-                                    <Button size="small" onClick={() => handleOpenFeedbackModal(consultation)}>
-                                         Đánh giá
-                                    </Button>
-                                     {/* Display meet link if available and confirmed */}
                                      {consultation.status === 'confirmed' && consultation.meetLink && (
                                          <Button size="small" icon={<LinkOutlined />} href={consultation.meetLink} target="_blank">
                                              Link Meet
@@ -373,7 +424,7 @@ const TimeConsultation = () => {
                          </ConsultationEntry>
                       ))
                     ) : (
-                      '' // Empty cell if no consultations
+                    ''
                     )}
                   </td>
                 );
@@ -382,6 +433,78 @@ const TimeConsultation = () => {
           ))}
         </tbody>
       </TimeTable>
+
+      {outOfSlotAppointments.length > 0 && (
+        <div style={{ marginTop: '32px' }}>
+            <GuestHeader>
+                <div className="header-title">
+                    <FileTextOutlined />
+                    Lịch hẹn ngoài khung giờ (trong tuần)
+                </div>
+            </GuestHeader>
+            <Table
+                dataSource={outOfSlotAppointments}
+                rowKey="consultationId"
+                columns={[
+                    {
+                        title: 'Thành viên',
+                        dataIndex: 'memberName',
+                        key: 'memberName',
+                    },
+                    {
+                        title: 'Thời gian',
+                        dataIndex: 'scheduledTime',
+                        key: 'scheduledTime',
+                        render: (text) => dayjs(text).format('HH:mm DD/MM/YYYY'),
+                    },
+                    {
+                        title: 'Ghi chú',
+                        dataIndex: 'notes',
+                        key: 'notes',
+                    },
+                    {
+                        title: 'Trạng thái',
+                        dataIndex: 'status',
+                        key: 'status',
+                        render: status =>
+                            status === 'approved' || status === 'confirmed'
+                                ? 'Đã xác nhận'
+                                : 'Chờ xác nhận'
+                    },
+                    {
+                        title: 'Link Google Meet',
+                        key: 'meetingLink',
+                        render: (_, record) => {
+                            const link = record.meetingLink || record.meetLink;
+                            return link
+                                ? <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a>
+                                : '-';
+                        }
+                    },
+                    {
+                        title: 'Hành động',
+                        key: 'action',
+                        render: (_, record) => (
+                            <Space>
+                                {record.status === 'pending' && (
+                                    <Button type="primary" icon={<CheckCircleOutlined />} onClick={() => handleOpenConfirmModal(record)}>
+                                        Xác nhận
+                                    </Button>
+                                )}
+                                {(record.status === 'approved' || record.status === 'confirmed') && (record.meetingLink || record.meetLink) && (
+                                    <Button icon={<LinkOutlined />} href={record.meetingLink || record.meetLink} target="_blank">
+                                        Link Meet
+                                    </Button>
+                                )}
+                            </Space>
+                        ),
+                    },
+                ]}
+                pagination={false}
+                style={{ marginTop: '16px' }}
+            />
+        </div>
+      )}
 
        {/* Feedback Modal */}
        <Modal

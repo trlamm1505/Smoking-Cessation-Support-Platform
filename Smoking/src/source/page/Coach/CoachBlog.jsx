@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Tag, Space, Typography, Modal } from 'antd';
-import { CalendarOutlined, EyeOutlined, ReadOutlined, UserOutlined as AntUserOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Tag, Space, Typography, Modal, Button, Form, Input, Select, DatePicker, Upload, message } from 'antd';
+import { CalendarOutlined, EyeOutlined, ReadOutlined, UserOutlined as AntUserOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 const BlogContainer = styled.div`
   max-width: 1200px;
@@ -208,74 +209,84 @@ const ArticleModalContent = styled.div`
   }
 `;
 
-const categories = [
-    { key: 'all', label: 'Tất cả', color: '#4096ff' },
-    { key: 'methods', label: 'Phương pháp', color: '#95de64' },
-    { key: 'health', label: 'Sức khỏe', color: '#ff7a45' },
-    { key: 'nutrition', label: 'Dinh dưỡng', color: '#4096ff' },
-    { key: 'psychology', label: 'Tâm lý', color: '#722ed1' },
-    { key: 'success', label: 'Câu chuyện thành công', color: '#ffc53d' }
-];
+const AddButtonWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: 24px 0 32px 0;
+`;
 
-const articles = [
-    {
-        id: 1,
-        title: 'Top 10 Phương Pháp Cai Thuốc Lá Hiệu Quả Nhất',
-        category: 'methods',
-        coverImage: 'https://source.unsplash.com/random/800x400/?quit-smoking',
-        author: {
-            name: 'TS. Nguyễn Văn A',
-            avatar: 'https://source.unsplash.com/random/100x100/?doctor',
-            title: 'Chuyên gia cai nghiện'
-        },
-        views: '1520',
-        readTime: '8 phút đọc',
-        date: '15/03/2024',
-        excerpt: 'Khám phá những phương pháp cai thuốc lá được chứng minh hiệu quả bởi các chuyên gia y tế...',
-        content: 'Nội dung đầy đủ của bài viết Top 10 Phương Pháp Cai Thuốc Lá Hiệu Quả Nhất. Đây là phần sẽ hiển thị trong modal. Nó sẽ bao gồm chi tiết về từng phương pháp, lời khuyên từ chuyên gia, và các bước thực hiện. Mục tiêu là cung cấp đủ thông tin cho coach để họ có thể tham khảo và hỗ trợ thành viên của mình một cách tốt nhất. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
-    },
-    {
-        id: 2,
-        title: 'Tác Hại của Thuốc Lá Đối Với Sức Khỏe Tim Mạch',
-        category: 'health',
-        coverImage: 'https://source.unsplash.com/random/800x400/?doctor',
-        author: {
-            name: 'PGS.TS Trần B',
-            avatar: 'https://source.unsplash.com/random/100x100/?professor',
-            title: 'Bác sĩ Tim mạch'
-        },
-        views: '2150',
-        readTime: '10 phút đọc',
-        date: '12/03/2024',
-        excerpt: 'Nghiên cứu mới nhất về ảnh hưởng của thuốc lá đối với hệ tim mạch và cách phòng ngừa...',
-        content: 'Nội dung đầy đủ của bài viết Tác Hại của Thuốc Lá Đối Với Sức Khỏe Tim Mạch. Bài viết này sẽ đi sâu vào cơ chế thuốc lá gây hại cho tim, các bệnh liên quan, và cách giảm thiểu rủi ro khi bỏ thuốc. Thông tin này rất quan trọng để coach có thể giáo dục và động viên thành viên. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-    },
-    {
-        id: 3,
-        title: 'Câu Chuyện Thành Công: Hành Trình Cai Thuốc Của Tôi',
-        category: 'success',
-        coverImage: 'https://source.unsplash.com/random/800x400/?healthy-food',
-        author: {
-            name: 'Lê Văn C',
-            avatar: 'https://source.unsplash.com/random/100x100/?person',
-            title: 'Người truyền cảm hứng'
-        },
-        views: '3300',
-        readTime: '12 phút đọc',
-        date: '10/03/2024',
-        excerpt: 'Chia sẻ từ người đã cai thuốc thành công sau 15 năm hút thuốc và những bài học quý giá...',
-        content: 'Nội dung đầy đủ của bài viết Câu Chuyện Thành Công: Hành Trình Cai Thuốc Của Tôi. Câu chuyện truyền cảm hứng này sẽ chia sẻ kinh nghiệm cá nhân, những khó khăn đã vượt qua, và những lợi ích đạt được sau khi bỏ thuốc. Đây là nguồn động lực lớn cho cả coach và thành viên. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-    }
-];
+const BlogFormModalContent = styled.div`
+  padding: 32px 24px 24px 24px;
+  border-radius: 18px;
+  background: #f8f9fa;
+  box-shadow: 0 4px 32px rgba(95,184,179,0.10);
+  max-width: 540px;
+  margin: 0 auto;
+
+  .form-title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    color: #2c7a75;
+    margin-bottom: 28px;
+    letter-spacing: 0.5px;
+  }
+  .ant-form-item {
+    margin-bottom: 18px;
+  }
+  .ant-input, .ant-select-selector, .ant-input-textarea {
+    border-radius: 10px !important;
+    font-size: 15px;
+    padding: 8px 12px;
+  }
+  .ant-upload-picture-card-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+  .ant-upload.ant-upload-select-picture-card {
+    border-radius: 12px;
+    border: 2px dashed #5FB8B3;
+    background: #fff;
+    transition: border-color 0.2s;
+  }
+  .ant-upload.ant-upload-select-picture-card:hover {
+    border-color: #4A90E2;
+  }
+  .ant-btn-primary {
+    background: linear-gradient(135deg, #5FB8B3 0%, #4A90E2 100%);
+    border: none;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 10px;
+    padding: 8px 32px;
+    box-shadow: 0 2px 8px rgba(95,184,179,0.10);
+  }
+  .ant-btn-primary:hover {
+    background: linear-gradient(135deg, #4A90E2 0%, #5FB8B3 100%);
+  }
+  .ant-btn {
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+`;
+
+const categories = [];
+const articles = [];
 
 const CoachBlog = () => {
     const [activeCategory, setActiveCategory] = useState('all');
     const [isArticleModalVisible, setIsArticleModalVisible] = useState(false);
     const [selectedArticle, setSelectedArticle] = useState(null);
-
+    const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+    const [form] = Form.useForm();
+    const [articleList, setArticleList] = useState(articles);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
+    
     const filteredArticles = activeCategory === 'all'
-        ? articles
-        : articles.filter(article => article.category === activeCategory);
+        ? articleList
+        : articleList.filter(article => article.category === activeCategory);
 
     const handleReadMore = (article) => {
         setSelectedArticle(article);
@@ -287,8 +298,68 @@ const CoachBlog = () => {
         setSelectedArticle(null);
     };
 
+    const handleOpenCreateModal = () => {
+        setIsCreateModalVisible(true);
+    };
+    const handleCloseCreateModal = () => {
+        setIsCreateModalVisible(false);
+        form.resetFields();
+    };
+
+    const handleCreateArticle = (values) => {
+        // Tạm thời thêm vào danh sách local, sau này sẽ gọi API
+        const newArticle = {
+            id: articleList.length + 1,
+            title: values.title,
+            slug: values.slug,
+            content: values.content,
+            excerpt: values.excerpt,
+            category: values.category,
+            tags: values.tags,
+            status: values.status,
+            coverImage: values.featuredImageURL || 'https://source.unsplash.com/random/800x400/?blog',
+            author: {
+                name: 'Coach Demo',
+                avatar: 'https://source.unsplash.com/random/100x100/?coach',
+                title: 'Coach',
+            },
+            views: 0,
+            readTime: '5 phút đọc',
+            date: new Date().toLocaleDateString('vi-VN'),
+        };
+        setArticleList([newArticle, ...articleList]);
+        message.success('Tạo bài viết thành công!');
+        handleCloseCreateModal();
+    };
+
+    // Upload ảnh lên Cloudinary
+    const handleImageChange = async (info) => {
+        const file = info.file.originFileObj;
+        if (!file) return;
+        setImagePreview(URL.createObjectURL(file));
+        setImageFile(file);
+        // Upload lên Cloudinary
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'avatarUploadClient');
+        formData.append('cloud_name', 'dp4gsczko');
+        try {
+            const res = await fetch('https://api.cloudinary.com/v1_1/dp4gsczko/image/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.secure_url) {
+                form.setFieldsValue({ featuredImageURL: data.secure_url });
+                setImagePreview(data.secure_url);
+            }
+        } catch (err) {
+            message.error('Lỗi upload ảnh!');
+        }
+    };
+
     const renderArticleCard = (article) => (
-        <Col xs={24} md={8} style={{ marginBottom: 24 }}>
+        <Col xs={24} md={8} style={{ marginBottom: 24 }} key={article.id}>
             <ArticleCard
                 cover={<img alt={article.title} src={article.coverImage} />}
             >
@@ -335,6 +406,28 @@ const CoachBlog = () => {
                     <Title level={2} style={{ margin: 0 }}>Blog Cai Thuốc Lá</Title>
                 </div>
             </Header>
+
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                margin: '24px 0 32px 0'
+            }}>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />} 
+                    size="large"
+                    style={{
+                        background: '#ff7a45',
+                        borderColor: '#ff7a45',
+                        fontWeight: 600,
+                        fontSize: 18,
+                        padding: '0 32px'
+                    }}
+                    onClick={handleOpenCreateModal}
+                >
+                    + Thêm bài blog
+                </Button>
+            </div>
 
             <CategoryContainer>
                 {categories.map(category => (
@@ -383,6 +476,56 @@ const CoachBlog = () => {
                         <Text className="full-content">{selectedArticle.content}</Text>
                     </ArticleModalContent>
                 )}
+            </Modal>
+
+            <Modal
+                title={null}
+                open={isCreateModalVisible}
+                onCancel={handleCloseCreateModal}
+                footer={null}
+                width={600}
+                centered
+                bodyStyle={{ background: 'transparent', boxShadow: 'none', padding: 0 }}
+            >
+                <BlogFormModalContent>
+                  <div className="form-title">Tạo bài viết mới</div>
+                  <Form
+                      form={form}
+                      layout="vertical"
+                      onFinish={handleCreateArticle}
+                  >
+                      <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}> <Input placeholder="Nhập tiêu đề bài viết" /> </Form.Item>
+                      <Form.Item name="slug" label="Slug" rules={[{ required: true, message: 'Vui lòng nhập slug!' }]}> <Input placeholder="Ví dụ: cach-cai-thuoc-la-hieu-qua" /> </Form.Item>
+                      <Form.Item name="content" label="Nội dung" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}> <Input.TextArea rows={6} placeholder="Nhập nội dung bài viết" /> </Form.Item>
+                      <Form.Item name="excerpt" label="Tóm tắt"> <Input.TextArea rows={2} placeholder="Nhập tóm tắt bài viết" /> </Form.Item>
+                      <Form.Item name="category" label="Chuyên mục" rules={[{ required: true, message: 'Vui lòng chọn chuyên mục!' }]}> <Select placeholder="Chọn chuyên mục"> {categories.filter(c => c.key !== 'all').map(cat => (<Option value={cat.key} key={cat.key}>{cat.label}</Option>))} </Select> </Form.Item>
+                      <Form.Item name="tags" label="Tags"> <Input placeholder="Nhập tags, cách nhau bởi dấu phẩy" /> </Form.Item>
+                      <Form.Item name="status" label="Trạng thái" initialValue="draft"> <Select> <Option value="draft">Nháp</Option> <Option value="published">Công khai</Option> </Select> </Form.Item>
+                      {/* Ảnh đại diện Cloudinary */}
+                      <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết" rules={[{ required: true, message: 'Vui lòng upload ảnh đại diện!' }]} style={{ marginBottom: 0 }}>
+                          <Upload
+                              listType="picture-card"
+                              showUploadList={false}
+                              beforeUpload={() => false}
+                              customRequest={handleImageChange}
+                              accept="image/*"
+                          >
+                              {imagePreview ? (
+                                  <img src={imagePreview} alt="cover" style={{ width: '100%', borderRadius: 8 }} />
+                              ) : (
+                                  <div>
+                                      <PlusOutlined />
+                                      <div style={{ marginTop: 8 }}>Upload</div>
+                                  </div>
+                              )}
+                          </Upload>
+                      </Form.Item>
+                      <Form.Item style={{ textAlign: 'center', marginTop: 24 }}>
+                          <Button type="primary" htmlType="submit">Tạo bài viết</Button>
+                          <Button style={{ marginLeft: 12 }} onClick={handleCloseCreateModal}>Hủy</Button>
+                      </Form.Item>
+                  </Form>
+                </BlogFormModalContent>
             </Modal>
         </BlogContainer>
     );
