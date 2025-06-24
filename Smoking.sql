@@ -1,3 +1,6 @@
+
+-- Database: smoking
+
 Create database Smoking
 use Smoking 
 CREATE TABLE Users (
