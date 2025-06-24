@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, Tabs, message, Popconfirm, Select, Upload } from 'antd';
-import { PlusOutlined, DeleteOutlined, UserOutlined, TeamOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, Tabs, message, Popconfirm, Select, Upload, Row, Col, Card } from 'antd';
+import { PlusOutlined, DeleteOutlined, UserOutlined, TeamOutlined, LockOutlined, PhoneOutlined, HomeOutlined } from '@ant-design/icons';
 import userApi from '../Axios/userAxios';
 import coachApi from '../Axios/coachApi';
 import { toast } from 'react-toastify';
@@ -108,8 +108,9 @@ const UserCoachManagement = () => {
       setAvatarPreview(null);
       setAvatarFile(null);
       fetchCoaches();
-    } catch {
+    } catch (err) {
       toast.error('Thêm coach thất bại');
+      console.error('Lỗi thêm coach:', err?.response?.data || err);
     }
   };
 
@@ -187,48 +188,87 @@ const UserCoachManagement = () => {
         onCancel={() => { setIsAddCoachModal(false); setAvatarPreview(null); setAvatarFile(null); }}
         footer={null}
       >
-        <Form
-          form={addCoachForm}
-          layout="vertical"
-          onFinish={handleAddCoach}
-        >
-          <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Nhập email!' }]}><Input /></Form.Item>
-          <Form.Item name="password" label="Mật khẩu" rules={[{ required: true, message: 'Nhập mật khẩu!' }]}><Input.Password /></Form.Item>
-          <Form.Item name="fullName" label="Họ tên" rules={[{ required: true, message: 'Nhập họ tên!' }]}><Input /></Form.Item>
-          <Form.Item name="specialization" label="Chuyên môn"><Input /></Form.Item>
-          <Form.Item name="degree" label="Bằng cấp"><Input /></Form.Item>
-          <Form.Item name="phoneNumber" label="Số điện thoại"><Input /></Form.Item>
-          <Form.Item name="gender" label="Giới tính" rules={[{ required: true, message: 'Chọn giới tính!' }]}> <Select placeholder="Chọn giới tính"> <Option value="Nam">Nam</Option> <Option value="Nữ">Nữ</Option> </Select> </Form.Item>
-          <Form.Item name="address" label="Địa chỉ"><Input /></Form.Item>
-          <Form.Item name="experience" label="Kinh nghiệm"><Input /></Form.Item>
-          <Form.Item name="rating" label="Đánh giá"><Input type="number" /></Form.Item>
-          <Form.Item name="bio" label="Giới thiệu"><Input.TextArea rows={2} /></Form.Item>
-          <Form.Item name="availability" label="Thời gian làm việc"><Input /></Form.Item>
-          {/* Ảnh đại diện Cloudinary */}
-          <Form.Item name="profilePictureUrl" label="Ảnh đại diện" rules={[{ required: true, message: 'Vui lòng upload ảnh đại diện!' }]}
-            style={{ marginBottom: 0 }}>
-            <Upload
-              listType="picture-card"
-              showUploadList={false}
-              beforeUpload={() => false}
-              customRequest={handleAvatarChange}
-              accept="image/*"
-            >
-              {avatarPreview ? (
-                <img src={avatarPreview} alt="avatar" style={{ width: '100%', borderRadius: 8 }} />
-              ) : (
-                <div>
-                  <PlusOutlined />
-                  <div style={{ marginTop: 8 }}>Upload</div>
-                </div>
-              )}
-            </Upload>
-          </Form.Item>
-          <Form.Item name="active" label="Kích hoạt" initialValue={true}><Select><Option value={true}>Hoạt động</Option><Option value={false}>Không hoạt động</Option></Select></Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>Thêm coach</Button>
-          </Form.Item>
-        </Form>
+        <Card bordered style={{ boxShadow: '0 2px 8px #f0f1f2' }}>
+          <div style={{ marginBottom: 16, color: '#888', fontSize: 15 }}>
+            Vui lòng nhập đầy đủ thông tin để thêm coach mới vào hệ thống. Các trường có dấu * là bắt buộc.
+          </div>
+          <Form
+            form={addCoachForm}
+            layout="vertical"
+            onFinish={handleAddCoach}
+          >
+            <Row gutter={16}>
+              <Col xs={24} sm={24} md={12}>
+                <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Nhập email!' }]} style={{ marginBottom: 16 }}> 
+                  <Input placeholder="Nhập email" prefix={<UserOutlined />} />
+                </Form.Item>
+                <Form.Item name="password" label="Mật khẩu" rules={[{ required: true, message: 'Nhập mật khẩu!' }]} style={{ marginBottom: 16 }}> 
+                  <Input.Password placeholder="Nhập mật khẩu" prefix={<LockOutlined />} />
+                </Form.Item>
+                <Form.Item name="fullName" label="Họ tên" rules={[{ required: true, message: 'Nhập họ tên!' }]} style={{ marginBottom: 16 }}> 
+                  <Input placeholder="Nhập họ tên" />
+                </Form.Item>
+                <Form.Item name="specialization" label="Chuyên môn" style={{ marginBottom: 16 }}> 
+                  <Input placeholder="Nhập chuyên môn" />
+                </Form.Item>
+                <Form.Item name="degree" label="Bằng cấp" style={{ marginBottom: 16 }}> 
+                  <Input placeholder="Nhập bằng cấp" />
+                </Form.Item>
+                <Form.Item name="phoneNumber" label="Số điện thoại" style={{ marginBottom: 16 }}> 
+                  <Input placeholder="Nhập số điện thoại" prefix={<PhoneOutlined />} />
+                </Form.Item>
+                <Form.Item name="gender" label="Giới tính" rules={[{ required: true, message: 'Chọn giới tính!' }]} style={{ marginBottom: 16 }}> 
+                  <Select placeholder="Chọn giới tính" allowClear>
+                    <Option value="Nam">Nam</Option> 
+                    <Option value="Nữ">Nữ</Option> 
+                  </Select> 
+                </Form.Item>
+                <Form.Item name="address" label="Địa chỉ" style={{ marginBottom: 16 }}> 
+                  <Input placeholder="Nhập địa chỉ" prefix={<HomeOutlined />} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={24} md={12}>
+                <Form.Item name="experience" label="Kinh nghiệm" style={{ marginBottom: 16 }}> 
+                  <Input placeholder="Nhập kinh nghiệm" />
+                </Form.Item>
+                <Form.Item name="rating" label="Đánh giá" style={{ marginBottom: 16 }}> 
+                  <Input type="number" placeholder="Nhập đánh giá (0-5)" min={0} max={5} />
+                </Form.Item>
+                <Form.Item name="bio" label="Giới thiệu" style={{ marginBottom: 16 }}> 
+                  <Input.TextArea rows={2} placeholder="Giới thiệu ngắn về coach" />
+                </Form.Item>
+                <Form.Item name="availability" label="Thời gian làm việc" style={{ marginBottom: 16 }}> 
+                  <Input placeholder="Nhập thời gian làm việc" />
+                </Form.Item>
+                <Form.Item 
+                  name="profilePictureUrl" 
+                  label="Ảnh đại diện (URL)" 
+                  rules={[ 
+                    { required: true, message: 'Vui lòng nhập URL ảnh đại diện!' },
+                    { 
+                      pattern: /^(https?:\/\/).+/i, 
+                      message: 'URL phải bắt đầu bằng http:// hoặc https://',
+                    },
+                  ]}
+                  style={{ marginBottom: 16 }}
+                >
+                  <Input placeholder="Nhập URL ảnh đại diện" />
+                </Form.Item>
+                <Form.Item name="active" label="Kích hoạt" initialValue={true} style={{ marginBottom: 16 }}>
+                  <Select>
+                    <Option value={true}>Hoạt động</Option>
+                    <Option value={false}>Không hoạt động</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+            <Form.Item style={{ textAlign: 'center', marginTop: 24 }}>
+              <Button type="primary" htmlType="submit" icon={<PlusOutlined />} size="large" style={{ minWidth: 180 }}>
+                Thêm coach
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
       </Modal>
     </div>
   );
