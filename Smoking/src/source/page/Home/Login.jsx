@@ -94,33 +94,18 @@ const Login = () => {
         }
 
         if (userRole === 'COACH') {
-          // Try multiple possible field names for coachId
-          let coachId = data.user.coachId || data.user.id || data.user.userId;
-          console.log('Coach login - checking for coachId:', {
-            coachId: data.user.coachId,
-            id: data.user.id,
-            userId: data.user.userId,
-            selectedCoachId: coachId
-          });
-
-          if (!coachId) {
-            // Nếu chưa có coachId, gọi API lấy coach theo userId
-            try {
-              const coachRes = await axiosClient.get(`/api/coaches/by-user/${userId}`);
-              coachId = coachRes.data.coachId || coachRes.data.id;
-              if (coachId) {
-                localStorage.setItem('coachId', coachId);
-                console.log('Fetched and stored coachId from by-user API:', coachId);
-              } else {
-                console.error('Không tìm thấy coachId từ API by-user:', coachRes.data);
-              }
-            } catch (err) {
-              console.error('Lỗi khi lấy coachId từ API by-user:', err);
+          try {
+            const coachRes = await axiosClient.get(`/api/coaches/by-user/${userId}`);
+            console.log('API /api/coaches/by-user response:', coachRes.data);
+            const coachId = coachRes.data.coachId || coachRes.data.id;
+            if (coachId) {
+              localStorage.setItem('coachId', coachId);
+              console.log('Fetched and stored coachId from by-user API:', coachId);
+            } else {
+              console.error('Không tìm thấy coachId từ API by-user:', coachRes.data);
             }
-
-          } else {
-            localStorage.setItem('coachId', coachId);
-            console.log('Stored coachId in localStorage:', coachId);
+          } catch (err) {
+            console.error('Lỗi khi lấy coachId từ API by-user:', err);
           }
           navigate('/coach', { replace: true });
           return;
