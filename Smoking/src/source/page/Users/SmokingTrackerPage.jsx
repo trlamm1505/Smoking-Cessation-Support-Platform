@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, InputNumber, Select, Button, Typography, TimePicker, Space, Table, DatePicker, Input } from 'antd';
 import { PlusOutlined, SaveOutlined, ClockCircleOutlined, EnvironmentOutlined, DollarOutlined, SmileOutlined, CalendarOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
+import dayjs from 'dayjs';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -206,10 +211,11 @@ const SmokingTrackerPage = () => {
   const [entries, setEntries] = useState([]);
   const [maxCigarettesPerDay, setMaxCigarettesPerDay] = useState(20);
   const [pricePerPack, setPricePerPack] = useState(30000);
+  const [planRange, setPlanRange] = useState({ start: null, end: null });
 
   const fetchLogs = async () => {
     const userId = Number(localStorage.getItem('userId')) || 1;
-    const res = await fetch(`http://localhost:8080/habit-logs/${userId}`);
+    const res = await fetch(`http://localhost:8080/habit-logs/all/${userId}`);
     const data = await res.json();
     const logs = Array.isArray(data) ? data : [data];
     setEntries(logs.map(log => ({
@@ -225,6 +231,21 @@ const SmokingTrackerPage = () => {
 
   useEffect(() => {
     fetchLogs();
+  }, []);
+
+  useEffect(() => {
+    const userId = Number(localStorage.getItem('userId')) || 1;
+    fetch(`http://localhost:8080/api/cessation-plans/user/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        let plan = Array.isArray(data) ? data[0] : data;
+        if (plan && plan.startDate && (plan.targetQuitDate || plan.endDate)) {
+          setPlanRange({
+            start: dayjs(plan.startDate),
+            end: dayjs(plan.targetQuitDate || plan.endDate)
+          });
+        }
+      });
   }, []);
 
   const onFinish = async (values) => {
@@ -303,6 +324,13 @@ const SmokingTrackerPage = () => {
   const totalCigarettes = entries.reduce((sum, entry) => sum + (entry.cigaretteCount || 0), 0);
   const totalCost = entries.reduce((sum, entry) => sum + (entry.price || 0), 0);
   const savedCost = Math.max(0, (maxCigarettesPerDay * pricePerPack) - totalCost);
+
+  const filteredEntries = planRange.start && planRange.end
+    ? entries.filter(entry => {
+        const entryDate = dayjs(entry.date);
+        return entryDate.isSameOrAfter(planRange.start, 'day') && entryDate.isSameOrBefore(planRange.end, 'day');
+      })
+    : entries;
 
   return (
     <PageContainer>
@@ -396,7 +424,7 @@ const SmokingTrackerPage = () => {
       <AnimatedCard delay="0.75s" title="Lịch Sử Ghi Nhận" className="history-card">
         <Table
           columns={columns}
-          dataSource={entries}
+          dataSource={filteredEntries}
           rowKey="id"
           pagination={{ pageSize: 10 }}
         />
