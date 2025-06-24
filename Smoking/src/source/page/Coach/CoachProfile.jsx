@@ -8,6 +8,7 @@ import {
 import { Typography, Space, Tag, Button as AntButton, Modal, Form, Input, message, Spin } from 'antd';
 import axiosClient from '../Axios/AxiosCLients';
 import { toast } from 'react-toastify';
+import coachApi from '../Axios/coachApi';
 
 const { Title, Text } = Typography;
 
@@ -525,13 +526,13 @@ const CoachProfile = () => {
   const [newAvatarFile, setNewAvatarFile] = useState(null);
 
   useEffect(() => {
-    const userId = localStorage.getItem('coachId');
+    const userId = localStorage.getItem('userId');
     if (!userId) {
       toast.error('Không tìm thấy userId!');
       setLoading(false);
       return;
     }
-    axiosClient.get(`/api/coaches/${userId}`)
+    axiosClient.get(`/api/coaches/by-user/${userId}`)
       .then(res => {
         setProfileData(res.data);
         setTempProfileData(res.data);
@@ -563,13 +564,28 @@ const CoachProfile = () => {
 
   const handleSaveProfile = async () => {
     try {
-      const userId = localStorage.getItem('coachId');
+      const userId = localStorage.getItem('userId');
       if (!userId) {
         toast.error('Không tìm thấy userId!');
         return;
       }
-      const body = { ...tempProfileData, bio: tempIntroText };
-      await axiosClient.put(`/api/coaches/update-profile?userId=${userId}`, body);
+      const body = {
+        fullName: tempProfileData.fullName || '',
+        profilePictureUrl: tempProfileData.profilePictureUrl || '',
+        phoneNumber: tempProfileData.phoneNumber || '',
+        address: tempProfileData.address || '',
+        gender: tempProfileData.gender || '',
+        hometown: tempProfileData.hometown || '',
+        occupation: tempProfileData.occupation || '',
+        age: tempProfileData.age || 0,
+        specialization: tempProfileData.specialization || '',
+        degree: tempProfileData.degree || '',
+        experience: tempProfileData.experience || '',
+        rating: tempProfileData.rating || 0,
+        bio: tempIntroText || '',
+        availability: tempProfileData.availability || '',
+      };
+      await coachApi.updateProfile(userId, body);
       setProfileData(body);
       setShowEditModal(false);
       setIntroText(tempIntroText);
@@ -613,10 +629,10 @@ const CoachProfile = () => {
       setProfileData(prev => ({ ...prev, profilePictureUrl: imageUrl }));
       setNewAvatar(null);
       setNewAvatarFile(null);
-      const userId = localStorage.getItem('coachId');
+      const userId = localStorage.getItem('userId');
       if (userId) {
         const body = { ...profileData, profilePictureUrl: imageUrl };
-        await axiosClient.put(`/api/coaches/update-profile?userId=${userId}`, body);
+        await coachApi.updateProfile(userId, body);
         toast.success('Cập nhật ảnh đại diện thành công!');
       }
     } catch (err) {

@@ -7,11 +7,11 @@ const coachApi = {
   // Lấy tất cả coach
   getAll: () => axiosClient.get('/api/coaches/all'),
 
-
-
-  // Cập nhật coach
+  // Cập nhật coach (RESTful style, giữ lại nếu đang dùng ở nơi khác)
   update: (id, data) => axiosClient.put(`/api/coaches/update/${id}`, data),
 
+  // Cập nhật profile coach đúng chuẩn API backend (userId truyền qua query string)
+  updateProfile: (userId, data) => axiosClient.put(`/api/coaches/update-profile?userId=${userId}`, data),
 
   // Lấy danh sách coach (cho admin)
   getAllAdmin: () => axiosClient.get('/api/coaches/all'),

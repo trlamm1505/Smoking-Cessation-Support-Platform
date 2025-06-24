@@ -244,8 +244,26 @@ const Consultation = () => {
                         { title: 'Ghi chú', dataIndex: 'notes', key: 'notes' },
                         { title: 'Trạng thái', dataIndex: 'status', key: 'status', render: status =>
                             status === 'approved' || status === 'confirmed'
-                                ? 'Đã xác nhận'
-                                : 'Chờ xác nhận'
+                                ? <span style={{
+                                    background: '#e6fff3',
+                                    color: '#1bbf7a',
+                                    fontWeight: 700,
+                                    borderRadius: 12,
+                                    padding: '4px 16px',
+                                    fontSize: 15,
+                                    boxShadow: '0 1px 4px #1bbf7a22',
+                                    letterSpacing: 1
+                                  }}>Đã xác nhận</span>
+                                : <span style={{
+                                    background: '#fff7e6',
+                                    color: '#ff9800',
+                                    fontWeight: 700,
+                                    borderRadius: 12,
+                                    padding: '4px 16px',
+                                    fontSize: 15,
+                                    boxShadow: '0 1px 4px #ff980022',
+                                    letterSpacing: 1
+                                  }}>Chờ xác nhận</span>
                         },
                         { 
                             title: 'Link Google Meet', 
@@ -259,7 +277,7 @@ const Consultation = () => {
                         }
                     ]}
                     dataSource={appointments.map((item, idx) => ({ ...item, key: item.consultationId || item.id || idx }))}
-                    pagination={false}
+                    pagination={{ pageSize: 4 }}
                     style={{ borderRadius: 0 }}
                 />
             </AnimatedHistoryCard>

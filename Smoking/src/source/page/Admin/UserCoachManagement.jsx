@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Form, Input, Tabs, message, Popconfirm, Select, Upload, Row, Col, Card } from 'antd';
-import { PlusOutlined, DeleteOutlined, UserOutlined, TeamOutlined, LockOutlined, PhoneOutlined, HomeOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, UserOutlined, TeamOutlined, LockOutlined, PhoneOutlined, HomeOutlined, UploadOutlined } from '@ant-design/icons';
 import userApi from '../Axios/userAxios';
 import coachApi from '../Axios/coachApi';
 import { toast } from 'react-toastify';
@@ -18,8 +18,9 @@ const UserCoachManagement = () => {
   const [loadingCoaches, setLoadingCoaches] = useState(false);
   const [isAddCoachModal, setIsAddCoachModal] = useState(false);
   const [addCoachForm] = Form.useForm();
-  const [avatarPreview, setAvatarPreview] = useState(null);
-  const [avatarFile, setAvatarFile] = useState(null);
+
+  // Thêm state cho preview ảnh từ link
+  const [imagePreview, setImagePreview] = useState('');
 
   // Fetch users
   const fetchUsers = async () => {
@@ -72,32 +73,6 @@ const UserCoachManagement = () => {
     }
   };
 
-  // Upload ảnh lên Cloudinary
-  const handleAvatarChange = async (info) => {
-    const file = info.file.originFileObj;
-    if (!file) return;
-    setAvatarPreview(URL.createObjectURL(file));
-    setAvatarFile(file);
-    // Upload lên Cloudinary
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'avatarUploadClient');
-    formData.append('cloud_name', 'dp4gsczko');
-    try {
-      const res = await fetch('https://api.cloudinary.com/v1_1/dp4gsczko/image/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.secure_url) {
-        addCoachForm.setFieldsValue({ profilePictureUrl: data.secure_url });
-        setAvatarPreview(data.secure_url);
-      }
-    } catch (err) {
-      message.error('Lỗi upload ảnh!');
-    }
-  };
-
   // Thêm coach mới
   const handleAddCoach = async (values) => {
     try {
@@ -105,12 +80,21 @@ const UserCoachManagement = () => {
       toast.success('Đã thêm coach mới');
       setIsAddCoachModal(false);
       addCoachForm.resetFields();
-      setAvatarPreview(null);
-      setAvatarFile(null);
       fetchCoaches();
     } catch (err) {
       toast.error('Thêm coach thất bại');
       console.error('Lỗi thêm coach:', err?.response?.data || err);
+    }
+  };
+
+  // Khi nhập URL ảnh đại diện, tự động preview nếu hợp lệ
+  const handleProfilePictureUrlChange = (e) => {
+    const url = e.target.value;
+    addCoachForm.setFieldsValue({ profilePictureUrl: url });
+    if (/^(https?:\/\/).+\.(jpg|jpeg|png|webp|gif)$/i.test(url)) {
+      setImagePreview(url);
+    } else {
+      setImagePreview('');
     }
   };
 
@@ -151,98 +135,160 @@ const UserCoachManagement = () => {
   ];
 
   return (
-    <div>
-      <Tabs defaultActiveKey="users">
-        <TabPane tab={<span><UserOutlined /> Người dùng</span>} key="users">
-          <Table
-            dataSource={users}
-            columns={userColumns}
-            rowKey="userId"
-            loading={loadingUsers}
-            pagination={{ pageSize: 10 }}
-          />
+    <div style={{
+      padding: 0,
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #e0fcf8 0%, #f7fafd 100%)',
+    }}>
+      <Card bordered={false} style={{
+        boxShadow: '0 8px 32px rgba(79,209,197,0.12)',
+        borderRadius: 32,
+        margin: '0 auto 32px auto',
+        maxWidth: 900,
+        background: 'linear-gradient(90deg, #4fd1c5 0%, #38b2ac 100%)',
+      }}>
+        <h1 style={{
+          color: '#fff',
+          fontWeight: 900,
+          fontSize: 38,
+          textAlign: 'center',
+          margin: 0,
+          letterSpacing: 2,
+          textShadow: '0 2px 8px #38b2ac44',
+        }}>Quản lý Người dùng & Coach</h1>
+      </Card>
+      <Tabs defaultActiveKey="users" tabBarStyle={{ fontSize: 22, fontWeight: 700, color: '#38b2ac' }} style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <TabPane tab={<span><UserOutlined style={{ color: '#4fd1c5', fontSize: 26 }} /> Người dùng</span>} key="users">
+          <Card bordered style={{ borderRadius: 24, boxShadow: '0 4px 24px #e6f9f7', marginBottom: 32, border: '1.5px solid #4fd1c5', overflow: 'hidden' }}>
+            <Table
+              dataSource={users}
+              columns={userColumns}
+              rowKey="userId"
+              loading={loadingUsers}
+              pagination={{ pageSize: 10 }}
+              bordered
+              size="large"
+              style={{ borderRadius: 18 }}
+              rowClassName={() => 'custom-table-row'}
+              title={() => <span style={{ color: '#4fd1c5', fontWeight: 800, fontSize: 24, letterSpacing: 1 }}>Danh sách người dùng</span>}
+            />
+          </Card>
         </TabPane>
-        <TabPane tab={<span><TeamOutlined /> Coach</span>} key="coaches">
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            style={{ marginBottom: 16 }}
-            onClick={() => setIsAddCoachModal(true)}
-          >
-            Thêm coach mới
-          </Button>
-          <Table
-            dataSource={coaches}
-            columns={coachColumns}
-            rowKey="coachId"
-            loading={loadingCoaches}
-            pagination={{ pageSize: 10 }}
-          />
+        <TabPane tab={<span><TeamOutlined style={{ color: '#4fd1c5', fontSize: 26 }} /> Coach</span>} key="coaches">
+          <Card bordered style={{ borderRadius: 24, boxShadow: '0 4px 24px #e6f9f7', marginBottom: 32, border: '1.5px solid #4fd1c5', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 18 }}>
+              <Button
+                type="primary"
+                icon={<PlusOutlined style={{ fontSize: 22 }} />}
+                style={{
+                  background: 'linear-gradient(90deg, #4fd1c5 0%, #38b2ac 100%)',
+                  borderColor: '#4fd1c5',
+                  fontWeight: 700,
+                  fontSize: 18,
+                  borderRadius: 32,
+                  padding: '0 40px',
+                  height: 48,
+                  boxShadow: '0 2px 8px #4fd1c544',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={e => e.currentTarget.style.background = '#38b2ac'}
+                onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #4fd1c5 0%, #38b2ac 100%)'}
+                onClick={() => setIsAddCoachModal(true)}
+              >
+                Thêm coach mới
+              </Button>
+            </div>
+            <Table
+              dataSource={coaches}
+              columns={coachColumns}
+              rowKey="coachId"
+              loading={loadingCoaches}
+              pagination={{ pageSize: 10 }}
+              bordered
+              size="large"
+              style={{ borderRadius: 18 }}
+              rowClassName={() => 'custom-table-row'}
+              title={() => <span style={{ color: '#4fd1c5', fontWeight: 800, fontSize: 24, letterSpacing: 1 }}>Danh sách coach</span>}
+            />
+          </Card>
         </TabPane>
       </Tabs>
 
       {/* Modal thêm coach mới */}
       <Modal
-        title="Thêm coach mới"
+        title={<div style={{
+          textAlign: 'center',
+          background: 'linear-gradient(90deg, #4fd1c5 0%, #38b2ac 100%)',
+          color: '#fff',
+          fontWeight: 900,
+          fontSize: 28,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          padding: '18px 0 10px 0',
+          margin: '-24px -24px 0 -24px',
+        }}>Thêm coach mới</div>}
         open={isAddCoachModal}
-        onCancel={() => { setIsAddCoachModal(false); setAvatarPreview(null); setAvatarFile(null); }}
+        onCancel={() => { setIsAddCoachModal(false); setImagePreview(''); }}
         footer={null}
+        bodyStyle={{ padding: 0, borderRadius: 24 }}
+        style={{ top: 40 }}
       >
-        <Card bordered style={{ boxShadow: '0 2px 8px #f0f1f2' }}>
-          <div style={{ marginBottom: 16, color: '#888', fontSize: 15 }}>
-            Vui lòng nhập đầy đủ thông tin để thêm coach mới vào hệ thống. Các trường có dấu * là bắt buộc.
+        <Card bordered style={{ boxShadow: '0 4px 24px #e6f9f7', borderRadius: 24, padding: 0, background: '#fafdff' }}>
+          <div style={{ margin: '24px 0 24px 0', color: '#38b2ac', fontSize: 18, textAlign: 'center', fontWeight: 600 }}>
+            Vui lòng nhập đầy đủ thông tin để thêm coach mới vào hệ thống.<br />Các trường có dấu <span style={{ color: 'red' }}>*</span> là bắt buộc.
           </div>
           <Form
             form={addCoachForm}
             layout="vertical"
             onFinish={handleAddCoach}
+            style={{ padding: '0 24px 16px 24px' }}
           >
-            <Row gutter={16}>
-              <Col xs={24} sm={24} md={12}>
-                <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Nhập email!' }]} style={{ marginBottom: 16 }}> 
-                  <Input placeholder="Nhập email" prefix={<UserOutlined />} />
+            <Row gutter={32}>
+              <Col xs={24} sm={24} md={12} style={{ borderRight: '1.5px solid #e6f9f7', paddingRight: 24 }}>
+                <Form.Item name="email" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Email <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Nhập email!' }]} style={{ marginBottom: 20 }}> 
+                  <Input placeholder="Nhập email" prefix={<UserOutlined />} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="password" label="Mật khẩu" rules={[{ required: true, message: 'Nhập mật khẩu!' }]} style={{ marginBottom: 16 }}> 
-                  <Input.Password placeholder="Nhập mật khẩu" prefix={<LockOutlined />} />
+                <Form.Item name="password" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Mật khẩu <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Nhập mật khẩu!' }]} style={{ marginBottom: 20 }}> 
+                  <Input.Password placeholder="Nhập mật khẩu" prefix={<LockOutlined />} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="fullName" label="Họ tên" rules={[{ required: true, message: 'Nhập họ tên!' }]} style={{ marginBottom: 16 }}> 
-                  <Input placeholder="Nhập họ tên" />
+                <Form.Item name="fullName" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Họ tên <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Nhập họ tên!' }]} style={{ marginBottom: 20 }}> 
+                  <Input placeholder="Nhập họ tên" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="specialization" label="Chuyên môn" style={{ marginBottom: 16 }}> 
-                  <Input placeholder="Nhập chuyên môn" />
+                <Form.Item name="specialization" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Chuyên môn</span>} style={{ marginBottom: 20 }}> 
+                  <Input placeholder="Nhập chuyên môn" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="degree" label="Bằng cấp" style={{ marginBottom: 16 }}> 
-                  <Input placeholder="Nhập bằng cấp" />
+                <Form.Item name="degree" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Bằng cấp</span>} style={{ marginBottom: 20 }}> 
+                  <Input placeholder="Nhập bằng cấp" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="phoneNumber" label="Số điện thoại" style={{ marginBottom: 16 }}> 
-                  <Input placeholder="Nhập số điện thoại" prefix={<PhoneOutlined />} />
+                <Form.Item name="phoneNumber" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Số điện thoại</span>} style={{ marginBottom: 20 }}> 
+                  <Input placeholder="Nhập số điện thoại" prefix={<PhoneOutlined />} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="gender" label="Giới tính" rules={[{ required: true, message: 'Chọn giới tính!' }]} style={{ marginBottom: 16 }}> 
-                  <Select placeholder="Chọn giới tính" allowClear>
+                <Form.Item name="gender" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Giới tính <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Chọn giới tính!' }]} style={{ marginBottom: 20 }}> 
+                  <Select placeholder="Chọn giới tính" allowClear style={{ borderRadius: 16, fontSize: 16 }}>
                     <Option value="Nam">Nam</Option> 
                     <Option value="Nữ">Nữ</Option> 
                   </Select> 
                 </Form.Item>
-                <Form.Item name="address" label="Địa chỉ" style={{ marginBottom: 16 }}> 
-                  <Input placeholder="Nhập địa chỉ" prefix={<HomeOutlined />} />
+                <Form.Item name="address" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Địa chỉ</span>} style={{ marginBottom: 20 }}> 
+                  <Input placeholder="Nhập địa chỉ" prefix={<HomeOutlined />} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={24} md={12}>
-                <Form.Item name="experience" label="Kinh nghiệm" style={{ marginBottom: 16 }}> 
-                  <Input placeholder="Nhập kinh nghiệm" />
+              <Col xs={24} sm={24} md={12} style={{ paddingLeft: 32, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                <Form.Item name="experience" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Kinh nghiệm</span>} style={{ marginBottom: 20 }}> 
+                  <Input placeholder="Nhập kinh nghiệm" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="rating" label="Đánh giá" style={{ marginBottom: 16 }}> 
-                  <Input type="number" placeholder="Nhập đánh giá (0-5)" min={0} max={5} />
+                <Form.Item name="rating" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Đánh giá</span>} style={{ marginBottom: 20 }}> 
+                  <Input type="number" placeholder="Nhập đánh giá (0-5)" min={0} max={5} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="bio" label="Giới thiệu" style={{ marginBottom: 16 }}> 
-                  <Input.TextArea rows={2} placeholder="Giới thiệu ngắn về coach" />
+                <Form.Item name="bio" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Giới thiệu</span>} style={{ marginBottom: 20 }}> 
+                  <Input.TextArea rows={2} placeholder="Giới thiệu ngắn về coach" style={{ borderRadius: 16, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="availability" label="Thời gian làm việc" style={{ marginBottom: 16 }}> 
-                  <Input placeholder="Nhập thời gian làm việc" />
+                <Form.Item name="availability" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Thời gian làm việc</span>} style={{ marginBottom: 20 }}> 
+                  <Input placeholder="Nhập thời gian làm việc" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
                 <Form.Item 
                   name="profilePictureUrl" 
-                  label="Ảnh đại diện (URL)" 
+                  label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Ảnh đại diện (URL) <span style={{ color: 'red' }}>*</span></span>} 
                   rules={[ 
                     { required: true, message: 'Vui lòng nhập URL ảnh đại diện!' },
                     { 
@@ -250,26 +296,55 @@ const UserCoachManagement = () => {
                       message: 'URL phải bắt đầu bằng http:// hoặc https://',
                     },
                   ]}
-                  style={{ marginBottom: 16 }}
+                  style={{ marginBottom: 20 }}
                 >
-                  <Input placeholder="Nhập URL ảnh đại diện" />
+                  <Input
+                    placeholder="Nhập URL ảnh đại diện"
+                    style={{ borderRadius: 16, height: 44, fontSize: 16 }}
+                    onChange={handleProfilePictureUrlChange}
+                  />
+                  {imagePreview && (
+                    <div style={{ marginTop: 10, textAlign: 'center' }}>
+                      <img
+                        src={imagePreview}
+                        alt="preview"
+                        style={{ width: 90, height: 90, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4fd1c5', boxShadow: '0 2px 8px #4fd1c544' }}
+                      />
+                    </div>
+                  )}
                 </Form.Item>
-                <Form.Item name="active" label="Kích hoạt" initialValue={true} style={{ marginBottom: 16 }}>
-                  <Select>
+                <Form.Item name="active" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Kích hoạt</span>} initialValue={true} style={{ marginBottom: 20 }}>
+                  <Select style={{ borderRadius: 16, fontSize: 16 }}>
                     <Option value={true}>Hoạt động</Option>
                     <Option value={false}>Không hoạt động</Option>
                   </Select>
                 </Form.Item>
               </Col>
             </Row>
-            <Form.Item style={{ textAlign: 'center', marginTop: 24 }}>
-              <Button type="primary" htmlType="submit" icon={<PlusOutlined />} size="large" style={{ minWidth: 180 }}>
+            <Form.Item style={{ textAlign: 'center', marginTop: 32 }}>
+              <Button type="primary" htmlType="submit" icon={<PlusOutlined style={{ fontSize: 22 }} />} size="large" style={{ minWidth: 200, background: 'linear-gradient(90deg, #4fd1c5 0%, #38b2ac 100%)', borderColor: '#4fd1c5', fontWeight: 800, borderRadius: 32, height: 50, fontSize: 20, boxShadow: '0 2px 8px #4fd1c544' }}>
                 Thêm coach
               </Button>
             </Form.Item>
           </Form>
         </Card>
       </Modal>
+      {/* Custom table row style */}
+      <style>{`
+        .custom-table-row:hover td {
+          background: #e0fcf8 !important;
+        }
+        .ant-table-thead > tr > th {
+          background: #4fd1c5 !important;
+          color: #fff !important;
+          font-weight: 900;
+          font-size: 18px;
+          letter-spacing: 1px;
+        }
+        .ant-table-bordered .ant-table-container {
+          border-radius: 18px !important;
+        }
+      `}</style>
     </div>
   );
 };
