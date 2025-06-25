@@ -148,6 +148,7 @@ const CoachHome = () => {
 
   useEffect(() => {
     const coachId = localStorage.getItem('coachId');
+    console.log('coachId in localStorage:', coachId);
     if (!coachId) {
       message.error('Không tìm thấy coachId!');
       setLoading(false);
@@ -155,10 +156,15 @@ const CoachHome = () => {
     }
     axiosClient.get(`/api/coaches/${coachId}`)
       .then(res => {
+        console.log('Coach data response:', res.data);
         setCoachData(res.data);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Error fetching coach data:', err);
+        if (err?.response) {
+          console.error('API error response:', err.response.data);
+        }
         message.error('Không lấy được thông tin coach!');
         setLoading(false);
       });

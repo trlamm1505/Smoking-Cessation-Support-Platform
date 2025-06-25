@@ -592,12 +592,13 @@ const DetailedSchedule = () => {
     if (planStartDate) {
         todayIndex = today.diff(planStartDate, 'day') + 1;
     }
-    const todayTask = tasks.find(item => item.day === todayIndex);
+    const todayTasks = tasks.filter(item => item.day === todayIndex);
     const otherTasks = tasks.filter(item => item.day !== todayIndex);
 
     // Tính nhiệm vụ của ngày viewingDate (nếu trong phạm vi kế hoạch)
     let viewingDayIndex = null;
     if (planStartDate && viewingDate) {
+
         const diff = viewingDate.startOf('day').diff(planStartDate.startOf('day'), 'day') + 1;
         if (diff > 0 && diff <= soNgay) {
             viewingDayIndex = diff;
@@ -620,6 +621,7 @@ const DetailedSchedule = () => {
     const currentStageName = todayTask?.stageName;
     // Tìm index của giai đoạn hiện tại trong phases
     const currentPhaseIndex = phases.findIndex(phase => phase.title === currentStageName);
+
 
     return (
         <PageContainer>
@@ -669,6 +671,7 @@ const DetailedSchedule = () => {
                     <List
                         dataSource={viewingTasks}
                         renderItem={task => (
+
                             <List.Item>
                                 <div style={{ width: '100%' }}>
                                     {task.goal && (
@@ -708,6 +711,7 @@ const DetailedSchedule = () => {
                                                 </div>
                                             ))}
                                         </div>
+
                                     )}
                                 </div>
                             </List.Item>
@@ -747,6 +751,7 @@ const DetailedSchedule = () => {
                     </Card>
                 </AnimatedCard>
             </div>
+
         </PageContainer>
     );
 };
