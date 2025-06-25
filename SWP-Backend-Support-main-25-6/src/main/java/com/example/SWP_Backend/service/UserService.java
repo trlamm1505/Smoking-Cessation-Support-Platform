@@ -2,9 +2,11 @@ package com.example.SWP_Backend.service;
 
 import com.example.SWP_Backend.dto.UpdateCoachProfileRequest;
 import com.example.SWP_Backend.entity.Coach;
+import com.example.SWP_Backend.entity.Payment;
 import com.example.SWP_Backend.entity.Token;
 import com.example.SWP_Backend.entity.User;
 import com.example.SWP_Backend.repository.CoachRepository;
+import com.example.SWP_Backend.repository.PaymentRepository;
 import com.example.SWP_Backend.repository.TokenRepository;
 import com.example.SWP_Backend.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +37,39 @@ public class UserService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+
+    public void updateUserRoleIfExpired(User user) {
+        // Chỉ kiểm tra với user role "member" (guest hoặc coach thì bỏ qua)
+        if ("member".equals(user.getRole())) {
+            LocalDate now = LocalDate.now();
+
+            // Lấy payment gần nhất của user với status completed
+            Payment latestPayment = paymentRepository.findTopByUser_UserIdAndStatusOrderByEndDateDesc(user.getUserId(), "completed");
+
+            if (latestPayment != null) {
+                LocalDate renewalDate = latestPayment.getRenewalDate(); // ngày hết hạn + 1
+
+                // Nếu ngày hiện tại đã sau renewalDate
+                if (renewalDate != null && now.isAfter(renewalDate)) {
+                    // 1. Chuyển role user về guest, reset trường gói
+                    user.setRole("guest");
+                    user.setCurrentMembershipPackageId(null);
+                    user.setSubscriptionEndDate(null);
+                    userRepository.save(user);
+
+                    // 2. Chuyển status payment thành expired
+                    latestPayment.setStatus("expired");
+                    paymentRepository.save(latestPayment);
+                }
+            }
+        }
+    }
+
+
 
     // ======== ĐĂNG KÝ TÀI KHOẢN VỚI OTP ========
     public void registerUserWithOtp(User user) {

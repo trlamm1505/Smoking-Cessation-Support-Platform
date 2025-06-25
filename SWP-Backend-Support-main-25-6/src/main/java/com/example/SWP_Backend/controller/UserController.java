@@ -28,18 +28,23 @@ public class UserController {
 
     // ============= CRUD CƠ BẢN =============
 
-    /** Lấy danh sách toàn bộ user */
+    /** Lấy danh sách toàn bộ user, đồng thời kiểm tra hết hạn gói để cập nhật role nếu cần */
     @GetMapping("/api/user")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
+        // Kiểm tra và update role cho từng user nếu gói hết hạn (member --> guest)
+        users.forEach(userService::updateUserRoleIfExpired);
         return ResponseEntity.ok(users);
     }
 
-    /** Lấy thông tin user theo ID */
+    /** Lấy thông tin user theo ID, luôn kiểm tra hết hạn để role chuẩn */
     @GetMapping("/api/user/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
-        if (user != null) return ResponseEntity.ok(user);
+        if (user != null) {
+            userService.updateUserRoleIfExpired(user); // Kiểm tra và cập nhật role nếu hết hạn
+            return ResponseEntity.ok(user);
+        }
         return ResponseEntity.notFound().build();
     }
 
@@ -49,6 +54,8 @@ public class UserController {
         if (userService.isEmailExists(user.getEmail())) {
             return ResponseEntity.badRequest().body("Email đã được sử dụng");
         }
+        // Đăng ký mới luôn là guest, không phải member
+        user.setRole("guest");
         User newUser = userService.createNewUser(user);
         return ResponseEntity.ok(newUser);
     }
@@ -75,7 +82,10 @@ public class UserController {
     @GetMapping("/api/user/username/{username}")
     public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
         User user = userService.getUserByUsername(username);
-        if (user != null) return ResponseEntity.ok(user);
+        if (user != null) {
+            userService.updateUserRoleIfExpired(user);
+            return ResponseEntity.ok(user);
+        }
         return ResponseEntity.notFound().build();
     }
 
@@ -83,7 +93,10 @@ public class UserController {
     @GetMapping("/api/user/email/{email}")
     public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
         User user = userService.getUserByEmail(email);
-        if (user != null) return ResponseEntity.ok(user);
+        if (user != null) {
+            userService.updateUserRoleIfExpired(user);
+            return ResponseEntity.ok(user);
+        }
         return ResponseEntity.notFound().build();
     }
 
@@ -91,6 +104,10 @@ public class UserController {
     @GetMapping("/api/user/role/{role}")
     public ResponseEntity<List<User>> getUsersByRole(@PathVariable String role) {
         List<User> users = userService.getUsersByRole(role);
+        // Nếu là member thì kiểm tra role (giúp cập nhật trạng thái đúng)
+        if ("member".equalsIgnoreCase(role)) {
+            users.forEach(userService::updateUserRoleIfExpired);
+        }
         return ResponseEntity.ok(users);
     }
 
@@ -163,6 +180,28 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", "Mật khẩu hiện tại không đúng!"
+            ));
+        }
+    }
+
+    // ===== API TEST ROLE HẾT HẠN (dùng để test thủ công trên Postman) =====
+    /**
+     * Endpoint này giúp admin test thủ công: kiểm tra và cập nhật role của 1 user nếu gói đã hết hạn (đổi member -> guest).
+     * Sau này bạn muốn test, chỉ cần gọi: POST /api/user/check-role-expired/{userId}
+     */
+    @PostMapping("/api/user/check-role-expired/{userId}")
+    public ResponseEntity<?> checkRoleExpired(@PathVariable Long userId) {
+        User user = userService.getUserById(userId);
+        if (user != null) {
+            userService.updateUserRoleIfExpired(user);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Đã kiểm tra & cập nhật role user nếu hết hạn."
+            ));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Không tìm thấy user!"
             ));
         }
     }
