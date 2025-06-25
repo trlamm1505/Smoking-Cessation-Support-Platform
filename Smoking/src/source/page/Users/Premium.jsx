@@ -536,8 +536,10 @@ const Premium = () => {
     const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isRenewMode, setIsRenewMode] = useState(false);
 
     const [packageList, setPackageList] = useState([]);
+    const [subscription, setSubscription] = useState(null);
 
     const navigate = useNavigate();
 
@@ -552,6 +554,16 @@ const Premium = () => {
             }
         };
         fetchPackages();
+    }, []);
+
+    useEffect(() => {
+        // Lấy userId từ localStorage hoặc mặc định là 1
+        const userId = Number(localStorage.getItem('userId')) || 1;
+        // Gọi API lấy thông tin thanh toán/gói premium
+        fetch(`http://localhost:8080/api/payments/${userId}`)
+            .then(res => res.json())
+            .then(data => setSubscription(data))
+            .catch(() => setSubscription(null));
     }, []);
 
     // Chỉ cho phép chọn 1 phương thức thanh toán là VNPAY
@@ -582,39 +594,65 @@ const Premium = () => {
         const packageId = selectedPlan?.packageID;
         const paymentMethod = 'vnpay';
 
+        // Tính toán ngày bắt đầu, kết thúc, gia hạn
+        const today = new Date();
+        const startDate = today.toISOString().split('T')[0];
+        const endDateObj = new Date(today);
+        endDateObj.setDate(endDateObj.getDate() + (selectedPlan?.durationDays || 0));
+        const endDate = endDateObj.toISOString().split('T')[0];
+        const renewalDateObj = new Date(endDateObj);
+        renewalDateObj.setDate(renewalDateObj.getDate() + 1);
+        const renewalDate = renewalDateObj.toISOString().split('T')[0];
+
+        // Đảm bảo các trường lấy đúng từ selectedPlan
+        const updateData = {
+            paymentId: subscription?.paymentId || 0,
+            userEmail: subscription?.userEmail || '',
+            userFullName: subscription?.userFullName || '',
+            packageId: packageId, // lấy từ selectedPlan
+            packageName: selectedPlan?.packageName, // lấy từ selectedPlan
+            amount: selectedPlan?.price, // lấy từ selectedPlan
+            paymentMethod: paymentMethod,
+            transactionId: '',
+            status: 'completed',
+            startDate: startDate,
+            endDate: endDate,
+            renewalDate: renewalDate
+        };
+
         try {
-            const res = await fetch('http://localhost:8080/api/purchase/buy', {
-                method: 'POST',
+            const res = await fetch(`http://localhost:8080/api/payments/${userId}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, packageId, paymentMethod })
+                body: JSON.stringify(updateData)
             });
             const data = await res.json();
-            if (data.success) {
-                message.success('Đăng ký thành công! Cảm ơn bạn đã tin tưởng SmokeFree');
+            if (res.ok) {
+                message.success('Gia hạn thành công!');
+                // Fetch lại subscription mới nhất để UI cập nhật đúng tên gói, số tiền...
+                fetch(`http://localhost:8080/api/payments/${userId}`)
+                    .then(res => res.json())
+                    .then(data => setSubscription(data));
                 setTimeout(() => {
                     setIsModalVisible(false);
                     setCurrentStep(0);
                     form.resetFields();
                     setIsLoading(false);
-                    navigate('/users/home');
                 }, 2000);
             } else {
-                message.error(data.message || 'Mua gói thất bại!');
+                message.error(data.message || 'Gia hạn thất bại!');
                 setIsLoading(false);
             }
         } catch (err) {
             message.error('Lỗi kết nối server!');
             setIsLoading(false);
         }
-
     };
 
     const handleRenew = () => {
-        if (getDaysRemaining(currentSubscription.endDate) > 0) {
-            message.info('Gói của bạn vẫn còn hạn sử dụng');
-            return;
-        }
-        showModal(packageList.find(p => p.name === currentSubscription.plan));
+        setIsRenewMode(true);
+        setCurrentStep(0);
+        setIsModalVisible(true);
     };
 
     const handleChangePlan = () => {
@@ -626,7 +664,109 @@ const Premium = () => {
         form.setFieldsValue({ paymentMethod: method.value });
     };
 
-    const steps = [
+    const steps = isRenewMode ? [
+        {
+            title: 'Chọn gói gia hạn',
+            content: (
+                <Row gutter={[16, 16]} justify="center">
+                    {packageList.map((plan, index) => {
+                        const isSelected = selectedPlan?.packageID === plan.packageID;
+                        const cardStyle = {
+                            maxWidth: 260,
+                            width: '100%',
+                            minHeight: 380,
+                            margin: '0 auto',
+                            padding: 16,
+                            ...(isSelected ? { borderColor: '#5FB8B3', boxShadow: '0 0 0 2px #5FB8B322' } : {})
+                        };
+                        return (
+                            <Col xs={24} md={8} key={plan.packageID} style={{ display: 'flex', justifyContent: 'center' }}>
+                                <AnimatedPremiumCard
+                                    title={<span style={{ fontSize: 19 }}>{plan.packageName}</span>}
+                                    delay={`${0.15 + index * 0.1}s`}
+                                    style={cardStyle}
+                                    featured={isSelected}
+                                    onClick={() => setSelectedPlan(plan)}
+                                >
+                                    <div className="price" style={{ fontSize: '1.7rem', margin: '12px 0' }}>
+                                        {plan.price}đ
+                                    </div>
+                                    <div style={{ textAlign: 'center', color: '#666', marginBottom: 8, fontSize: 14 }}>
+                                        Thời hạn: {plan.durationDays} ngày
+                                    </div>
+                                    <ul className="feature-list" style={{ margin: '12px 0', padding: '0 6px' }}>
+                                        {plan.description.split(';').map((feature, idx) => (
+                                            <li key={idx} style={{ fontSize: 14, margin: '7px 0' }}>
+                                                <CheckOutlined />
+                                                {feature.trim()}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </AnimatedPremiumCard>
+                            </Col>
+                        );
+                    })}
+                </Row>
+            )
+        },
+        {
+            title: 'Phương thức thanh toán',
+            content: (
+                <div>
+                    <p style={{ marginBottom: '16px', color: '#666' }}>
+                        Vui lòng chọn phương thức thanh toán phù hợp với bạn
+                    </p>
+                    {paymentMethods.map(method => (
+                        <PaymentMethodCard
+                            key={method.value}
+                            className={selectedPaymentMethod?.value === method.value ? 'selected' : ''}
+                            onClick={() => handlePaymentMethodSelect(method)}
+                        >
+                            <div className="payment-info">
+                                <div>
+                                    <DollarOutlined className="payment-icon" />
+                                    <span>{method.label}</span>
+                                </div>
+                                {selectedPaymentMethod?.value === method.value && (
+                                    <CheckOutlined style={{ color: '#5FB8B3' }} />
+                                )}
+                            </div>
+                        </PaymentMethodCard>
+                    ))}
+                </div>
+            )
+        },
+        {
+            title: 'Xác nhận',
+            content: (
+                <>
+                    <ConfirmationSection>
+                        <h3>Thông tin đăng ký</h3>
+                        <div className="info-row">
+                            <span className="label">Gói thành viên:</span>
+                            <span className="value">{selectedPlan?.packageName}</span>
+                        </div>
+                        <div className="info-row">
+                            <span className="label">Thời hạn:</span>
+                            <span className="value">{selectedPlan?.durationDays} ngày</span>
+                        </div>
+                        <div className="info-row">
+                            <span className="label">Phương thức thanh toán:</span>
+                            <span className="value">VNPAY</span>
+                        </div>
+                        <div className="info-row total-row">
+                            <span className="label">Tổng thanh toán:</span>
+                            <span className="value">{selectedPlan?.price}đ</span>
+                        </div>
+                        <Tag color="green" style={{ marginTop: '16px', padding: '8px 16px' }}>
+                            <SafetyCertificateOutlined style={{ marginRight: '8px' }} />
+                            Bạn sẽ được kích hoạt ngay sau khi thanh toán thành công
+                        </Tag>
+                    </ConfirmationSection>
+                </>
+            )
+        }
+    ] : [
         {
             title: 'Phương thức thanh toán',
             content: (
@@ -748,40 +888,148 @@ const Premium = () => {
                 </p>
             </PageHeader>
 
-            <Row gutter={[24, 24]}>
-                {packageList.map((plan, index) => (
-                    <Col xs={24} md={8} key={plan.packageID}>
-                        <AnimatedPremiumCard
-                            title={plan.packageName}
-                            delay={`${0.15 + index * 0.1}s`}
-                        >
-                            <div className="price">
-                                {plan.price}đ
+            {subscription && (
+                <>
+                    <div
+                        style={{
+                            background: 'linear-gradient(135deg, #5FB8B3 0%, #4A90E2 100%)',
+                            borderRadius: 20,
+                            marginBottom: 32,
+                            padding: 0,
+                            overflow: 'hidden',
+                            boxShadow: '0 4px 24px rgba(95,184,179,0.08)'
+                        }}
+                    >
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '28px 36px 16px 36px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                <CrownOutlined style={{ color: '#fff', fontSize: 32, marginRight: 8 }} />
+                                <span style={{ color: '#fff', fontWeight: 700, fontSize: 26 }}>
+                                    Thông tin đăng ký của bạn
+                                </span>
                             </div>
-                            <div style={{ textAlign: 'center', color: '#666', marginBottom: 8 }}>
-                                Thời hạn: {plan.durationDays} ngày
+                            {subscription.status === 'completed' && (
+                                <span style={{
+                                    background: 'rgba(255,255,255,0.25)',
+                                    color: '#fff',
+                                    fontWeight: 700,
+                                    borderRadius: 24,
+                                    padding: '8px 32px',
+                                    fontSize: 18
+                                }}>
+                                    Đang hoạt động
+                                </span>
+                            )}
+                        </div>
+                        <div style={{
+                            background: '#fff',
+                            borderRadius: '0 0 20px 20px',
+                            padding: 36,
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: 32
+                        }}>
+                            <div style={{
+                                background: '#fff',
+                                border: '1px solid #f0f0f0',
+                                borderRadius: 16,
+                                padding: 24,
+                                minHeight: 120,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center'
+                            }}>
+                                <div style={{ color: '#5FB8B3', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <CrownOutlined /> Gói hiện tại
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, maxWidth: 320, marginBottom: 6 }}>
+                                    <span style={{ fontWeight: 700, fontSize: 22 }}>{subscription.packageName?.toUpperCase()}</span>
+                                    <span style={{
+                                        display: 'inline-block',
+                                        background: 'rgba(95,184,179,0.08)',
+                                        color: '#5FB8B3',
+                                        fontWeight: 600,
+                                        borderRadius: 16,
+                                        padding: '6px 14px',
+                                        fontSize: 16
+                                    }}>
+                                        {subscription.amount?.toLocaleString()}đ/{subscription.packageName?.includes('năm') ? '1 năm' : '1 tháng'}
+                                    </span>
+                                </div>
                             </div>
-                            <ul className="feature-list">
-                                {plan.description.split(';').map((feature, idx) => (
-                                    <li key={idx}>
-                                        <CheckOutlined />
-                                        {feature.trim()}
-                                    </li>
-                                ))}
-                            </ul>
-                            <Button
-                                type="primary"
-                                block
-                                size="large"
-                                onClick={() => showModal(plan)}
-                                style={{ backgroundColor: '#5FB8B3', borderColor: '#5FB8B3' }}
-                            >
-                                Đăng ký ngay
-                            </Button>
-                        </AnimatedPremiumCard>
-                    </Col>
-                ))}
-            </Row>
+                            <div style={{
+                                background: '#fff',
+                                border: '1px solid #f0f0f0',
+                                borderRadius: 16,
+                                padding: 24,
+                                minHeight: 120,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center'
+                            }}>
+                                <div style={{ color: '#5FB8B3', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <CalendarOutlined /> Ngày bắt đầu
+                                </div>
+                                <div style={{ fontWeight: 700, fontSize: 22 }}>{subscription.startDate}</div>
+                            </div>
+                            <div style={{
+                                background: '#fff',
+                                border: '1px solid #f0f0f0',
+                                borderRadius: 16,
+                                padding: 24,
+                                minHeight: 120,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center'
+                            }}>
+                                <div style={{ color: '#5FB8B3', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <CalendarOutlined /> Ngày kết thúc
+                                </div>
+                                <div style={{ fontWeight: 700, fontSize: 22 }}>{subscription.endDate}</div>
+                            </div>
+                            <div style={{
+                                background: '#fff',
+                                border: '1px solid #f0f0f0',
+                                borderRadius: 16,
+                                padding: 24,
+                                minHeight: 120,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center'
+                            }}>
+                                <div style={{ color: '#5FB8B3', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <ClockCircleOutlined /> Ngày gia hạn
+                                </div>
+                                <div style={{ fontWeight: 700, fontSize: 22 }}>{subscription.renewalDate}</div>
+                            </div>
+                            <div style={{ gridColumn: '1 / span 2', marginTop: 32, display: 'flex', justifyContent: 'center' }}>
+                                <Button
+                                    type="primary"
+                                    size="large"
+                                    block
+                                    style={{
+                                        background: '#5FB8B3',
+                                        borderColor: '#5FB8B3',
+                                        borderRadius: 32,
+                                        fontWeight: 600,
+                                        fontSize: 18,
+                                        padding: '12px 36px',
+                                        width: '100%'
+                                    }}
+                                    onClick={handleRenew}
+                                >
+                                    <SafetyCertificateOutlined style={{ marginRight: 8 }} />
+                                    Gia hạn gói hiện tại
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
 
             <Modal
                 title={
@@ -796,9 +1044,10 @@ const Premium = () => {
                     setCurrentStep(0);
                     form.resetFields();
                     setSelectedPaymentMethod(null);
+                    setIsRenewMode(false);
                 }}
                 footer={null}
-                width={700}
+                width={900}
                 centered
             >
                 <Form form={form} layout="vertical">

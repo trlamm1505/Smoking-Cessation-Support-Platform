@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider, Spin } from 'antd';
@@ -540,6 +539,7 @@ const Premium = () => {
     const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [subscription, setSubscription] = useState(null);
 
     const [packageList, setPackageList] = useState([]);
 
@@ -556,6 +556,16 @@ const Premium = () => {
             }
         };
         fetchPackages();
+    }, []);
+
+    useEffect(() => {
+        // Lấy userId từ localStorage hoặc mặc định là 1
+        const userId = Number(localStorage.getItem('userId')) || 1;
+        // Gọi API lấy thông tin thanh toán/gói premium
+        fetch(`http://localhost:8080/api/payments/${userId}`)
+            .then(res => res.json())
+            .then(data => setSubscription(data))
+            .catch(() => setSubscription(null));
     }, []);
 
     // Chỉ cho phép chọn 1 phương thức thanh toán là VNPAY
@@ -586,31 +596,83 @@ const Premium = () => {
         const packageId = selectedPlan?.packageID;
         const paymentMethod = 'vnpay';
 
-        try {
-            const res = await fetch('http://localhost:8080/api/purchase/buy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, packageId, paymentMethod })
-            });
-            const data = await res.json();
-            if (data.success) {
-                message.success('Đăng ký thành công! Cảm ơn bạn đã tin tưởng SmokeFree');
-                setTimeout(() => {
-                    setIsModalVisible(false);
-                    setCurrentStep(0);
-                    form.resetFields();
+        // Tính toán ngày bắt đầu, kết thúc, gia hạn
+        const today = new Date();
+        const startDate = today.toISOString().split('T')[0];
+        const endDateObj = new Date(today);
+        endDateObj.setDate(endDateObj.getDate() + (selectedPlan?.durationDays || 0));
+        const endDate = endDateObj.toISOString().split('T')[0];
+        const renewalDateObj = new Date(endDateObj);
+        renewalDateObj.setDate(renewalDateObj.getDate() + 1);
+        const renewalDate = renewalDateObj.toISOString().split('T')[0];
+
+        if (subscription && subscription.paymentId) {
+            // Đã có gói, chỉ gọi PUT để update
+            const updateData = {
+                paymentId: subscription.paymentId,
+                userEmail: subscription.userEmail || '',
+                userFullName: subscription.userFullName || '',
+                packageId: packageId,
+                packageName: selectedPlan?.packageName,
+                amount: selectedPlan?.price,
+                paymentMethod: paymentMethod,
+                transactionId: '',
+                status: 'completed',
+                startDate: startDate,
+                endDate: endDate,
+                renewalDate: renewalDate
+            };
+            try {
+                const res = await fetch(`http://localhost:8080/api/payments/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateData)
+                });
+                if (res.ok) {
+                    localStorage.setItem('userRole', 'USER');
+                    localStorage.setItem('userId', userId);
+                    setTimeout(() => {
+                        setIsModalVisible(false);
+                        setCurrentStep(0);
+                        form.resetFields();
+                        setIsLoading(false);
+                        window.location.href = '/users/home';
+                    }, 2000);
+                } else {
+                    message.error('Gia hạn thất bại!');
                     setIsLoading(false);
-                    navigate('/users/home');
-                }, 2000);
-            } else {
-                message.error(data.message || 'Mua gói thất bại!');
+                }
+            } catch (err) {
+                message.error('Lỗi kết nối server!');
                 setIsLoading(false);
             }
-        } catch (err) {
-            message.error('Lỗi kết nối server!');
-            setIsLoading(false);
+        } else {
+            // Chưa có gói, gọi POST để tạo mới
+            try {
+                const res = await fetch('http://localhost:8080/api/purchase/buy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, packageId, paymentMethod })
+                });
+                if (res.ok) {
+                    localStorage.setItem('userRole', 'USER');
+                    localStorage.setItem('userId', userId);
+                    setTimeout(() => {
+                        setIsModalVisible(false);
+                        setCurrentStep(0);
+                        form.resetFields();
+                        setIsLoading(false);
+                        window.location.href = '/users/home';
+                    }, 2000);
+                } else {
+                    message.error('Đăng ký thất bại!');
+                    setIsLoading(false);
+                }
+            } catch (err) {
+                message.error('Lỗi kết nối server!');
+                setIsLoading(false);
+            }
         }
-
     };
 
     const handleRenew = () => {

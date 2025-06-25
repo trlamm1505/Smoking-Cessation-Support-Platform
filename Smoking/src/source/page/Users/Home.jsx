@@ -3,6 +3,7 @@ import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Spac
 import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, HomeOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
 import userApi from '../Axios/userAxios';
+import axios from 'axios';
 
 const { Title, Text } = Typography;
 
@@ -330,6 +331,8 @@ const LeaderboardCard = styled(StyledCard)`
 
 const Home = () => {
     const [userData, setUserData] = useState(null);
+    const [plan, setPlan] = useState(null);
+    const [stages, setStages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -344,19 +347,29 @@ const Home = () => {
                     setLoading(false);
                     return;
                 }
-                // Gọi API khi chắc chắn userId hợp lệ
-                const res = await userApi.get(userId);
-                const user = res.data;
+                // Gọi song song 3 API: userApi.get, habit-logs/stats/plan, cessation-plans, stages/generate
+                const [userRes, statsRes, planRes, stagesRes] = await Promise.all([
+                    userApi.get(userId),
+                    axios.get(`http://localhost:8080/habit-logs/stats/plan/${userId}`),
+                    axios.get(`http://localhost:8080/api/cessation-plans/user/${userId}`),
+                    axios.post('http://localhost:8080/stages/generate', { userId })
+                ]);
+                const user = userRes.data;
+                const stats = Array.isArray(statsRes.data) && statsRes.data.length > 0 ? statsRes.data[0] : null;
+                const planData = Array.isArray(planRes.data) && planRes.data.length > 0 ? planRes.data[0] : null;
                 setUserData({
                     name: user.fullName || user.name || user.username || 'Người dùng',
-                    daysWithoutSmoking: user.daysWithoutSmoking || 0,
+                    daysWithoutSmoking: stats ? stats.totalNoSmokeDays : (user.daysWithoutSmoking || 0),
+                    planDays: stats && stats.planDays ? stats.planDays : 30,
                     cigarettesAvoided: user.cigarettesAvoided || 0,
-                    moneySaved: user.moneySaved || 0,
+                    moneySaved: stats ? stats.totalMoneySaved : (user.moneySaved || 0),
                     healthImprovement: user.healthImprovement || 0,
                     nextMilestone: user.nextMilestone || 30,
                     leaderboard: user.leaderboard || [],
                     recentActivities: user.recentActivities || [],
                 });
+                setPlan(planData);
+                setStages(stagesRes.data);
             } catch (err) {
                 setError('Lỗi khi tải dữ liệu người dùng.');
             } finally {
@@ -366,11 +379,78 @@ const Home = () => {
         fetchData();
     }, []);
 
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('vi-VN');
+    }
+    function getDaysDone(startDate) {
+        if (!startDate) return 0;
+        const start = new Date(startDate);
+        const today = new Date();
+        const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+        return diff >= 0 ? diff + 1 : 0;
+    }
+    function getPlanDays(startDate, endDate) {
+        if (!startDate || !endDate) return 0;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return Math.floor((end - start) / (1000 * 60 * 60 * 24));
+    }
+    function getDaysDoneCapped(startDate, endDate) {
+        const done = getDaysDone(startDate);
+        const total = getPlanDays(startDate, endDate);
+        return done > total ? total : done;
+    }
+
+    // Xử lý dữ liệu stages thành các giai đoạn (dùng stageName, goal, đếm số ngày, số ngày đã hoàn thành)
+    const stageProgress = React.useMemo(() => {
+        if (!stages || stages.length === 0 || !plan) return [];
+        // Nhóm theo stageOrder
+        const grouped = {};
+        stages.forEach(item => {
+            if (!grouped[item.stageOrder]) grouped[item.stageOrder] = [];
+            grouped[item.stageOrder].push(item);
+        });
+        // Tính số ngày đã hoàn thành cho từng giai đoạn
+        let remain = getDaysDoneCapped(plan.startDate, plan.targetQuitDate);
+        return Object.keys(grouped).sort((a, b) => a - b).map(order => {
+            const arr = grouped[order];
+            const stageName = arr[0].stageName;
+            const goal = arr[0].goal;
+            const totalDays = arr.length;
+            const done = Math.max(0, Math.min(remain, totalDays));
+            remain -= done;
+            return {
+                stageName,
+                goal,
+                totalDays,
+                done
+            };
+        });
+    }, [stages, plan]);
+
+    // Thêm phases tĩnh giống DetailedSchedule.jsx
+    const phases = [
+        { title: 'Giai đoạn 1', description: 'Lập kế hoạch và chuẩn bị tâm lý' },
+        { title: 'Giai đoạn 2', description: 'Giảm số lượng điếu thuốc' },
+        { title: 'Giai đoạn 3', description: 'Ngừng hút thuốc' },
+        { title: 'Giai đoạn 4', description: 'Duy trì thói quen không hút thuốc' }
+    ];
+
+    // Tạo phaseInfos từ stages (giống DetailedSchedule.jsx)
+    const phaseInfos = phases.map((phase) => {
+        const tasksOfPhase = stages.filter(t => t.stageName === phase.title);
+        const goal = tasksOfPhase[0]?.goal || phase.description;
+        const days = tasksOfPhase.length;
+        return { ...phase, goal, days };
+    });
+
     if (loading) {
-        return <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh'}}><Spin size="large" /></div>;
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}><Spin size="large" /></div>;
     }
     if (error) {
-        return <div style={{textAlign: 'center', color: 'red', marginTop: 40}}>{error}</div>;
+        return <div style={{ textAlign: 'center', color: 'red', marginTop: 40 }}>{error}</div>;
     }
     if (!userData) return null;
 
@@ -378,7 +458,7 @@ const Home = () => {
         <PageContainer>
             <WelcomeTitle level={2}>
                 <HomeOutlined className="home-icon" />
-                Xin chào, {userData.name}
+                {`Xin chào, ${userData.name}`}
             </WelcomeTitle>
 
             <Row gutter={[24, 24]}>
@@ -403,85 +483,29 @@ const Home = () => {
                         />
                     </StatisticCard>
                 </Col>
-
-                <Col xs={24} lg={16}>
-                    <Row gutter={[24, 24]}>
-                        <Col xs={24}>
-                            <ProgressCard title="Tiến Trình Cai Thuốc">
-                                <Progress
-                                    percent={Math.round((userData.daysWithoutSmoking / userData.nextMilestone) * 100)}
-                                    strokeColor={{
-                                        '0%': '#5FB8B3',
-                                        '100%': '#4ca29d'
-                                    }}
-                                    strokeWidth={12}
-                                    format={percent => (
-                                        <Space direction="vertical" align="center">
-                                            <Text strong style={{ fontSize: '28px', color: '#5FB8B3' }}>
-                                                {userData.daysWithoutSmoking}/{userData.nextMilestone}
-                                            </Text>
-                                            <Text type="secondary" style={{ fontSize: '16px' }}>ngày</Text>
-                                        </Space>
-                                    )}
-                                />
-                                <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: 20, fontSize: '15px' }}>
-                                    Còn {userData.nextMilestone - userData.daysWithoutSmoking} ngày nữa đến mốc {userData.nextMilestone} ngày!
-                                </Text>
-                            </ProgressCard>
-                        </Col>
-                        <Col xs={24}>
-                            <TimelineCard title="Hoạt Động Gần Đây">
-                                <Timeline>
-                                    {userData.recentActivities && userData.recentActivities.length > 0 ? userData.recentActivities.map((activity, index) => (
-                                        <Timeline.Item
-                                            key={index}
-                                            color={activity.type === 'success' ? '#5FB8B3' : '#1890ff'}
-                                        >
-                                            <Text strong>{activity.date}</Text>
-                                            <br />
-                                            {activity.content}
-                                        </Timeline.Item>
-                                    )) : <Timeline.Item color="#ccc">Chưa có hoạt động nào gần đây.</Timeline.Item>}
-                                </Timeline>
-                            </TimelineCard>
-                        </Col>
-                    </Row>
-                </Col>
-
-                <Col xs={24} lg={8}>
-                    <LeaderboardCard title={
-                        <div className="leaderboard-header">
-                            <TrophyOutlined className="trophy-icon" />
-                            <span>Bảng Xếp Hạng</span>
-                        </div>
-                    }>
-                        {userData.leaderboard && userData.leaderboard.length > 0 ? userData.leaderboard.map((user, index) => (
-                            <div key={index} className="leaderboard-item">
-                                <div className={`rank rank-${index < 3 ? index + 1 : 'other'}`}>
-                                    #{index + 1}
-                                </div>
-                                <div className="user-info">
-                                    <div className="user-name">{user.name}</div>
-                                    <div className="stats">
-                                        <div className="stat-item">
-                                            <ClockCircleOutlined /> {user.daysWithoutSmoking} ngày
-                                        </div>
-                                        <div className="stat-item">
-                                            <DollarOutlined /> {user.moneySaved.toLocaleString()}đ
-                                        </div>
-                                        <div className="stat-item">
-                                            <HeartOutlined /> {user.cigarettesAvoided} điếu
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )) : <div style={{textAlign: 'center', color: '#aaa', margin: 16}}>Chưa có dữ liệu bảng xếp hạng.</div>}
-                        <Button type="primary" block>
-                            Xem Bảng Xếp Hạng Đầy Đủ
-                        </Button>
-                    </LeaderboardCard>
-                </Col>
             </Row>
+
+            {/* Thanh tiến trình cai thuốc dựa trên kế hoạch */}
+            <Col xs={24} lg={16}>
+                <Row gutter={[24, 24]}>
+                    <Col xs={24}>
+                        <ProgressCard title="Tiến Trình Cai Thuốc" style={{ marginTop: 32 }}>
+                            <Progress
+                                percent={plan ? Math.round((getDaysDoneCapped(plan.startDate, plan.targetQuitDate) / getPlanDays(plan.startDate, plan.targetQuitDate)) * 100) : 0}
+                                strokeColor={{
+                                    '0%': '#5FB8B3',
+                                    '100%': '#4ca29d'
+                                }}
+                                strokeWidth={12}
+                                format={() => plan ? `${getDaysDoneCapped(plan.startDate, plan.targetQuitDate)}/${getPlanDays(plan.startDate, plan.targetQuitDate)}` : '0/0'}
+                            />
+                            <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: 20, fontSize: '15px' }}>
+                                {plan ? `Còn ${getPlanDays(plan.startDate, plan.targetQuitDate) - getDaysDoneCapped(plan.startDate, plan.targetQuitDate)} ngày nữa đến mốc ${getPlanDays(plan.startDate, plan.targetQuitDate)} ngày!` : 'Chưa có kế hoạch.'}
+                            </Text>
+                        </ProgressCard>
+                    </Col>
+                </Row>
+            </Col>
         </PageContainer>
     );
 };
