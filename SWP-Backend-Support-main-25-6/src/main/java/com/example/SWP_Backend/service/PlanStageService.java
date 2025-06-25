@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PlanStageService {
@@ -31,85 +33,75 @@ public class PlanStageService {
      * @throws IOException    Nếu file không đọc được
      */
     public List<DayPlanDTO> loadDaysForUser(String filePath, String mucDoKeHoach, int soNgayToiDa) throws IOException {
-        List<DayPlanDTO> days = new ArrayList<>();
+        List<Row> filteredRows = new ArrayList<>();
         try (FileInputStream fis = new FileInputStream(filePath); Workbook wb = new XSSFWorkbook(fis)) {
             Sheet sheet = wb.getSheetAt(0);
 
-            // Duyệt từng dòng từ dòng 2 (i = 1), dòng 1 là header
+            // Bước 1: lọc ra các dòng đúng mucDoKeHoach & soNgay
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
-                if (row == null) {
-                    System.out.println("Row " + i + " null");
-                    continue;
-                }
+                if (row == null) continue;
 
-                // ----- Đọc các trường từ từng cột -----
-                // Cột A: Mức độ (Nhẹ/Nặng)
                 String mucDo = getString(row.getCell(0)).trim();
-
-                // Cột B: Số ngày (ví dụ: "10 ngày")
                 int soNgay = parseSoNgay(getString(row.getCell(1)).trim());
+                if (!mucDo.equalsIgnoreCase(mucDoKeHoach) || soNgay != soNgayToiDa) continue;
+                filteredRows.add(row);
+            }
 
-                // Cột C: Ngày thứ mấy (vấn đề ở đây - có thể là "1.0", "2.0", ...)
+            // Bước 2: đếm tổng số ngày của mỗi giai đoạn (stageOrder)
+            Map<Integer, Integer> stageOrderToCount = new HashMap<>();
+            for (Row row : filteredRows) {
+                Cell giaiDoanCell = row.getCell(3);
+                int giaiDoan = (giaiDoanCell != null && giaiDoanCell.getCellType() == CellType.NUMERIC)
+                        ? (int) giaiDoanCell.getNumericCellValue() : -1;
+                if (giaiDoan > 0) {
+                    stageOrderToCount.put(giaiDoan, stageOrderToCount.getOrDefault(giaiDoan, 0) + 1);
+                }
+            }
+
+            // Bước 3: build DayPlanDTO cho từng dòng đã lọc
+            List<DayPlanDTO> days = new ArrayList<>();
+            for (Row row : filteredRows) {
                 int day = 0;
                 Cell dayCell = row.getCell(2);
                 if (dayCell != null) {
                     if (dayCell.getCellType() == CellType.NUMERIC) {
-                        // Đọc trực tiếp nếu là số (kiểu double → ép về int)
                         day = (int) dayCell.getNumericCellValue();
                     } else {
-                        // Nếu là text, thử convert sang double rồi ép về int (chấp nhận "1.0")
                         try {
                             day = (int) Double.parseDouble(dayCell.toString().trim());
-                        } catch (Exception e) {
-                            System.out.println("Row " + i + " - Lỗi đọc số ngày (day): '" + dayCell.toString().trim() + "'");
-                            continue;
-                        }
+                        } catch (Exception e) { continue; }
                     }
-                } else {
-                    System.out.println("Row " + i + " - Không có cell ngày");
-                    continue;
-                }
+                } else { continue; }
 
-                // Cột D: Giai đoạn (phải là số, kiểu numeric)
                 Cell giaiDoanCell = row.getCell(3);
-                int giaiDoan;
-                if (giaiDoanCell != null && giaiDoanCell.getCellType() == CellType.NUMERIC) {
-                    giaiDoan = (int) giaiDoanCell.getNumericCellValue();
-                } else {
-                    System.out.println("Row " + i + " - Lỗi đọc giai đoạn");
-                    continue;
+                int giaiDoan = (giaiDoanCell != null && giaiDoanCell.getCellType() == CellType.NUMERIC)
+                        ? (int) giaiDoanCell.getNumericCellValue() : -1;
+                if (giaiDoan <= 0) continue;
+
+                String mucTieu = getString(row.getCell(4)).trim();
+                List<String> hoatDong = new ArrayList<>();
+                for (int col = 5; col <= 9; col++) {
+                    String val = getString(row.getCell(col)).trim();
+                    if (!val.isEmpty()) hoatDong.add(val);
                 }
 
-                // ----- Log giá trị đọc được cho debug -----
-               // System.out.println("mucDo = [" + mucDo + "], soNgay = " + soNgay + ", day = " + day + ", giaiDoan = " + giaiDoan);
+                int soNgayTrongGiaiDoan = stageOrderToCount.getOrDefault(giaiDoan, 0);
 
-                // Điều kiện: đúng mức độ và số ngày yêu cầu
-                if (mucDo.equalsIgnoreCase(mucDoKeHoach) && soNgay == soNgayToiDa) {
-                    // Cột E: Mục tiêu của ngày
-                    String mucTieu = getString(row.getCell(4)).trim();
-
-                    // Các cột F-J: Hoạt động (5 hoạt động/ngày)
-                    List<String> hoatDong = new ArrayList<>();
-                    for (int col = 5; col <= 9; col++) {
-                        String val = getString(row.getCell(col)).trim();
-                        if (!val.isEmpty()) hoatDong.add(val);
-                    }
-
-                    // Tạo DTO từng ngày
-                    DayPlanDTO dayDTO = new DayPlanDTO();
-                    dayDTO.setMucDoKeHoach(mucDoKeHoach);
-                    dayDTO.setDay(day);
-                    dayDTO.setStageOrder(giaiDoan);
-                    dayDTO.setStageName("Giai đoạn " + giaiDoan); // FE có thể tự map tên nếu muốn
-                    dayDTO.setGoal(mucTieu);
-                    dayDTO.setActivities(hoatDong);
-                    days.add(dayDTO);
-                }
+                DayPlanDTO dayDTO = new DayPlanDTO();
+                dayDTO.setMucDoKeHoach(mucDoKeHoach);
+                dayDTO.setSo_ngay_trong_giai_doan(soNgayTrongGiaiDoan);
+                dayDTO.setDay(day);
+                dayDTO.setStageOrder(giaiDoan);
+                dayDTO.setStageName("Giai đoạn " + giaiDoan);
+                dayDTO.setGoal(mucTieu);
+                dayDTO.setActivities(hoatDong);
+                days.add(dayDTO);
             }
+            return days;
         }
-        return days;
     }
+
 
     /**
      * Parse số ngày từ chuỗi kiểu "10 ngày", "20 ngày"...
