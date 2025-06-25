@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Tag, Space, Typography, Modal, Button, Form, Input, Select, DatePicker, Upload, message } from 'antd';
-import { CalendarOutlined, EyeOutlined, ReadOutlined, UserOutlined as AntUserOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { CalendarOutlined, EyeOutlined, ReadOutlined, UserOutlined as AntUserOutlined, PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
+import coachApi from '../Axios/coachApi';
+import { toast } from 'react-toastify';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -271,19 +273,44 @@ const BlogFormModalContent = styled.div`
   }
 `;
 
-const categories = [];
-const articles = [];
-
 const CoachBlog = () => {
     const [activeCategory, setActiveCategory] = useState('all');
     const [isArticleModalVisible, setIsArticleModalVisible] = useState(false);
     const [selectedArticle, setSelectedArticle] = useState(null);
     const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
     const [form] = Form.useForm();
-    const [articleList, setArticleList] = useState(articles);
+    const [articleList, setArticleList] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
-    
+    const [loading, setLoading] = useState(false);
+    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+    const [editArticle, setEditArticle] = useState(null);
+    const [editForm] = Form.useForm();
+
+    // Fetch all blog posts on mount
+    useEffect(() => {
+        fetchArticles();
+    }, []);
+
+    const fetchArticles = async () => {
+        setLoading(true);
+        try {
+            const res = await coachApi.getAllBlogPosts();
+            const data = res.data || res;
+            setArticleList(data);
+            // Lấy danh sách category duy nhất từ các bài viết
+            const cats = Array.from(new Set(data.map(a => a.category).filter(Boolean)));
+            setCategories([
+                { key: 'all', label: 'Tất cả', color: '#4A90E2' },
+                ...cats.map((cat, idx) => ({ key: cat, label: cat, color: '#5FB8B3' }))
+            ]);
+        } catch (err) {
+            toast.error('Lỗi tải danh sách bài viết!');
+        }
+        setLoading(false);
+    };
+
     const filteredArticles = activeCategory === 'all'
         ? articleList
         : articleList.filter(article => article.category === activeCategory);
@@ -304,91 +331,140 @@ const CoachBlog = () => {
     const handleCloseCreateModal = () => {
         setIsCreateModalVisible(false);
         form.resetFields();
+        setImagePreview(null);
+        setImageFile(null);
     };
 
-    const handleCreateArticle = (values) => {
-        // Tạm thời thêm vào danh sách local, sau này sẽ gọi API
-        const newArticle = {
-            id: articleList.length + 1,
-            title: values.title,
-            slug: values.slug,
-            content: values.content,
-            excerpt: values.excerpt,
-            category: values.category,
-            tags: values.tags,
-            status: values.status,
-            coverImage: values.featuredImageURL || 'https://source.unsplash.com/random/800x400/?blog',
-            author: {
-                name: 'Coach Demo',
-                avatar: 'https://source.unsplash.com/random/100x100/?coach',
-                title: 'Coach',
-            },
-            views: 0,
-            readTime: '5 phút đọc',
-            date: new Date().toLocaleDateString('vi-VN'),
-        };
-        setArticleList([newArticle, ...articleList]);
-        message.success('Tạo bài viết thành công!');
-        handleCloseCreateModal();
-    };
-
-    // Upload ảnh lên Cloudinary
-    const handleImageChange = async (info) => {
-        const file = info.file.originFileObj;
-        if (!file) return;
-        setImagePreview(URL.createObjectURL(file));
-        setImageFile(file);
-        // Upload lên Cloudinary
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'avatarUploadClient');
-        formData.append('cloud_name', 'dp4gsczko');
+    const handleCreateArticle = async (values) => {
         try {
-            const res = await fetch('https://api.cloudinary.com/v1_1/dp4gsczko/image/upload', {
-                method: 'POST',
-                body: formData,
-            });
-            const data = await res.json();
-            if (data.secure_url) {
-                form.setFieldsValue({ featuredImageURL: data.secure_url });
-                setImagePreview(data.secure_url);
-            }
+            const authorId = localStorage.getItem('coachId') || localStorage.getItem('userId') || 0;
+            const payload = {
+                ...values,
+                authorId: Number(authorId),
+                tags: values.tags || '',
+            };
+            await coachApi.createBlogPost(payload);
+            toast.success('Tạo bài viết thành công!');
+            handleCloseCreateModal();
+            fetchArticles();
         } catch (err) {
-            message.error('Lỗi upload ảnh!');
+            toast.error('Tạo bài viết thất bại!');
+        }
+    };
+
+   
+
+    // Xử lý xóa bài viết
+    const handleDeleteArticle = async (articleId) => {
+        try {
+            await coachApi.deleteBlogPost(articleId);
+            toast.success('Đã xoá bài viết!');
+            fetchArticles();
+        } catch (err) {
+            toast.error('Xoá bài viết thất bại!');
+        }
+    };
+
+    // Xử lý mở modal chỉnh sửa
+    const handleOpenEditModal = (article) => {
+        setEditArticle(article);
+        editForm.setFieldsValue({
+            title: article.title,
+            slug: article.slug,
+            excerpt: article.excerpt,
+            category: article.category,
+            tags: article.tags,
+            status: article.status,
+            featuredImageURL: article.featuredImageURL,
+        });
+        setIsEditModalVisible(true);
+    };
+    const handleCloseEditModal = () => {
+        setIsEditModalVisible(false);
+        setEditArticle(null);
+        editForm.resetFields();
+    };
+    // Xử lý cập nhật bài viết
+    const handleUpdateArticle = async (values) => {
+        try {
+            const authorId = localStorage.getItem('coachId') || localStorage.getItem('userId') || 0;
+            const payload = {
+                ...values,
+                authorId: Number(authorId),
+                tags: values.tags || '',
+            };
+            await coachApi.updateBlogPost(editArticle.postId, payload);
+            toast.success('Cập nhật bài viết thành công!');
+            handleCloseEditModal();
+            fetchArticles();
+        } catch (err) {
+            toast.error('Cập nhật bài viết thất bại!');
         }
     };
 
     const renderArticleCard = (article) => (
-        <Col xs={24} md={8} style={{ marginBottom: 24 }} key={article.id}>
+        <Col xs={24} md={8} style={{ marginBottom: 24 }} key={article.postId || article.id}>
             <ArticleCard
-                cover={<img alt={article.title} src={article.coverImage} />}
+                cover={<img alt={article.title} src={article.featuredImageURL || 'https://source.unsplash.com/random/800x400/?blog'} />}
+                actions={[
+                    <Button
+                        size="small"
+                        icon={<EditOutlined />}
+                        style={{
+                            background: '#e6f7ff',
+                            color: '#1890ff',
+                            border: 'none',
+                            borderRadius: 16,
+                            fontWeight: 600,
+                            padding: '0 18px',
+                            boxShadow: '0 2px 8px #1890ff22',
+                        }}
+                        onClick={() => handleOpenEditModal(article)}
+                        key="edit"
+                    >
+                        Sửa
+                    </Button>,
+                    <Button
+                        size="small"
+                        icon={<DeleteOutlined />}
+                        style={{
+                            background: '#fff1f0',
+                            color: '#ff4d4f',
+                            border: 'none',
+                            borderRadius: 16,
+                            fontWeight: 600,
+                            padding: '0 18px',
+                            boxShadow: '0 2px 8px #ff4d4f22',
+                        }}
+                        onClick={() => handleDeleteArticle(article.postId || article.id)}
+                        key="delete"
+                    >
+                        Xoá
+                    </Button>,
+                ]}
             >
                 <CategoryLabel color={categories.find(cat => cat.key === article.category)?.color}>
-                    {categories.find(cat => cat.key === article.category)?.label}
+                    {categories.find(cat => cat.key === article.category)?.label || article.category}
                 </CategoryLabel>
 
                 <ArticleTitle>{article.title}</ArticleTitle>
 
-                <ArticleExcerpt>
-                    {article.excerpt}
-                </ArticleExcerpt>
+                
 
                 <AuthorInfo>
-                    <img src={article.author.avatar} alt={article.author.name} />
+                    <img src={article.authorAvatar || 'https://source.unsplash.com/random/100x100/?coach'} alt={article.authorName || 'Coach'} />
                     <div className="author-details">
-                        <div className="author-name">{article.author.name}</div>
-                        <div className="author-title">{article.author.title}</div>
+                        <div className="author-name">{article.authorName || 'Coach'}</div>
+                        <div className="author-title">Coach</div>
                     </div>
                 </AuthorInfo>
 
                 <ArticleMeta>
                     <Space>
-                        <CalendarOutlined /> {article.date}
+                        <CalendarOutlined /> {article.publishDate ? new Date(article.publishDate).toLocaleDateString('vi-VN') : ''}
                     </Space>
-                    <Space>
-                        <EyeOutlined /> {article.views}
-                    </Space>
-                    <Text>{article.readTime}</Text>
+                   
+                    <Text>{article.readTime || ''}</Text>
                 </ArticleMeta>
 
                 <ReadMoreButton onClick={() => handleReadMore(article)}>
@@ -425,22 +501,9 @@ const CoachBlog = () => {
                     }}
                     onClick={handleOpenCreateModal}
                 >
-                    + Thêm bài blog
+                     Thêm bài blog
                 </Button>
             </div>
-
-            <CategoryContainer>
-                {categories.map(category => (
-                    <CategoryTag
-                        key={category.key}
-                        color={category.color}
-                        onClick={() => setActiveCategory(category.key)}
-                        style={{ backgroundColor: activeCategory === category.key ? category.color : 'rgba(0, 0, 0, 0.06)', color: activeCategory === category.key ? 'white' : 'rgba(0, 0, 0, 0.85)' }}
-                    >
-                        {category.label}
-                    </CategoryTag>
-                ))}
-            </CategoryContainer>
 
             <Row gutter={[24, 24]}>
                 {filteredArticles.map(renderArticleCard)}
@@ -453,27 +516,27 @@ const CoachBlog = () => {
                 footer={null}
                 width={800}
                 centered
-                bodyStyle={{ padding: 0 }}
+                styles={{ body: { padding: 0 } }}
             >
                 {selectedArticle && (
                     <ArticleModalContent>
                          <div className="modal-title">{selectedArticle.title}</div>
 
                          <div className="modal-meta-info">
-                             <div className="meta-item"><CalendarOutlined /> {selectedArticle.date}</div>
-                             <div className="meta-item"><EyeOutlined /> {selectedArticle.views}</div>
-                             <div className="meta-item"><Text>{selectedArticle.readTime}</Text></div>
+                             <div className="meta-item"><CalendarOutlined /> {selectedArticle.publishDate ? new Date(selectedArticle.publishDate).toLocaleDateString('vi-VN') : ''}</div>
+                             <div className="meta-item"><EyeOutlined /> {selectedArticle.views || 0}</div>
+                             <div className="meta-item"><Text>{selectedArticle.readTime || ''}</Text></div>
                          </div>
 
                          <div className="modal-author-info">
-                             <img src={selectedArticle.author.avatar} alt={selectedArticle.author.name} />
+                             <img src={selectedArticle.authorAvatar || 'https://source.unsplash.com/random/100x100/?coach'} alt={selectedArticle.authorName || 'Coach'} />
                              <div className="author-details">
-                                 <div className="author-name">{selectedArticle.author.name}</div>
-                                 <div className="author-title">{selectedArticle.author.title}</div>
+                                 <div className="author-name">{selectedArticle.authorName || 'Coach'}</div>
+                                 <div className="author-title">Coach</div>
                              </div>
                          </div>
 
-                        <Text className="full-content">{selectedArticle.content}</Text>
+                        <div className="full-content">{selectedArticle.excerpt}</div>
                     </ArticleModalContent>
                 )}
             </Modal>
@@ -485,7 +548,7 @@ const CoachBlog = () => {
                 footer={null}
                 width={600}
                 centered
-                bodyStyle={{ background: 'transparent', boxShadow: 'none', padding: 0 }}
+                styles={{ background: 'transparent', boxShadow: 'none', padding: 0 }}
             >
                 <BlogFormModalContent>
                   <div className="form-title">Tạo bài viết mới</div>
@@ -493,38 +556,90 @@ const CoachBlog = () => {
                       form={form}
                       layout="vertical"
                       onFinish={handleCreateArticle}
+                      onFinishFailed={(err) => {console.log('Form submit failed:', err);}}
                   >
-                      <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}> <Input placeholder="Nhập tiêu đề bài viết" /> </Form.Item>
-                      <Form.Item name="slug" label="Slug" rules={[{ required: true, message: 'Vui lòng nhập slug!' }]}> <Input placeholder="Ví dụ: cach-cai-thuoc-la-hieu-qua" /> </Form.Item>
-                      <Form.Item name="content" label="Nội dung" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}> <Input.TextArea rows={6} placeholder="Nhập nội dung bài viết" /> </Form.Item>
-                      <Form.Item name="excerpt" label="Tóm tắt"> <Input.TextArea rows={2} placeholder="Nhập tóm tắt bài viết" /> </Form.Item>
-                      <Form.Item name="category" label="Chuyên mục" rules={[{ required: true, message: 'Vui lòng chọn chuyên mục!' }]}> <Select placeholder="Chọn chuyên mục"> {categories.filter(c => c.key !== 'all').map(cat => (<Option value={cat.key} key={cat.key}>{cat.label}</Option>))} </Select> </Form.Item>
-                      <Form.Item name="tags" label="Tags"> <Input placeholder="Nhập tags, cách nhau bởi dấu phẩy" /> </Form.Item>
-                      <Form.Item name="status" label="Trạng thái" initialValue="draft"> <Select> <Option value="draft">Nháp</Option> <Option value="published">Công khai</Option> </Select> </Form.Item>
-                      {/* Ảnh đại diện Cloudinary */}
-                      <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết" rules={[{ required: true, message: 'Vui lòng upload ảnh đại diện!' }]} style={{ marginBottom: 0 }}>
-                          <Upload
-                              listType="picture-card"
-                              showUploadList={false}
-                              beforeUpload={() => false}
-                              customRequest={handleImageChange}
-                              accept="image/*"
-                          >
-                              {imagePreview ? (
-                                  <img src={imagePreview} alt="cover" style={{ width: '100%', borderRadius: 8 }} />
-                              ) : (
-                                  <div>
-                                      <PlusOutlined />
-                                      <div style={{ marginTop: 8 }}>Upload</div>
-                                  </div>
-                              )}
-                          </Upload>
+                      <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}> 
+                          <Input placeholder="Nhập tiêu đề bài viết" />
+                      </Form.Item>
+                      <Form.Item name="slug" label="Slug" rules={[{ required: true, message: 'Vui lòng nhập slug!' }]}> 
+                          <Input placeholder="Ví dụ: cach-cai-thuoc-la-hieu-qua" />
+                      </Form.Item>
+                      <Form.Item name="excerpt" label="Nội dung" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}> 
+                          <Input.TextArea rows={6} placeholder="Nhập nội dung bài viết" />
+                      </Form.Item>
+                      <Form.Item name="category" label="Thể loại" rules={[{ required: true, message: 'Vui lòng chọn thể loại!' }]}> 
+                          <Select placeholder="Chọn thể loại"> 
+                              <Option value="Sức khỏe">Sức khỏe</Option> 
+                              <Option value="Động lực">Động lực</Option> 
+                          </Select> 
+                      </Form.Item>
+                      <Form.Item name="tags" label="Tags"> 
+                          <Input placeholder="Nhập tags, cách nhau bởi dấu phẩy" />
+                      </Form.Item>
+                      <Form.Item name="status" label="Trạng thái" initialValue="draft"> 
+                          <Select> 
+                              <Option value="draft">Nháp</Option> 
+                              <Option value="published">Công khai</Option> 
+                          </Select> 
+                      </Form.Item>
+                      <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết (URL)" rules={[{ required: true, message: 'Vui lòng nhập URL ảnh đại diện!' }, { type: 'url', message: 'URL không hợp lệ!' }]}> 
+                          <Input placeholder="Nhập URL ảnh đại diện" />
                       </Form.Item>
                       <Form.Item style={{ textAlign: 'center', marginTop: 24 }}>
                           <Button type="primary" htmlType="submit">Tạo bài viết</Button>
                           <Button style={{ marginLeft: 12 }} onClick={handleCloseCreateModal}>Hủy</Button>
                       </Form.Item>
                   </Form>
+                </BlogFormModalContent>
+            </Modal>
+
+            <Modal
+                title="Chỉnh sửa bài viết"
+                open={isEditModalVisible}
+                onCancel={handleCloseEditModal}
+                footer={null}
+                width={600}
+                centered
+                styles={{ background: 'transparent', boxShadow: 'none', padding: 0 }}
+            >
+                <BlogFormModalContent>
+                    <Form
+                        form={editForm}
+                        layout="vertical"
+                        onFinish={handleUpdateArticle}
+                    >
+                        <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}> 
+                            <Input placeholder="Nhập tiêu đề bài viết" />
+                        </Form.Item>
+                        <Form.Item name="slug" label="Slug" rules={[{ required: true, message: 'Vui lòng nhập slug!' }]}> 
+                            <Input placeholder="Ví dụ: cach-cai-thuoc-la-hieu-qua" />
+                        </Form.Item>
+                        <Form.Item name="excerpt" label="Nội dung" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}> 
+                            <Input.TextArea rows={6} placeholder="Nhập nội dung bài viết" />
+                        </Form.Item>
+                        <Form.Item name="category" label="Thể loại" rules={[{ required: true, message: 'Vui lòng chọn thể loại!' }]}> 
+                            <Select placeholder="Chọn thể loại"> 
+                                <Option value="Sức khỏe">Sức khỏe</Option> 
+                                <Option value="Động lực">Động lực</Option> 
+                            </Select> 
+                        </Form.Item>
+                        <Form.Item name="tags" label="Tags"> 
+                            <Input placeholder="Nhập tags, cách nhau bởi dấu phẩy" />
+                        </Form.Item>
+                        <Form.Item name="status" label="Trạng thái" initialValue="draft"> 
+                            <Select> 
+                                <Option value="draft">Nháp</Option> 
+                                <Option value="published">Công khai</Option> 
+                            </Select> 
+                        </Form.Item>
+                        <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết (URL)" rules={[{ required: true, message: 'Vui lòng nhập URL ảnh đại diện!' }, { type: 'url', message: 'URL không hợp lệ!' }]}> 
+                            <Input placeholder="Nhập URL ảnh đại diện" />
+                        </Form.Item>
+                        <Form.Item style={{ textAlign: 'center', marginTop: 24 }}>
+                            <Button type="primary" htmlType="submit">Lưu thay đổi</Button>
+                            <Button style={{ marginLeft: 12 }} onClick={handleCloseEditModal}>Hủy</Button>
+                        </Form.Item>
+                    </Form>
                 </BlogFormModalContent>
             </Modal>
         </BlogContainer>
