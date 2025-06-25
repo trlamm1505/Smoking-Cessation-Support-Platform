@@ -27,7 +27,9 @@ const UserCoachManagement = () => {
     setLoadingUsers(true);
     try {
       const res = await userApi.getAll();
-      setUsers(res.data || res);
+      // Chỉ lấy user có role là 'member'
+      const filteredUsers = (res.data || res).filter(u => u.role === 'member');
+      setUsers(filteredUsers);
     } catch (err) {
       message.error('Lỗi tải danh sách người dùng');
     }
