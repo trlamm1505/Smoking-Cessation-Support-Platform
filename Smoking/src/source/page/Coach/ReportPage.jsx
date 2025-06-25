@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
-import { Typography, Card, Form, Input, DatePicker, Button, Table, Space, Modal, message, Tag, Tooltip } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Typography, Card, Form, Input, DatePicker, Button, Table, Space, Modal, message, Tag, Tooltip, Select } from 'antd';
 import styled from 'styled-components';
-import { PlusOutlined, EditOutlined, DeleteOutlined, FileTextOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, FileTextOutlined, CheckCircleOutlined, ClockCircleOutlined, StarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import userApi from '../Axios/userAxios';
+import coachApi from '../Axios/coachApi';
+
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -60,20 +65,56 @@ const StatusTag = styled(Tag)`
   font-weight: 500;
 `;
 
+// Style cho nút Sửa giống UserReviews
+const EditButton = styled(Button)`
+  background: linear-gradient(90deg, #f9d923 0%, #f8b400 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(249,217,35,0.08);
+`;
+
 const ReportPage = () => {
   const [form] = Form.useForm();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingReport, setEditingReport] = useState(null);
-  const [reports, setReports] = useState([
-    {
-      id: 1,
-      title: 'Báo cáo tháng 3/2024',
-      period: ['2024-03-01', '2024-03-31'],
-      content: 'Tổng kết hoạt động tư vấn và tiến độ của học viên trong tháng 3',
-      status: 'Đã gửi',
-      createdAt: '2024-03-31',
-    },
-  ]);
+  const [reports, setReports] = useState([]);
+  const [isSystemModal, setIsSystemModal] = useState(false);
+  const [systemForm] = Form.useForm();
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [systemFeedbacks, setSystemFeedbacks] = useState([]);
+  const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
+  const [feedbackForm] = Form.useForm();
+  const [sendingFeedback, setSendingFeedback] = useState(false);
+  const [mySystemFeedbacks, setMySystemFeedbacks] = useState([]);
+  const [editingFeedback, setEditingFeedback] = useState(null);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editForm] = Form.useForm();
+
+  // Lấy feedback thực tế và tên user
+  useEffect(() => {
+    userApi.getAll().then(res => {
+      setUsers(res.data || []);
+    });
+    userApi.getFeedbacks({ targetType: 'coach' }).then(res => {
+      setFeedbacks(res.data || []);
+    });
+  }, []);
+
+  // Lấy feedback hệ thống (từ tất cả user/coach) và danh sách user/coach
+  useEffect(() => {
+    userApi.getAll().then(res => {
+      setUsers(res.data || []);
+    });
+    userApi.getFeedbacks({ targetType: 'system' }).then(res => {
+      setSystemFeedbacks(res.data || []);
+      // Lọc feedback hệ thống của coach hiện tại
+      const myId = Number(localStorage.getItem('userId'));
+      setMySystemFeedbacks((res.data || []).filter(fb => fb.userId === myId));
+    });
+  }, []);
 
   const columns = [
     {
@@ -221,6 +262,50 @@ const ReportPage = () => {
     });
   };
 
+  // Gửi feedback hệ thống (coach gửi)
+  const handleSendSystemFeedback = (values) => {
+    setSendingFeedback(true);
+    const myId = Number(localStorage.getItem('userId'));
+    userApi.createFeedback({
+      userId: myId,
+      targetType: 'system',
+      targetId: 0,
+      rating: values.rating,
+      comment: values.comment,
+      title: values.title || '',
+      status: 'active',
+    }).then(() => {
+      toast.success('Gửi feedback hệ thống thành công!');
+      setIsFeedbackModalVisible(false);
+      feedbackForm.resetFields();
+      // Cập nhật lại feedback hệ thống của coach và toàn bộ feedback hệ thống
+      userApi.getFeedbacks({ targetType: 'system' }).then(res => {
+        setSystemFeedbacks(res.data || []);
+        setMySystemFeedbacks((res.data || []).filter(fb => fb.userId === myId));
+      });
+    }).finally(() => setSendingFeedback(false));
+  };
+
+  // Helper: lấy tên người gửi (user hoặc coach)
+  const getSenderName = (feedback) => {
+    const user = users.find(u => u.id === feedback.userId || u.userId === feedback.userId);
+    if (user) return user.fullName || user.name || user.username || 'Người dùng';
+    return 'Người dùng';
+  };
+
+  // Columns cho feedback hệ thống của coach (không còn thao tác sửa)
+  const mySystemFeedbackColumns = [
+    { title: 'Số sao', dataIndex: 'rating', key: 'rating', align: 'center', render: (rating) => <span style={{color:'#FFD700', fontSize:18}}>{'★'.repeat(rating)}</span> },
+    { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
+    { title: 'Nội dung', dataIndex: 'comment', key: 'comment', render: (text) => <span style={{color:'#333', fontSize:'15px'}}>{text}</span> },
+  ];
+
+  const userCoachFeedbackColumns = [
+    { title: 'Số sao', dataIndex: 'rating', key: 'rating', align: 'center', render: (rating) => <span style={{color:'#FFD700', fontSize:18}}>{'★'.repeat(rating)}</span> },
+    { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
+    { title: 'Nội dung', dataIndex: 'comment', key: 'comment', render: (text) => <span style={{color:'#333', fontSize:'15px'}}>{text}</span> },
+  ];
+
   return (
     <Container>
       <Header>
@@ -228,88 +313,71 @@ const ReportPage = () => {
           <FileTextOutlined />
           <Title level={2} style={{ margin: 0 }}>Báo cáo tiến độ định kỳ</Title>
         </div>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={handleCreateReport}
-          size="large"
-        >
-          Tạo báo cáo mới
-        </Button>
       </Header>
 
-      <StyledCard>
-        <Table 
-          columns={columns} 
-          dataSource={reports}
-          rowKey="id"
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Tổng số ${total} báo cáo`,
-          }}
-        />
-      </StyledCard>
-
-      <Modal
-        title={editingReport ? "Sửa báo cáo" : "Tạo báo cáo mới"}
-        open={isModalVisible}
-        onCancel={() => {
-          setIsModalVisible(false);
-          form.resetFields();
-          setEditingReport(null);
-        }}
-        footer={null}
-        width={800}
+      {/* Nút gửi feedback hệ thống */}
+      <Button
+        type="primary"
+        icon={<StarOutlined />}
+        style={{ marginBottom: 16, background: 'linear-gradient(90deg, #5FB8B3 30%, #1890ff 100%)', border: 'none' }}
+        onClick={() => setIsFeedbackModalVisible(true)}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          <Form.Item
-            name="title"
-            label="Tiêu đề báo cáo"
-            rules={[{ required: true, message: 'Vui lòng nhập tiêu đề báo cáo!' }]}
-          >
-            <Input placeholder="Nhập tiêu đề báo cáo" />
-          </Form.Item>
+        Gửi feedback hệ thống
+      </Button>
 
-          <Form.Item
-            name="period"
-            label="Thời gian báo cáo"
-            rules={[{ required: true, message: 'Vui lòng chọn thời gian báo cáo!' }]}
-          >
-            <RangePicker style={{ width: '100%' }} />
-          </Form.Item>
+      {/* Bảng feedback hệ thống của coach (có thao tác) */}
+      <Title level={4} style={{ color: '#2c7a75', margin: '24px 0 12px 0' }}>Feedback hệ thống của bạn</Title>
+      <Table
+        columns={mySystemFeedbackColumns}
+        dataSource={mySystemFeedbacks}
+        rowKey={record => record.feedbackId || record.id}
+        pagination={false}
+        bordered
+        style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 32 }}
+      />
 
-          <Form.Item
-            name="content"
-            label="Nội dung báo cáo"
-            rules={[{ required: true, message: 'Vui lòng nhập nội dung báo cáo!' }]}
-          >
-            <TextArea 
-              rows={6} 
-              placeholder="Nhập nội dung báo cáo chi tiết..."
-            />
+      {/* Modal gửi feedback hệ thống */}
+      <Modal
+        title="Gửi feedback hệ thống"
+        open={isFeedbackModalVisible}
+        onCancel={() => { setIsFeedbackModalVisible(false); feedbackForm.resetFields(); }}
+        footer={null}
+        width={600}
+      >
+        <Form form={feedbackForm} layout="vertical" onFinish={handleSendSystemFeedback}>
+          <Form.Item name="title" label="Tiêu đề">
+            <Input placeholder="Nhập tiêu đề (nếu có)" />
           </Form.Item>
-
+          <Form.Item name="rating" label="Số sao" rules={[{ required: true, message: 'Chọn số sao!' }]}> 
+            <Select placeholder="Chọn số sao">
+              {[1,2,3,4,5].map(star => (
+                <Select.Option key={star} value={star}>
+                  <span style={{ color: '#FFD700', fontSize: 18 }}>{'★'.repeat(star)}</span>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="comment" label="Nội dung" rules={[{ required: true, message: 'Nhập nội dung!' }]}> 
+            <Input.TextArea rows={4} placeholder="Nhập nội dung feedback..." />
+          </Form.Item>
           <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                {editingReport ? 'Cập nhật' : 'Gửi báo cáo'}
-              </Button>
-              <Button onClick={() => {
-                setIsModalVisible(false);
-                form.resetFields();
-                setEditingReport(null);
-              }}>
-                Hủy
-              </Button>
-            </Space>
+            <Button type="primary" htmlType="submit" loading={sendingFeedback}>Gửi feedback</Button>
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Bảng lịch sử feedback từ người dùng gửi cho coach (không thao tác, không người gửi, không ngày gửi) */}
+      <Title level={4} style={{ color: '#2c7a75', margin: '32px 0 12px 0' }}>Feedback từ người dùng</Title>
+      <Table
+        columns={userCoachFeedbackColumns}
+        dataSource={systemFeedbacks.filter(fb => fb.targetType === 'coach')}
+        rowKey={record => record.feedbackId || record.id}
+        pagination={false}
+        bordered
+        style={{ borderRadius: 12, overflow: 'hidden' }}
+      />
+
+      <ToastContainer position="top-right" autoClose={2000} />
     </Container>
   );
 };
