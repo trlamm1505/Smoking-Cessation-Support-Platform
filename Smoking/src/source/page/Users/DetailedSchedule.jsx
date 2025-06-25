@@ -592,6 +592,7 @@ const DetailedSchedule = () => {
     if (planStartDate) {
         todayIndex = today.diff(planStartDate, 'day') + 1;
     }
+    const todayTask = tasks.find(item => item.day === todayIndex);
     const todayTasks = tasks.filter(item => item.day === todayIndex);
     const otherTasks = tasks.filter(item => item.day !== todayIndex);
 
