@@ -793,11 +793,16 @@ const CoachProfile = () => {
                 </FormField>
                 <FormField>
                   <label>Email</label>
-                  <EditableInput
-                    value={tempProfileData.email}
-                    onChange={(e) => setTempProfileData({ ...tempProfileData, email: e.target.value })}
-                    placeholder="Nhập email"
-                  />
+                  <div style={{
+                    padding: '8px 12px',
+                    background: '#f5f5f5',
+                    borderRadius: '6px',
+                    color: '#888',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    border: '1.5px solid #e9ecef',
+                    marginBottom: 2
+                  }}>{tempProfileData.email}</div>
                 </FormField>
                 <FormField>
                   <label>Số điện thoại</label>

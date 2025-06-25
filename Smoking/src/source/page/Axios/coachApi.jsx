@@ -21,6 +21,13 @@ const coachApi = {
 
   // Xóa coach theo id (admin)
   adminDelete: (id) => axiosClient.delete(`/api/coaches/delete/${id}`),
+
+  // BLOG POSTS API
+  getAllBlogPosts: () => axiosClient.get('/api/blogposts'),
+  getBlogPostById: (id) => axiosClient.get(`/api/blogposts/${id}`),
+  createBlogPost: (data) => axiosClient.post('/api/blogposts', data),
+  updateBlogPost: (id, data) => axiosClient.put(`/api/blogposts/${id}`, data),
+  deleteBlogPost: (id) => axiosClient.delete(`/api/blogposts/${id}`),
 };
 
 export default coachApi; 
