@@ -21,7 +21,7 @@ public class BlogPosts {
     /** User (author) đã đăng bài, liên kết tới Users */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AuthorUserID", nullable = false)
-    private User author;
+    private Coach author;
 
     /** Tiêu đề bài viết */
     @Column(nullable = false, length = 255)
@@ -75,47 +75,128 @@ public class BlogPosts {
     private String featuredImageURL;
 
     // ====== GETTER/SETTER, Constructors ====== //
-    public BlogPosts() {}
 
-    // ... có thể bổ sung thêm constructor đầy đủ nếu cần
 
-    // Getter/Setter auto-generate hoặc dùng Lombok (@Data)
-    public Long getPostId() { return postId; }
-    public void setPostId(Long postId) { this.postId = postId; }
+    public BlogPosts(Long postId, Coach author, String title, String slug, String content, String excerpt, LocalDateTime publishDate, LocalDateTime lastModifiedDate, String category, String tags, Integer views, String status, String featuredImageURL) {
+        this.postId = postId;
+        this.author = author;
+        this.title = title;
+        this.slug = slug;
+        this.content = content;
+        this.excerpt = excerpt;
+        this.publishDate = publishDate;
+        this.lastModifiedDate = lastModifiedDate;
+        this.category = category;
+        this.tags = tags;
+        this.views = views;
+        this.status = status;
+        this.featuredImageURL = featuredImageURL;
+    }
 
-    public User getAuthor() { return author; }
-    public void setAuthor(User author) { this.author = author; }
+    public BlogPosts() {
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public Long getPostId() {
+        return postId;
+    }
 
-    public String getSlug() { return slug; }
-    public void setSlug(String slug) { this.slug = slug; }
+    public void setPostId(Long postId) {
+        this.postId = postId;
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public Coach getAuthor() {
+        return author;
+    }
 
-    public String getExcerpt() { return excerpt; }
-    public void setExcerpt(String excerpt) { this.excerpt = excerpt; }
+    public void setAuthor(Coach author) {
+        this.author = author;
+    }
 
-    public LocalDateTime getPublishDate() { return publishDate; }
-    public void setPublishDate(LocalDateTime publishDate) { this.publishDate = publishDate; }
+    public String getTitle() {
+        return title;
+    }
 
-    public LocalDateTime getLastModifiedDate() { return lastModifiedDate; }
-    public void setLastModifiedDate(LocalDateTime lastModifiedDate) { this.lastModifiedDate = lastModifiedDate; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getSlug() {
+        return slug;
+    }
 
-    public String getTags() { return tags; }
-    public void setTags(String tags) { this.tags = tags; }
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
 
-    public Integer getViews() { return views; }
-    public void setViews(Integer views) { this.views = views; }
+    public String getContent() {
+        return content;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-    public String getFeaturedImageURL() { return featuredImageURL; }
-    public void setFeaturedImageURL(String featuredImageURL) { this.featuredImageURL = featuredImageURL; }
+    public String getExcerpt() {
+        return excerpt;
+    }
+
+    public void setExcerpt(String excerpt) {
+        this.excerpt = excerpt;
+    }
+
+    public LocalDateTime getPublishDate() {
+        return publishDate;
+    }
+
+    public void setPublishDate(LocalDateTime publishDate) {
+        this.publishDate = publishDate;
+    }
+
+    public LocalDateTime getLastModifiedDate() {
+        return lastModifiedDate;
+    }
+
+    public void setLastModifiedDate(LocalDateTime lastModifiedDate) {
+        this.lastModifiedDate = lastModifiedDate;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public Integer getViews() {
+        return views;
+    }
+
+    public void setViews(Integer views) {
+        this.views = views;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getFeaturedImageURL() {
+        return featuredImageURL;
+    }
+
+    public void setFeaturedImageURL(String featuredImageURL) {
+        this.featuredImageURL = featuredImageURL;
+    }
 }

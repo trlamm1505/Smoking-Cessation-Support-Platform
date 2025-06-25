@@ -3,7 +3,9 @@ package com.example.SWP_Backend.controller;
 import com.example.SWP_Backend.dto.BlogPostsDTO;
 import com.example.SWP_Backend.dto.BlogPostsCreateRequest;
 import com.example.SWP_Backend.entity.BlogPosts;
+import com.example.SWP_Backend.entity.Coach;
 import com.example.SWP_Backend.entity.User;
+import com.example.SWP_Backend.repository.CoachRepository;
 import com.example.SWP_Backend.repository.UserRepository;
 import com.example.SWP_Backend.service.BlogPostsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,7 @@ public class BlogPostsController {
     private BlogPostsService blogPostsService;
 
     @Autowired
-    private UserRepository userRepository;
+    private CoachRepository coachRepository;
 
     /**
      * Tạo mới bài viết:
@@ -33,7 +35,7 @@ public class BlogPostsController {
     @PostMapping
     public BlogPostsDTO createBlogPost(@RequestBody BlogPostsCreateRequest req) {
         // Tìm User (author) theo authorId từ request
-        User author = userRepository.findById(req.getAuthorId())
+        Coach author = coachRepository.findById(req.getAuthorId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy user với id: " + req.getAuthorId()));
 
         // Tạo entity BlogPosts từ request
@@ -79,7 +81,7 @@ public class BlogPostsController {
     @PutMapping("/{id}")
     public BlogPostsDTO updateBlogPost(@PathVariable Long id, @RequestBody BlogPostsCreateRequest req) {
         // Lấy User (author) từ id trong request
-        User author = userRepository.findById(req.getAuthorId())
+        Coach author = coachRepository.findById(req.getAuthorId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy user với id: " + req.getAuthorId()));
 
         // Lấy entity BlogPosts cũ từ service (service trả về Optional<BlogPosts>)

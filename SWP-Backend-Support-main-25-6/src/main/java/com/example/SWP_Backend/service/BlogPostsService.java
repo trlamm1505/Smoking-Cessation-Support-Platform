@@ -82,7 +82,7 @@ public class BlogPostsService {
     public BlogPostsDTO toDTO(BlogPosts post) {
         BlogPostsDTO dto = new BlogPostsDTO();
         dto.setPostId(post.getPostId());
-        dto.setAuthorId(post.getAuthor() != null ? post.getAuthor().getUserId() : null);
+        dto.setAuthorId(post.getAuthor() != null ? post.getAuthor().getCoachId() : null);
         dto.setAuthorName(post.getAuthor() != null ? post.getAuthor().getFullName() : null);
         dto.setTitle(post.getTitle());
         dto.setSlug(post.getSlug());
