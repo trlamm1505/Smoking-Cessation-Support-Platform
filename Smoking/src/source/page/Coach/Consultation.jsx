@@ -438,78 +438,6 @@ const handleApprove = (consultationId) => {
         </tbody>
       </TimeTable>
 
-      {outOfSlotAppointments.length > 0 && (
-        <div style={{ marginTop: '32px' }}>
-            <GuestHeader>
-                <div className="header-title">
-                    <FileTextOutlined />
-                    Lịch hẹn ngoài khung giờ (trong tuần)
-                </div>
-            </GuestHeader>
-            <Table
-                dataSource={outOfSlotAppointments}
-                rowKey="consultationId"
-                columns={[
-                    {
-                        title: 'Thành viên',
-                        dataIndex: 'memberName',
-                        key: 'memberName',
-                    },
-                    {
-                        title: 'Thời gian',
-                        dataIndex: 'scheduledTime',
-                        key: 'scheduledTime',
-                        render: (text) => dayjs(text).format('HH:mm DD/MM/YYYY'),
-                    },
-                    {
-                        title: 'Ghi chú',
-                        dataIndex: 'notes',
-                        key: 'notes',
-                    },
-                    {
-                        title: 'Trạng thái',
-                        dataIndex: 'status',
-                        key: 'status',
-                        render: status =>
-                            status === 'approved' || status === 'confirmed'
-                                ? 'Đã xác nhận'
-                                : 'Chờ xác nhận'
-                    },
-                    {
-                        title: 'Link Google Meet',
-                        key: 'meetingLink',
-                        render: (_, record) => {
-                            const link = record.meetingLink || record.meetLink;
-                            return link
-                                ? <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a>
-                                : '-';
-                        }
-                    },
-                    {
-                        title: 'Hành động',
-                        key: 'action',
-                        render: (_, record) => (
-                            <Space>
-                                {record.status === 'pending' && (
-                                    <Button type="primary" icon={<CheckCircleOutlined />} onClick={() => handleOpenConfirmModal(record)}>
-                                        Xác nhận
-                                    </Button>
-                                )}
-                                {(record.status === 'approved' || record.status === 'confirmed') && (record.meetingLink || record.meetLink) && (
-                                    <Button icon={<LinkOutlined />} href={record.meetingLink || record.meetLink} target="_blank">
-                                        Link Meet
-                                    </Button>
-                                )}
-                            </Space>
-                        ),
-                    },
-                ]}
-                pagination={{ pageSize: 4 }}
-                style={{ marginTop: '16px' }}
-            />
-        </div>
-      )}
-
       {/* Bảng lịch sử các cuộc hẹn đã xác nhận */}
       {confirmedAppointments.length > 0 && (
         <div style={{ marginTop: '32px' }}>
@@ -537,8 +465,8 @@ const handleApprove = (consultationId) => {
               },
               {
                 title: 'Thành viên',
-                dataIndex: 'memberName',
-                key: 'memberName',
+                dataIndex: 'fullName',
+                key: 'fullName',
               },
               {
                 title: 'Ghi chú',
