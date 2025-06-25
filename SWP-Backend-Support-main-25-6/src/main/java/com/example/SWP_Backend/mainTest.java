@@ -10,5 +10,6 @@ public class mainTest {
 
     public static void main(String[] args) {
         System.out.println("Tinh Muc do " + tinhMucDo(20, 20));
+        System.out.println("Phạm Võ Khải Anh");
     }
 }
