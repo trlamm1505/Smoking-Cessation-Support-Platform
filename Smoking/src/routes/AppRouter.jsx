@@ -9,7 +9,6 @@ import UserProfile from '../source/page/Users/Profile'
 import UserPlan from '../source/page/Users/Plan'
 import UserLayout from '../source/page/Users/Layout'
 import Premium from '../source/page/Users/Premium'
-import Progress from '../source/page/Users/Progress'
 import SmokingTrackerPage from '../source/page/Users/SmokingTrackerPage'
 import DetailedSchedule from '../source/page/Users/DetailedSchedule'
 import Achievements from '../source/page/Users/Achievements'
@@ -38,7 +37,6 @@ import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
 
 // Guest Components
 import GuestProfile from '../source/page/Guest/Profile'
-import GuestConsultation from '../source/page/Guest/Consultation'
 import GuestPremium from '../source/page/Guest/Premium'
 import GuestLayout from '../source/page/Guest/Layout'
 import LoginRequired from '../source/page/Home/LoginRequired'
@@ -62,7 +60,6 @@ export default function AppRouter() {
         <Route path='premium' element={<GuestPremium />} />
         <Route path='premium-notice' element={<RequirePremiumNotice />} />
         <Route path='reviews' element={<RequirePremiumNotice />} />
-        <Route path='progress' element={<RequirePremiumNotice />} />
         <Route path='plan' element={<RequirePremiumNotice />} />
         <Route path='smoking-tracker' element={<RequirePremiumNotice />} />
         <Route path='schedule' element={<RequirePremiumNotice />} />
@@ -78,7 +75,6 @@ export default function AppRouter() {
         <Route path='profile' element={<UserProfile />} />
         <Route path='plan' element={<UserPlan />} />
         <Route path='premium' element={<Premium />} />
-        <Route path='progress' element={<Progress />} />
         <Route path='smoking-tracker' element={<SmokingTrackerPage />} />
         <Route path='schedule' element={<DetailedSchedule />} />
         <Route path='achievements' element={<Achievements />} />

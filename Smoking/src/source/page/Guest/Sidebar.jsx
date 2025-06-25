@@ -83,11 +83,6 @@ const Sidebar = () => {
             icon: <HomeOutlined />
         },
         {
-            path: '/guest/progress',
-            name: 'Tiến Trình Cai Thuốc',
-            icon: <LineChartOutlined />
-        },
-        {
             path: '/guest/plan',
             name: 'Kế Hoạch Cai Thuốc',
             icon: <CalendarOutlined />

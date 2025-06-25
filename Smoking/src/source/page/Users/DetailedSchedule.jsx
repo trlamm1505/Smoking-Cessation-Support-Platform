@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
 const { Title, Text } = Typography;
 
@@ -431,6 +432,8 @@ const DetailedSchedule = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [planStartDate, setPlanStartDate] = useState(null);
     const [soNgay, setSoNgay] = useState(30);
+    const [viewingDate, setViewingDate] = useState(dayjs());
+    const [activityStatus, setActivityStatus] = useState({});
 
     useEffect(() => {
         // Fetch kế hoạch cai thuốc để lấy years, cigarettesPerDay
@@ -462,21 +465,30 @@ const DetailedSchedule = () => {
             .catch(() => setLoading(false));
     }, []);
 
-    const handleTaskComplete = (taskId, completed) => {
-        const updatedTasks = tasks.map(task => {
-            if (task.id === taskId) {
-                const newStatus = completed;
-                message.success(`${completed ? '✅' : '❌'} ${task.title}`);
-                return { ...task, status: newStatus };
-            }
-            return task;
-        });
-        setTasks(updatedTasks);
+    const handleTaskComplete = async (taskId, completed) => {
+        const userId = Number(localStorage.getItem('userId')) || 1;
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+        try {
+            await axios.post(`http://localhost:8080/user-plan-stage-progress/tick`, null, {
+                params: {
+                    userId,
+                    sequenceOrder: task.day,
+                    completed
+                }
+            });
+            // Cập nhật trạng thái local
+            const updatedTasks = tasks.map(t => t.id === taskId ? { ...t, status: completed } : t);
+            setTasks(updatedTasks);
+        } catch (err) {
+            message.error('Lỗi khi cập nhật trạng thái nhiệm vụ!');
+        }
+    };
 
-        const currentDate = dayjs().format('YYYY-MM-DD');
-        setTaskHistory(prev => ({
+    const handleActivityComplete = (taskId, activityIdx, completed) => {
+        setActivityStatus(prev => ({
             ...prev,
-            [currentDate]: updatedTasks
+            [`${taskId}_${activityIdx}`]: completed
         }));
     };
 
@@ -511,51 +523,40 @@ const DetailedSchedule = () => {
     };
 
     const dateCellRender = (date) => {
+        if (!planStartDate || !soNgay) return null;
+
+        // Tính ngày bắt đầu và ngày kết thúc kế hoạch
+        const start = planStartDate.startOf('day');
+        const end = start.add(soNgay - 1, 'day');
+
+        // Nếu ngày ngoài phạm vi kế hoạch thì không render gì cả
+        if (date.isBefore(start, 'day') || date.isAfter(end, 'day')) {
+            return null;
+        }
+
         const dateStr = date.format('YYYY-MM-DD');
         const dayTasks = taskHistory[dateStr] || [];
         const today = dayjs();
 
-        if (dayTasks.length === 0) return null;
-
         const completedTasks = dayTasks.filter(task => task.status === true).length;
         const totalTasks = dayTasks.length;
+
         const isPastDay = date.isBefore(today, 'day');
         const isFutureDay = date.isAfter(today, 'day');
         const isToday = date.isSame(today, 'day');
 
-        // Chỉ hiển thị màu cho ngày đã qua và ngày hiện tại
-        if (isFutureDay) {
-            return (
-                <div className="task-status-badge">
-                    <div style={{
-                        color: '#666',
-                        fontSize: '13px',
-                    }}>
-                        {completedTasks}/{totalTasks}
-                    </div>
-                </div>
-            );
-        }
-
-        // Màu sắc cho các ngày
+        // Màu sắc cho các ngày trong kế hoạch
         let textColor, backgroundColor;
 
         if (isToday) {
-            // Ngày hiện tại - màu xanh dương
             textColor = '#2196f3';
             backgroundColor = '#e3f2fd';
-        } else if (completedTasks < 3) {
-            // Ngày có ít hơn 3 nhiệm vụ hoàn thành - màu cam
-            textColor = '#ff6b00';
-            backgroundColor = '#fff4e6';
+        } else if (isFutureDay) {
+            textColor = '#bdbdbd';
+            backgroundColor = '#f5f5f5';
         } else if (isPastDay) {
-            // Ngày đã qua - màu tím
             textColor = '#8c54ff';
             backgroundColor = '#f3ebff';
-        } else {
-            // Các trường hợp còn lại - màu xanh lá
-            textColor = '#1d9a54';
-            backgroundColor = '#e6f8ef';
         }
 
         return (
@@ -563,14 +564,12 @@ const DetailedSchedule = () => {
                 <div style={{
                     backgroundColor,
                     color: textColor,
-                    padding: '2px 8px',
-                    borderRadius: '10px',
                     fontSize: '13px',
                     fontWeight: '500',
-                    display: 'inline-block',
-                    border: isToday ? `1px solid ${textColor}` : 'none'
+                    padding: '2px 0',
+                    textAlign: 'center'
                 }}>
-                    {completedTasks}/{totalTasks}
+                    {totalTasks > 0 ? `${completedTasks}/${totalTasks}` : ''}
                 </div>
             </div>
         );
@@ -578,142 +577,15 @@ const DetailedSchedule = () => {
 
     const onSelect = (date) => {
         setSelectedDate(date);
+        setViewingDate(date);
         setIsModalVisible(true);
     };
 
-    const renderHistoryModal = () => {
-        if (!selectedDate) return null;
-
-        const dateStr = selectedDate.format('YYYY-MM-DD');
-        const dayTasks = taskHistory[dateStr] || tasks.map(task => ({ ...task, status: null }));
-        const isPast = selectedDate.isBefore(dayjs(), 'day');
-        const isToday = selectedDate.isSame(dayjs(), 'day');
-        const isFuture = selectedDate.isAfter(dayjs(), 'day');
-
-        const getStatusBadge = (task) => (
-            <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '4px 12px',
-                borderRadius: '16px',
-                fontSize: '14px',
-                fontWeight: 500,
-                background: task.status === true ? '#e8f5e9' :
-                    task.status === false ? '#fff1f0' : '#f0f8f7',
-                color: task.status === true ? '#52c41a' :
-                    task.status === false ? '#ff4d4f' : '#5FB8B3'
-            }}>
-                {isPast ? (
-                    task.status === true ? '✅ Đã hoàn thành' : '❌ Không hoàn thành'
-                ) : isToday ? (
-                    task.status === true ? '✅ Đã hoàn thành' :
-                        task.status === false ? '❌ Chưa hoàn thành' :
-                            '⏳ Đang thực hiện'
-                ) : (
-                    '🔄 Chưa đến ngày'
-                )}
-            </div>
-        );
-
-        const renderTaskItem = (task) => (
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: '#f8fdfc',
-                padding: '16px',
-                borderRadius: '8px',
-                border: '1px solid #E3F6F5',
-                marginBottom: '12px'
-            }}>
-                <div style={{ flex: 1 }}>
-                    <div style={{
-                        fontSize: '16px',
-                        fontWeight: 600,
-                        color: '#2c7a75',
-                        marginBottom: '4px'
-                    }}>
-                        {task.title}
-                    </div>
-                    <div style={{
-                        color: '#666',
-                        fontSize: '14px'
-                    }}>
-                        {task.description}
-                    </div>
-                </div>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    marginLeft: '24px'
-                }}>
-                    {getStatusBadge(task)}
-                    {isToday && (
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <Button
-                                type={task.status === true ? 'primary' : 'default'}
-                                icon={<CheckCircleOutlined />}
-                                onClick={() => handleTaskComplete(task.id, true)}
-                                style={{
-                                    background: task.status === true ? '#5FB8B3' : '',
-                                    borderColor: task.status === true ? '#5FB8B3' : ''
-                                }}
-                                size="small"
-                            >
-                                Hoàn thành
-                            </Button>
-                            <Button
-                                type={task.status === false ? 'primary' : 'default'}
-                                danger={task.status === false}
-                                icon={<CloseCircleOutlined />}
-                                onClick={() => handleTaskComplete(task.id, false)}
-                                size="small"
-                            >
-                                Chưa hoàn thành
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-
-        return (
-            <Modal
-                title={null}
-                open={isModalVisible}
-                onCancel={() => setIsModalVisible(false)}
-                footer={null}
-                width={1000}
-                style={{ top: 20 }}
-            >
-                <div style={{ padding: '0 24px' }}>
-                    <Title level={4} style={{
-                        color: '#2c7a75',
-                        marginBottom: '24px',
-                        textAlign: 'center',
-                        borderBottom: '2px solid #E3F6F5',
-                        paddingBottom: '16px'
-                    }}>
-                        {isToday ? 'Nhiệm vụ hôm nay' :
-                            isPast ? 'Nhiệm vụ đã qua' :
-                                'Nhiệm vụ sắp tới'} - {selectedDate.format('DD/MM/YYYY')}
-                    </Title>
-
-                    {/* Render all tasks in vertical layout */}
-                    <div>
-                        {dayTasks.map((task, index) => renderTaskItem(task))}
-                    </div>
-                </div>
-            </Modal>
-        );
-    };
-
     const phases = [
-        { title: 'Chuẩn bị', description: 'Lập kế hoạch và chuẩn bị tâm lý', duration: 7 },
-        { title: 'Giảm dần', description: 'Giảm số lượng điếu thuốc', duration: 7 },
-        { title: 'Cai hoàn toàn', description: 'Ngừng hút thuốc', duration: 7 },
-        { title: 'Duy trì', description: 'Duy trì thói quen không hút thuốc', duration: 7 }
+        { title: 'Giai đoạn 1', description: 'Lập kế hoạch và chuẩn bị tâm lý', duration: 7 },
+        { title: 'Giai đoạn 2', description: 'Giảm số lượng điếu thuốc', duration: 7 },
+        { title: 'Giai đoạn 3', description: 'Ngừng hút thuốc', duration: 7 },
+        { title: 'Giai đoạn 4', description: 'Duy trì thói quen không hút thuốc', duration: 7 }
     ];
     const today = dayjs();
     let todayIndex = 1;
@@ -722,6 +594,32 @@ const DetailedSchedule = () => {
     }
     const todayTask = tasks.find(item => item.day === todayIndex);
     const otherTasks = tasks.filter(item => item.day !== todayIndex);
+
+    // Tính nhiệm vụ của ngày viewingDate (nếu trong phạm vi kế hoạch)
+    let viewingDayIndex = null;
+    if (planStartDate && viewingDate) {
+        const diff = viewingDate.startOf('day').diff(planStartDate.startOf('day'), 'day') + 1;
+        if (diff > 0 && diff <= soNgay) {
+            viewingDayIndex = diff;
+        }
+    }
+    const viewingTasks = viewingDayIndex
+        ? tasks.filter(item => item.day === viewingDayIndex)
+        : [];
+
+    // Tạo mảng phaseInfos chứa goal và số ngày cho từng giai đoạn
+    const phaseInfos = phases.map((phase) => {
+        const stageName = phase.title;
+        const tasksOfPhase = tasks.filter(t => t.stageName === stageName);
+        const goal = tasksOfPhase[0]?.goal || phase.description;
+        const days = tasksOfPhase.length;
+        return { goal, days };
+    });
+
+    // Lấy stageName của task hôm nay
+    const currentStageName = todayTask?.stageName;
+    // Tìm index của giai đoạn hiện tại trong phases
+    const currentPhaseIndex = phases.findIndex(phase => phase.title === currentStageName);
 
     return (
         <PageContainer>
@@ -734,45 +632,83 @@ const DetailedSchedule = () => {
             {/* Giai đoạn cai thuốc */}
             <AnimatedCard delay="0.5s">
                 <Card style={{ marginBottom: 24, borderRadius: 12, border: '1px solid #E3F6F5', boxShadow: '0 2px 8px rgba(95,184,179,0.07)', padding: 0 }}>
-                    <StyledSteps current={todayIndex - 1}>
-                        {phases.map(phase => (
+                    <StyledSteps current={currentPhaseIndex >= 0 ? currentPhaseIndex : 0}>
+                        {phases.map((phase, idx) => (
                             <Steps.Step
                                 key={phase.title}
-                                title={<div>{phase.title}<div style={{ fontSize: 13, color: '#888', fontWeight: 400, marginTop: 2 }}>{phase.duration} ngày</div></div>}
-                                description={phase.description}
+                                title={<div>{phase.title}</div>}
+                                description={
+                                    <div>
+                                        <div>{phaseInfos[idx].goal}</div>
+                                        <div style={{ color: '#888', fontSize: 13, fontWeight: 400, marginTop: 2 }}>
+                                            {phaseInfos[idx].days} ngày
+                                        </div>
+                                    </div>
+                                }
                             />
                         ))}
                     </StyledSteps>
                 </Card>
             </AnimatedCard>
 
+            <div style={{
+                fontWeight: 700,
+                fontSize: 22,
+                color: '#2c7a75',
+                marginBottom: 18,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+            }}>
+                <ScheduleOutlined style={{ color: '#5FB8B3', fontSize: 24, animation: 'shine 2s infinite' }} />
+                Nhiệm vụ hôm nay
+            </div>
+
             <AnimatedCard delay="1s">
                 <Card className="schedule-card">
                     <List
-                        dataSource={todayTask ? [todayTask] : []}
+                        dataSource={viewingTasks}
                         renderItem={task => (
-                            <List.Item className={task.status === true ? 'completed' : ''}>
-                                {renderTaskContent(task)}
-                                <div className="status-buttons">
-                                    <Button
-                                        type={task.status === true ? 'primary' : 'default'}
-                                        icon={<CheckCircleOutlined />}
-                                        onClick={() => handleTaskComplete(task.id, true)}
-                                        style={{
-                                            background: task.status === true ? '#5FB8B3' : '',
-                                            borderColor: task.status === true ? '#5FB8B3' : ''
-                                        }}
-                                    >
-                                        Hoàn thành
-                                    </Button>
-                                    <Button
-                                        type={task.status === false ? 'primary' : 'default'}
-                                        danger={task.status === false}
-                                        icon={<CloseCircleOutlined />}
-                                        onClick={() => handleTaskComplete(task.id, false)}
-                                    >
-                                        Chưa hoàn thành
-                                    </Button>
+                            <List.Item>
+                                <div style={{ width: '100%' }}>
+                                    {task.goal && (
+                                        <div
+                                            style={{
+                                                background: '#fff',
+                                                borderRadius: 10,
+                                                boxShadow: '0 2px 8px rgba(95,184,179,0.07)',
+                                                border: '1px solid #E3F6F5',
+                                                padding: '18px 24px',
+                                                color: '#5FB8B3',
+                                                fontWeight: 600,
+                                                fontSize: 17,
+                                                marginBottom: 16
+                                            }}
+                                        >
+                                            {task.goal}
+                                        </div>
+                                    )}
+                                    {task.activities && Array.isArray(task.activities) && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                            {task.activities.map((act, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    style={{
+                                                        background: '#fff',
+                                                        borderRadius: 10,
+                                                        boxShadow: '0 2px 8px rgba(95,184,179,0.07)',
+                                                        border: '1px solid #E3F6F5',
+                                                        padding: '18px 24px',
+                                                        color: '#2c7a75',
+                                                        fontWeight: 500,
+                                                        fontSize: 16,
+                                                    }}
+                                                >
+                                                    {typeof act === 'string' ? act : act.name}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </List.Item>
                         )}
@@ -789,56 +725,28 @@ const DetailedSchedule = () => {
                     <Card className="calendar-card">
                         <Calendar
                             fullscreen={false}
-                            dateCellRender={dateCellRender}
+                            dateFullCellRender={date => {
+                                if (!planStartDate || !soNgay) return <div>{date.date()}</div>;
+                                const start = planStartDate.startOf('day');
+                                const end = start.add(soNgay - 1, 'day');
+                                if (date.isBefore(start, 'day') || date.isAfter(end, 'day')) {
+                                    return <div>{date.date()}</div>;
+                                }
+                                const today = dayjs();
+                                let color = '#bdbdbd'; // tương lai
+                                if (date.isSame(today, 'day')) color = '#2196f3'; // hôm nay
+                                else if (date.isBefore(today, 'day')) color = '#8c54ff'; // đã qua
+                                return (
+                                    <div style={{ color, fontWeight: 700, fontSize: 16 }}>
+                                        {date.date()}
+                                    </div>
+                                );
+                            }}
                             onSelect={onSelect}
                         />
                     </Card>
                 </AnimatedCard>
             </div>
-
-            {/* History Modal */}
-            {renderHistoryModal()}
-
-            {/* Kế hoạch hôm nay */}
-            {todayTask && (
-                <List
-                    dataSource={[todayTask]}
-                    renderItem={item => (
-                        <List.Item style={{ background: '#e8f4f3', borderRadius: 8, marginBottom: 16, boxShadow: '0 2px 8px rgba(95,184,179,0.07)', border: '1px solid #5FB8B3', padding: 24 }}>
-                            <div style={{ width: '100%' }}>
-                                <div style={{ fontWeight: 700, fontSize: 20, color: '#2c7a75', marginBottom: 4 }}>
-                                    Kế hoạch hôm nay (Ngày {item.day} - {item.stageName})
-                                </div>
-                                <div style={{ color: '#5FB8B3', fontWeight: 500, marginBottom: 4 }}>Mục tiêu: {item.goal}</div>
-                                <ul style={{ margin: 0, paddingLeft: 20 }}>
-                                    {item.activities && item.activities.map((act, idx) => (
-                                        <li key={idx} style={{ color: '#444', marginBottom: 2 }}>{act}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </List.Item>
-                    )}
-                />
-            )}
-            {/* Các ngày khác */}
-            <List
-                dataSource={otherTasks}
-                renderItem={item => (
-                    <List.Item style={{ background: '#f8fdfc', borderRadius: 8, marginBottom: 16, boxShadow: '0 2px 8px rgba(95,184,179,0.07)', border: '1px solid #E3F6F5', padding: 24 }}>
-                        <div style={{ width: '100%' }}>
-                            <div style={{ fontWeight: 700, fontSize: 18, color: '#2c7a75', marginBottom: 4 }}>
-                                Ngày {item.day} - {item.stageName}
-                            </div>
-                            <div style={{ color: '#5FB8B3', fontWeight: 500, marginBottom: 4 }}>Mục tiêu: {item.goal}</div>
-                            <ul style={{ margin: 0, paddingLeft: 20 }}>
-                                {item.activities && item.activities.map((act, idx) => (
-                                    <li key={idx} style={{ color: '#444', marginBottom: 2 }}>{act}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    </List.Item>
-                )}
-            />
         </PageContainer>
     );
 };
