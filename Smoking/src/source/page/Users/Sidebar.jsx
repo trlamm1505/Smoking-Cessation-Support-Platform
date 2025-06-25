@@ -97,13 +97,6 @@ const Sidebar = () => {
             name: 'Ghi Nhận Thói Quen',
             icon: <SmileOutlined />
         },
-        {
-            path: '/users/progress',
-            name: 'Tiến Trình Cai Thuốc',
-            icon: <LineChartOutlined />
-        },
-        
-        
         
         {
             path: '/users/achievements',

@@ -523,51 +523,40 @@ const DetailedSchedule = () => {
     };
 
     const dateCellRender = (date) => {
+        if (!planStartDate || !soNgay) return null;
+
+        // Tính ngày bắt đầu và ngày kết thúc kế hoạch
+        const start = planStartDate.startOf('day');
+        const end = start.add(soNgay - 1, 'day');
+
+        // Nếu ngày ngoài phạm vi kế hoạch thì không render gì cả
+        if (date.isBefore(start, 'day') || date.isAfter(end, 'day')) {
+            return null;
+        }
+
         const dateStr = date.format('YYYY-MM-DD');
         const dayTasks = taskHistory[dateStr] || [];
         const today = dayjs();
 
-        if (dayTasks.length === 0) return null;
-
         const completedTasks = dayTasks.filter(task => task.status === true).length;
         const totalTasks = dayTasks.length;
+
         const isPastDay = date.isBefore(today, 'day');
         const isFutureDay = date.isAfter(today, 'day');
         const isToday = date.isSame(today, 'day');
 
-        // Chỉ hiển thị màu cho ngày đã qua và ngày hiện tại
-        if (isFutureDay) {
-            return (
-                <div className="task-status-badge">
-                    <div style={{
-                        color: '#666',
-                        fontSize: '13px',
-                    }}>
-                        {completedTasks}/{totalTasks}
-                    </div>
-                </div>
-            );
-        }
-
-        // Màu sắc cho các ngày
+        // Màu sắc cho các ngày trong kế hoạch
         let textColor, backgroundColor;
 
         if (isToday) {
-            // Ngày hiện tại - màu xanh dương
             textColor = '#2196f3';
             backgroundColor = '#e3f2fd';
-        } else if (completedTasks < 3) {
-            // Ngày có ít hơn 3 nhiệm vụ hoàn thành - màu cam
-            textColor = '#ff6b00';
-            backgroundColor = '#fff4e6';
+        } else if (isFutureDay) {
+            textColor = '#bdbdbd';
+            backgroundColor = '#f5f5f5';
         } else if (isPastDay) {
-            // Ngày đã qua - màu tím
             textColor = '#8c54ff';
             backgroundColor = '#f3ebff';
-        } else {
-            // Các trường hợp còn lại - màu xanh lá
-            textColor = '#1d9a54';
-            backgroundColor = '#e6f8ef';
         }
 
         return (
@@ -575,14 +564,12 @@ const DetailedSchedule = () => {
                 <div style={{
                     backgroundColor,
                     color: textColor,
-                    padding: '2px 8px',
-                    borderRadius: '10px',
                     fontSize: '13px',
                     fontWeight: '500',
-                    display: 'inline-block',
-                    border: isToday ? `1px solid ${textColor}` : 'none'
+                    padding: '2px 0',
+                    textAlign: 'center'
                 }}>
-                    {completedTasks}/{totalTasks}
+                    {totalTasks > 0 ? `${completedTasks}/${totalTasks}` : ''}
                 </div>
             </div>
         );
@@ -595,10 +582,10 @@ const DetailedSchedule = () => {
     };
 
     const phases = [
-        { title: 'Chuẩn bị', description: 'Lập kế hoạch và chuẩn bị tâm lý', duration: 7 },
-        { title: 'Giảm dần', description: 'Giảm số lượng điếu thuốc', duration: 7 },
-        { title: 'Cai hoàn toàn', description: 'Ngừng hút thuốc', duration: 7 },
-        { title: 'Duy trì', description: 'Duy trì thói quen không hút thuốc', duration: 7 }
+        { title: 'Giai đoạn 1', description: 'Lập kế hoạch và chuẩn bị tâm lý', duration: 7 },
+        { title: 'Giai đoạn 2', description: 'Giảm số lượng điếu thuốc', duration: 7 },
+        { title: 'Giai đoạn 3', description: 'Ngừng hút thuốc', duration: 7 },
+        { title: 'Giai đoạn 4', description: 'Duy trì thói quen không hút thuốc', duration: 7 }
     ];
     const today = dayjs();
     let todayIndex = 1;
@@ -611,14 +598,30 @@ const DetailedSchedule = () => {
     // Tính nhiệm vụ của ngày viewingDate (nếu trong phạm vi kế hoạch)
     let viewingDayIndex = null;
     if (planStartDate && viewingDate) {
-      const diff = viewingDate.startOf('day').diff(planStartDate.startOf('day'), 'day') + 1;
-      if (diff > 0 && diff <= soNgay) {
-        viewingDayIndex = diff;
-      }
+
+        const diff = viewingDate.startOf('day').diff(planStartDate.startOf('day'), 'day') + 1;
+        if (diff > 0 && diff <= soNgay) {
+            viewingDayIndex = diff;
+        }
     }
     const viewingTasks = viewingDayIndex
-      ? tasks.filter(item => item.day === viewingDayIndex)
-      : [];
+        ? tasks.filter(item => item.day === viewingDayIndex)
+        : [];
+
+    // Tạo mảng phaseInfos chứa goal và số ngày cho từng giai đoạn
+    const phaseInfos = phases.map((phase) => {
+        const stageName = phase.title;
+        const tasksOfPhase = tasks.filter(t => t.stageName === stageName);
+        const goal = tasksOfPhase[0]?.goal || phase.description;
+        const days = tasksOfPhase.length;
+        return { goal, days };
+    });
+
+    // Lấy stageName của task hôm nay
+    const currentStageName = todayTask?.stageName;
+    // Tìm index của giai đoạn hiện tại trong phases
+    const currentPhaseIndex = phases.findIndex(phase => phase.title === currentStageName);
+
 
     return (
         <PageContainer>
@@ -631,60 +634,84 @@ const DetailedSchedule = () => {
             {/* Giai đoạn cai thuốc */}
             <AnimatedCard delay="0.5s">
                 <Card style={{ marginBottom: 24, borderRadius: 12, border: '1px solid #E3F6F5', boxShadow: '0 2px 8px rgba(95,184,179,0.07)', padding: 0 }}>
-                    <StyledSteps current={todayIndex - 1}>
-                        {phases.map(phase => (
+                    <StyledSteps current={currentPhaseIndex >= 0 ? currentPhaseIndex : 0}>
+                        {phases.map((phase, idx) => (
                             <Steps.Step
                                 key={phase.title}
-                                title={<div>{phase.title}<div style={{ fontSize: 13, color: '#888', fontWeight: 400, marginTop: 2 }}>{phase.duration} ngày</div></div>}
-                                description={phase.description}
+                                title={<div>{phase.title}</div>}
+                                description={
+                                    <div>
+                                        <div>{phaseInfos[idx].goal}</div>
+                                        <div style={{ color: '#888', fontSize: 13, fontWeight: 400, marginTop: 2 }}>
+                                            {phaseInfos[idx].days} ngày
+                                        </div>
+                                    </div>
+                                }
                             />
                         ))}
                     </StyledSteps>
                 </Card>
             </AnimatedCard>
 
+            <div style={{
+                fontWeight: 700,
+                fontSize: 22,
+                color: '#2c7a75',
+                marginBottom: 18,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+            }}>
+                <ScheduleOutlined style={{ color: '#5FB8B3', fontSize: 24, animation: 'shine 2s infinite' }} />
+                Nhiệm vụ hôm nay
+            </div>
+
             <AnimatedCard delay="1s">
                 <Card className="schedule-card">
                     <List
                         dataSource={viewingTasks}
                         renderItem={task => (
-                            <List.Item className={task.status === true ? 'completed' : ''}>
+
+                            <List.Item>
                                 <div style={{ width: '100%' }}>
-                                    <div className="task-title">{task.title || `Kế hoạch ngày ${task.day} - ${task.stageName || ''}`}</div>
                                     {task.goal && (
-                                        <div style={{ color: '#5FB8B3', fontWeight: 500, marginBottom: 4 }}>
-                                            Mục tiêu: {task.goal}
+                                        <div
+                                            style={{
+                                                background: '#fff',
+                                                borderRadius: 10,
+                                                boxShadow: '0 2px 8px rgba(95,184,179,0.07)',
+                                                border: '1px solid #E3F6F5',
+                                                padding: '18px 24px',
+                                                color: '#5FB8B3',
+                                                fontWeight: 600,
+                                                fontSize: 17,
+                                                marginBottom: 16
+                                            }}
+                                        >
+                                            {task.goal}
                                         </div>
                                     )}
                                     {task.activities && Array.isArray(task.activities) && (
-                                        <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                                             {task.activities.map((act, idx) => (
-                                                <li key={idx} style={{ color: '#444', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                    <span>{typeof act === 'string' ? act : act.name}</span>
-                                                    <div style={{ display: 'flex', gap: 8 }}>
-                                                        <Button
-                                                            type={activityStatus[`${task.id}_${idx}`] === true ? 'primary' : 'default'}
-                                                            icon={<CheckCircleOutlined />}
-                                                            onClick={() => handleActivityComplete(task.id, idx, true)}
-                                                            style={activityStatus[`${task.id}_${idx}`] === true ? { background: '#5FB8B3', borderColor: '#5FB8B3', color: '#fff' } : {}}
-                                                        >
-                                                            Hoàn thành
-                                                        </Button>
-                                                        <Button
-                                                            type={activityStatus[`${task.id}_${idx}`] === false ? 'primary' : 'default'}
-                                                            danger={activityStatus[`${task.id}_${idx}`] === false}
-                                                            icon={<CloseCircleOutlined />}
-                                                            onClick={() => handleActivityComplete(task.id, idx, false)}
-                                                        >
-                                                            Không hoàn thành
-                                                        </Button>
-                                                    </div>
-                                                </li>
+                                                <div
+                                                    key={idx}
+                                                    style={{
+                                                        background: '#fff',
+                                                        borderRadius: 10,
+                                                        boxShadow: '0 2px 8px rgba(95,184,179,0.07)',
+                                                        border: '1px solid #E3F6F5',
+                                                        padding: '18px 24px',
+                                                        color: '#2c7a75',
+                                                        fontWeight: 500,
+                                                        fontSize: 16,
+                                                    }}
+                                                >
+                                                    {typeof act === 'string' ? act : act.name}
+                                                </div>
                                             ))}
-                                        </ul>
-                                    )}
-                                    {task.description && (
-                                        <div style={{ color: '#666', fontSize: 14 }}>{task.description}</div>
+                                        </div>
+
                                     )}
                                 </div>
                             </List.Item>
@@ -702,31 +729,29 @@ const DetailedSchedule = () => {
                     <Card className="calendar-card">
                         <Calendar
                             fullscreen={false}
-                            dateCellRender={dateCellRender}
+                            dateFullCellRender={date => {
+                                if (!planStartDate || !soNgay) return <div>{date.date()}</div>;
+                                const start = planStartDate.startOf('day');
+                                const end = start.add(soNgay - 1, 'day');
+                                if (date.isBefore(start, 'day') || date.isAfter(end, 'day')) {
+                                    return <div>{date.date()}</div>;
+                                }
+                                const today = dayjs();
+                                let color = '#bdbdbd'; // tương lai
+                                if (date.isSame(today, 'day')) color = '#2196f3'; // hôm nay
+                                else if (date.isBefore(today, 'day')) color = '#8c54ff'; // đã qua
+                                return (
+                                    <div style={{ color, fontWeight: 700, fontSize: 16 }}>
+                                        {date.date()}
+                                    </div>
+                                );
+                            }}
                             onSelect={onSelect}
                         />
                     </Card>
                 </AnimatedCard>
             </div>
 
-            <List
-                dataSource={otherTasks}
-                renderItem={item => (
-                    <List.Item style={{ background: '#f8fdfc', borderRadius: 8, marginBottom: 16, boxShadow: '0 2px 8px rgba(95,184,179,0.07)', border: '1px solid #E3F6F5', padding: 24 }}>
-                        <div style={{ width: '100%' }}>
-                            <div style={{ fontWeight: 700, fontSize: 18, color: '#2c7a75', marginBottom: 4 }}>
-                                Ngày {item.day} - {item.stageName}
-                            </div>
-                            <div style={{ color: '#5FB8B3', fontWeight: 500, marginBottom: 4 }}>Mục tiêu: {item.goal}</div>
-                            <ul style={{ margin: 0, paddingLeft: 20 }}>
-                                {item.activities && item.activities.map((act, idx) => (
-                                    <li key={idx} style={{ color: '#444', marginBottom: 2 }}>{act}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    </List.Item>
-                )}
-            />
         </PageContainer>
     );
 };
