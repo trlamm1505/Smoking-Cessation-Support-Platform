@@ -1,12 +1,14 @@
 package com.example.SWP_Backend.controller;
 
 import com.example.SWP_Backend.dto.ConsultationRequest;
+import com.example.SWP_Backend.dto.ConsultationWithUserDTO;
 import com.example.SWP_Backend.entity.Consultation;
 import com.example.SWP_Backend.service.ConsultationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -53,14 +55,21 @@ public class ConsultationController {
     }
 
     // Optional: Lấy tư vấn của User
+//    @GetMapping("/user/{userId}")
+//    public ResponseEntity<?> getByUser(@PathVariable Long userId) {
+//        return ResponseEntity.ok(consultationService.getByUserId(userId));
+//    }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(consultationService.getByUserId(userId));
     }
 
+
     // Optional: Lấy tư vấn của Coach
     @GetMapping("/coach/{coachId}")
-    public ResponseEntity<?> getByCoach(@PathVariable Long coachId) {
-        return ResponseEntity.ok(consultationService.getByCoachId(coachId));
+    public List<ConsultationWithUserDTO> getConsultationsByCoach(@PathVariable Long coachId) {
+        return consultationService.getByCoachId(coachId);
     }
+
 }
