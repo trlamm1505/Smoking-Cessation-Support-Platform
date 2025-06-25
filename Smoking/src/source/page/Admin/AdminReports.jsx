@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Table, Button, Space, Modal, Form, Input, Typography, Tag, Select, Card, Row, Col, Tabs } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Space, Modal, Form, Input, Typography, Tag, Select, message, Spin, Tabs, Card } from 'antd';
 import {
     InboxOutlined,
     SendOutlined,
@@ -9,69 +9,49 @@ import {
     MessageOutlined // Using MessageOutlined for icon
 } from '@ant-design/icons';
 import styled from 'styled-components';
+import userApi from '../Axios/userAxios';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
-// Styled component for the header, similar to other admin pages
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  background-color: #e0f2f1; /* Light teal background */
-  padding: 16px 24px;
-  border-radius: 8px;
-  border: 1px solid #b2dfdb; /* Teal border */
-
-  .header-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #2c7a75; /* Dark teal color */
-    font-size: 24px;
-    font-weight: 600;
-  }
-`;
-
 const AdminReports = () => {
     const [activeTab, setActiveTab] = useState('received');
     const [isViewModalVisible, setIsViewModalVisible] = useState(false);
-    const [selectedReport, setSelectedReport] = useState(null);
+    const [selectedFeedback, setSelectedFeedback] = useState(null);
     const [isSendModalVisible, setIsSendModalVisible] = useState(false);
     const [form] = Form.useForm();
+    const [feedbacks, setFeedbacks] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [users, setUsers] = useState([]);
 
-    // Mock data for received reports/feedback
-    const [receivedReports, setReceivedReports] = useState([
-        { id: 1, from: 'User ID 101', type: 'Feedback', subject: 'Giao diện khó dùng', message: 'Tôi thấy trang ghi nhận thói quen hơi rối...', status: 'Pending', date: '20/03/2024' },
-        { id: 2, from: 'Coach ID 205', type: 'Report', subject: 'Bài viết cộng đồng không phù hợp', message: 'Bài viết có nội dung tiêu cực...', status: 'Pending', date: '19/03/2024' },
-         { id: 3, from: 'User ID 110', type: 'Report', subject: 'Lỗi chức năng theo dõi', message: 'Tôi không thể cập nhật số điếu thuốc...', status: 'Resolved', date: '18/03/2024' },
-    ]);
+    useEffect(() => {
+        setLoading(true);
+        userApi.getAll().then(res => {
+            setUsers(res.data || res);
+        });
+        userApi.getFeedbacks({}).then(res => {
+            // Only show feedbacks where targetType !== 'coach'
+            const data = (res.data || res).filter(fb => fb.targetType !== 'coach');
+            setFeedbacks(data.map(fb => ({ ...fb, id: fb.feedbackId })));
+        }).catch(() => {
+            message.error('Lỗi tải phản hồi');
+        }).finally(() => setLoading(false));
+    }, []);
 
-    // Mock data for sending options (e.g., recipients)
-    const recipients = [
-        { key: 'all-users', label: 'Tất cả người dùng' },
-        { key: 'all-coaches', label: 'Tất cả Coach' },
-        { key: 'user-101', label: 'Người dùng ID 101' },
-        { key: 'coach-205', label: 'Coach ID 205' },
-    ];
-
-    const handleViewReport = (report) => {
-        setSelectedReport(report);
+    const handleViewFeedback = (feedback) => {
+        setSelectedFeedback(feedback);
         setIsViewModalVisible(true);
     };
 
     const handleCloseViewModal = () => {
         setIsViewModalVisible(false);
-        setSelectedReport(null);
+        setSelectedFeedback(null);
     };
 
-     const handleMarkAsResolved = (id) => {
-        setReceivedReports(receivedReports.map(report =>
-            report.id === id ? { ...report, status: 'Resolved' } : report
-        ));
+    const handleMarkAsResolved = (id) => {
+        // Implementation needed
     };
 
     const handleSendReport = () => {
@@ -88,64 +68,69 @@ const AdminReports = () => {
         form.resetFields();
     };
 
-    const receivedColumns = [
+    // Helper to get fullName by userId
+    const getSenderName = (userId) => {
+        const user = users.find(u => u.userId === userId);
+        return user ? user.fullName : userId;
+    };
+
+    // Table columns for admin feedbacks
+    const feedbackColumns = [
         {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id',
-        },
-        {
-            title: 'Từ',
-            dataIndex: 'from',
-            key: 'from',
-        },
-         {
             title: 'Loại',
-            dataIndex: 'type',
-            key: 'type',
-             render: (type) => {
-                let color = type === 'Report' ? 'volcano' : 'geekblue';
+            dataIndex: 'targetType',
+            key: 'targetType',
+            render: (type) => {
+                let color = type === 'system' ? 'geekblue' : 'orange';
                 return <Tag color={color}>{type.toUpperCase()}</Tag>;
             },
+            width: 120,
         },
         {
-            title: 'Chủ đề',
-            dataIndex: 'subject',
-            key: 'subject',
+            title: 'Số sao',
+            dataIndex: 'rating',
+            key: 'rating',
+            render: (rating) => rating ? Array.from({ length: rating }, (_, i) => <span key={i} style={{ color: '#FFD700', fontSize: '1.1em' }}>★</span>) : '-',
+            width: 100,
+        },
+        {
+            title: 'Tiêu đề',
+            dataIndex: 'title',
+            key: 'title',
+            width: 180,
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'comment',
+            key: 'comment',
+            width: 260,
+            ellipsis: true,
         },
         {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
-             render: (status) => {
-                let color;
-                if (status === 'Resolved') {
-                    color = 'success';
-                } else if (status === 'Pending') {
-                    color = 'warning';
-                } else {
-                    color = 'default';
-                }
-                return (
-                    <Tag color={color} key={status}>
-                        {status.toUpperCase()}
-                    </Tag>
-                );
+            render: (status) => {
+                let color = status === 'active' ? 'success' : 'default';
+                return <Tag color={color}>{status?.toUpperCase()}</Tag>;
             },
+            width: 120,
         },
-         {
-            title: 'Ngày nhận',
-            dataIndex: 'date',
-            key: 'date',
+        {
+            title: 'Người gửi',
+            key: 'sender',
+            render: (_, record) => getSenderName(record.userId),
+            width: 160,
         },
         {
             title: 'Thao tác',
             key: 'action',
-             render: (_, record) => (
+            width: 90,
+            render: (_, record) => (
                 <Space>
-                    <Button icon={<EyeOutlined />} onClick={() => handleViewReport(record)} />
-                     {record.status === 'Pending' && (
-                        <Button icon={<CheckCircleOutlined />} onClick={() => handleMarkAsResolved(record.id)} style={{ color: '#52c41a' }} >Đã xử lý</Button>
+                    <Button icon={<EyeOutlined />} onClick={() => handleViewFeedback(record)} />
+                    {record.status === 'active' && (
+                        <Button icon={<CheckCircleOutlined />} onClick={() => handleMarkAsResolved(record.id)} style={{ color: '#52c41a' }}>Đã xử lý</Button>
                     )}
                 </Space>
             ),
@@ -153,69 +138,95 @@ const AdminReports = () => {
     ];
 
     return (
-        <>
-             <Header>
-                <div className="header-title">
-                    <MessageOutlined /> {/* Icon for Reports */}
-                    <Title level={2} style={{ margin: 0 }}>Quản lý Báo cáo & Phản hồi</Title>
-                </div>
-                <Button type="primary" icon={<SendOutlined />} onClick={() => setIsSendModalVisible(true)}>
-                    Gửi báo cáo
-                </Button>
-            </Header>
-
-            <Tabs activeKey={activeTab} onChange={setActiveTab}>
-                 <TabPane 
+        <div style={{
+            padding: 0,
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #e0fcf8 0%, #f7fafd 100%)',
+        }}>
+            <Card bordered={false} style={{
+                boxShadow: '0 8px 32px rgba(79,209,197,0.12)',
+                borderRadius: 32,
+                margin: '0 auto 32px auto',
+                maxWidth: 900,
+                background: 'linear-gradient(90deg, #4fd1c5 0%, #38b2ac 100%)',
+            }}>
+                <h1 style={{
+                    color: '#fff',
+                    fontWeight: 900,
+                    fontSize: 38,
+                    textAlign: 'center',
+                    margin: 0,
+                    letterSpacing: 2,
+                    textShadow: '0 2px 8px #38b2ac44',
+                }}>Quản lý Phản hồi hệ thống & Báo cáo</h1>
+            </Card>
+            <Tabs activeKey={activeTab} onChange={setActiveTab} tabBarStyle={{ fontSize: 22, fontWeight: 700, color: '#38b2ac' }} style={{ maxWidth: 1100, margin: '0 auto' }}>
+                <TabPane
                     tab={
                         <span>
-                            <InboxOutlined />
-                            Báo cáo & Phản hồi nhận được
+                            <InboxOutlined style={{ color: '#4fd1c5', fontSize: 26 }} />
+                            Phản hồi hệ thống & báo cáo
                         </span>
                     }
                     key="received"
                 >
-                    <Table
-                        dataSource={receivedReports}
-                        columns={receivedColumns}
-                        rowKey="id"
-                    />
-                 </TabPane>
-                 {/* We can add other tabs later, e.g., "Sent Reports" */}
-             </Tabs>
-
-
-            {/* Modal for viewing received report details */}
+                    <Card bordered style={{ borderRadius: 24, boxShadow: '0 4px 24px #e6f9f7', marginBottom: 32, border: '1.5px solid #4fd1c5', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 18 }}>
+                            <Button type="primary" icon={<SendOutlined />} style={{
+                                background: 'linear-gradient(90deg, #4fd1c5 0%, #38b2ac 100%)',
+                                borderColor: '#4fd1c5',
+                                fontWeight: 700,
+                                fontSize: 18,
+                                borderRadius: 32,
+                                padding: '0 40px',
+                                height: 48,
+                                boxShadow: '0 2px 8px #4fd1c544',
+                                transition: 'all 0.2s',
+                            }}
+                                onMouseOver={e => e.currentTarget.style.background = '#38b2ac'}
+                                onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #4fd1c5 0%, #38b2ac 100%)'}
+                                onClick={() => setIsSendModalVisible(true)}
+                            >
+                                Gửi báo cáo
+                            </Button>
+                        </div>
+                        <Spin spinning={loading} tip="Đang tải...">
+                            <Table
+                                dataSource={feedbacks}
+                                columns={feedbackColumns}
+                                rowKey="id"
+                                pagination={{ pageSize: 10 }}
+                                bordered
+                                size="large"
+                                style={{ borderRadius: 18 }}
+                                rowClassName={() => 'custom-table-row'}
+                                title={() => <span style={{ color: '#4fd1c5', fontWeight: 800, fontSize: 24, letterSpacing: 1 }}>Danh sách phản hồi & báo cáo</span>}
+                            />
+                        </Spin>
+                    </Card>
+                </TabPane>
+            </Tabs>
+            {/* Modal for viewing feedback details */}
             <Modal
-                title="Chi tiết Báo cáo / Phản hồi"
+                title="Chi tiết phản hồi / báo cáo"
                 open={isViewModalVisible}
                 onCancel={handleCloseViewModal}
                 footer={null}
                 width={600}
             >
-                {selectedReport && (
+                {selectedFeedback && (
                     <div>
-                        <p><strong>Từ:</strong> {selectedReport.from}</p>
-                        <p><strong>Loại:</strong> <Tag color={selectedReport.type === 'Report' ? 'volcano' : 'geekblue'}>{selectedReport.type.toUpperCase()}</Tag></p>
-                        <p><strong>Chủ đề:</strong> {selectedReport.subject}</p>
-                        <p><strong>Ngày nhận:</strong> {selectedReport.date}</p>
-                        <p><strong>Trạng thái:</strong> <Tag color={selectedReport.status === 'Resolved' ? 'success' : selectedReport.status === 'Pending' ? 'warning' : 'default'}>{selectedReport.status.toUpperCase()}</Tag></p>
-                        <Typography.Paragraph style={{ marginTop: 16 }}>
-                            <strong>Nội dung:</strong> {selectedReport.message}
-                        </Typography.Paragraph>
-                         {selectedReport.status === 'Pending' && (
-                              <Button
-                                style={{ marginTop: 16 }}
-                                type="primary"
-                                icon={<CheckCircleOutlined />}
-                                onClick={() => {handleMarkAsResolved(selectedReport.id); handleCloseViewModal();}}
-                              >Đánh dấu đã xử lý</Button>
-                         )}
+                        <p><strong>Loại:</strong> <Tag color={selectedFeedback.targetType === 'system' ? 'geekblue' : 'orange'}>{selectedFeedback.targetType?.toUpperCase()}</Tag></p>
+                        <p><strong>Số sao:</strong> {selectedFeedback.rating ? Array.from({ length: selectedFeedback.rating }, (_, i) => <span key={i} style={{ color: '#FFD700', fontSize: '1.1em' }}>★</span>) : '-'}</p>
+                        <p><strong>Tiêu đề:</strong> {selectedFeedback.title || '-'}</p>
+                        <p><strong>Nội dung:</strong> {selectedFeedback.comment}</p>
+                        <p><strong>Trạng thái:</strong> <Tag color={selectedFeedback.status === 'active' ? 'success' : 'default'}>{selectedFeedback.status?.toUpperCase()}</Tag></p>
+                        <p><strong>Người gửi:</strong> {getSenderName(selectedFeedback.userId)}</p>
                     </div>
                 )}
             </Modal>
-
             {/* Modal for sending a report */}
-             <Modal
+            <Modal
                 title="Gửi Báo cáo / Thông báo"
                 open={isSendModalVisible}
                 onOk={handleSendReport}
@@ -231,9 +242,8 @@ const AdminReports = () => {
                         rules={[{ required: true, message: 'Vui lòng chọn người nhận' }]}
                     >
                         <Select placeholder="Chọn người nhận">
-                            {recipients.map(rec => (
-                                <Option key={rec.key} value={rec.key}>{rec.label}</Option>
-                            ))}
+                            <Option value="all-users">Tất cả người dùng</Option>
+                            <Option value="all-coaches">Tất cả Coach</Option>
                         </Select>
                     </Form.Item>
                     <Form.Item
@@ -252,7 +262,23 @@ const AdminReports = () => {
                     </Form.Item>
                 </Form>
             </Modal>
-        </>
+            {/* Custom table row style */}
+            <style>{`
+                .custom-table-row:hover td {
+                  background: #e0fcf8 !important;
+                }
+                .ant-table-thead > tr > th {
+                  background: #4fd1c5 !important;
+                  color: #fff !important;
+                  font-weight: 900;
+                  font-size: 18px;
+                  letter-spacing: 1px;
+                }
+                .ant-table-bordered .ant-table-container {
+                  border-radius: 18px !important;
+                }
+            `}</style>
+        </div>
     );
 };
 

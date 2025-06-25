@@ -36,6 +36,13 @@ const userApi = {
 
     // Lấy user theo coachId
     getByCoachId: (coachId) => axiosClient.get(`/api/user/coach/${coachId}`),
+
+    // FEEDBACK API
+    getFeedbacks: (params) => axiosClient.get('/api/feedback', { params }),
+    getFeedbackById: (id) => axiosClient.get(`/api/feedback/${id}`),
+    createFeedback: (data) => axiosClient.post('/api/feedback', data),
+    updateFeedback: (id, data) => axiosClient.put(`/api/feedback/${id}`, data),
+    deleteFeedback: (id) => axiosClient.delete(`/api/feedback/${id}`),
 };
 
 export default userApi;
