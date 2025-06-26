@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,7 +120,20 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(response);
             }
 
+            // Cập nhật ngày đăng nhập gần nhất
             userService.updateLastLoginDate(user.getUserId());
+
+            // --- ĐOẠN CHÈN KIỂM TRA HẾT HẠN ---
+            LocalDate today = LocalDate.now();
+            if (
+                    !"guest".equals(user.getRole())
+                            && (user.getSubscriptionEndDate() == null || user.getSubscriptionEndDate().isBefore(today))
+            ) {
+                user.setRole("guest");
+                user.setCurrentMembershipPackageId(null);
+                userRepository.save(user);
+            }
+            // --- KẾT THÚC ĐOẠN CHÈN ---
 
             response.put("success", true);
             response.put("message", "Đăng nhập thành công.");

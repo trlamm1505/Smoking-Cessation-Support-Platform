@@ -99,6 +99,7 @@ public class UserService {
         tokenRepository.save(vt);
 
         emailService.sendOtpResetPassword(user.getEmail(), otp);
+       // emailService.sendOtpRegister(user.getEmail(), otp);
     }
 
     public boolean verifyOtpAndRegister(String email, String otp) {
