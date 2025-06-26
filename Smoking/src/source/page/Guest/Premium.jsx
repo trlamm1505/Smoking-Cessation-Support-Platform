@@ -606,72 +606,30 @@ const Premium = () => {
         renewalDateObj.setDate(renewalDateObj.getDate() + 1);
         const renewalDate = renewalDateObj.toISOString().split('T')[0];
 
-        if (subscription && subscription.paymentId) {
-            // Đã có gói, chỉ gọi PUT để update
-            const updateData = {
-                paymentId: subscription.paymentId,
-                userEmail: subscription.userEmail || '',
-                userFullName: subscription.userFullName || '',
-                packageId: packageId,
-                packageName: selectedPlan?.packageName,
-                amount: selectedPlan?.price,
-                paymentMethod: paymentMethod,
-                transactionId: '',
-                status: 'completed',
-                startDate: startDate,
-                endDate: endDate,
-                renewalDate: renewalDate
-            };
-            try {
-                const res = await fetch(`http://localhost:8080/api/payments/${userId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updateData)
-                });
-                if (res.ok) {
-                    localStorage.setItem('userRole', 'USER');
-                    localStorage.setItem('userId', userId);
-                    setTimeout(() => {
-                        setIsModalVisible(false);
-                        setCurrentStep(0);
-                        form.resetFields();
-                        setIsLoading(false);
-                        window.location.href = '/users/home';
-                    }, 2000);
-                } else {
-                    message.error('Gia hạn thất bại!');
+        // Chỉ giữ lại logic mua mới (POST)
+        try {
+            const res = await fetch('http://localhost:8080/api/purchase/buy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, packageId, paymentMethod })
+            });
+            if (res.ok) {
+                localStorage.setItem('userRole', 'USER');
+                localStorage.setItem('userId', userId);
+                setTimeout(() => {
+                    setIsModalVisible(false);
+                    setCurrentStep(0);
+                    form.resetFields();
                     setIsLoading(false);
-                }
-            } catch (err) {
-                message.error('Lỗi kết nối server!');
+                    window.location.href = '/users/home';
+                }, 2000);
+            } else {
+                message.error('Đăng ký thất bại!');
                 setIsLoading(false);
             }
-        } else {
-            // Chưa có gói, gọi POST để tạo mới
-            try {
-                const res = await fetch('http://localhost:8080/api/purchase/buy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, packageId, paymentMethod })
-                });
-                if (res.ok) {
-                    localStorage.setItem('userRole', 'USER');
-                    localStorage.setItem('userId', userId);
-                    setTimeout(() => {
-                        setIsModalVisible(false);
-                        setCurrentStep(0);
-                        form.resetFields();
-                        setIsLoading(false);
-                        window.location.href = '/users/home';
-                    }, 2000);
-                } else {
-                    message.error('Đăng ký thất bại!');
-                    setIsLoading(false);
-                }
-            } catch (err) {
-                message.error('Lỗi kết nối server!');
-                setIsLoading(false);
-            }
+        } catch (err) {
+            message.error('Lỗi kết nối server!');
+            setIsLoading(false);
         }
     };
 

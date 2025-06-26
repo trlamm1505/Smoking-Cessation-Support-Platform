@@ -86,14 +86,14 @@ const Login = () => {
 
         showNotification(data.message || 'Đăng nhập thành công!', 'success');
 
-        const userRole = data.user.role?.toUpperCase();
+        const userRole = data.user.role?.toLowerCase();
 
-        if (userRole === 'ADMIN') {
+        if (userRole === 'admin') {
           navigate('/admin/dashboard', { replace: true });
           return;
         }
 
-        if (userRole === 'COACH') {
+        if (userRole === 'coach') {
           try {
             const coachRes = await axiosClient.get(`/api/coaches/by-user/${userId}`);
             console.log('API /api/coaches/by-user response:', coachRes.data);
@@ -111,30 +111,17 @@ const Login = () => {
           return;
         }
 
-        // --- USER-specific logic ---
-        try {
-          // Use the ID we just found
-          const userRes = await axiosClient.get(`/api/user/${userId}`, {
-            headers: { 'Authorization': `Bearer ${data.user.token}` }
-          });
-
-          const userInfo = userRes.data;
-          console.log('User Info:', userInfo);
-
-          const today = new Date().toISOString().split('T')[0];
-          const hasMembership = userInfo.currentMembershipPackage &&
-            userInfo.subscriptionEndDate &&
-            userInfo.subscriptionEndDate >= today;
-
-          if (hasMembership) {
-            navigate('/users/home', { replace: true });
-          } else {
-            navigate('/guest/home', { replace: true });
-          }
-        } catch (userError) {
-          console.error('Error fetching user info (inside login):', userError);
-          navigate('/guest/home', { replace: true });
+        if (userRole === 'member') {
+          navigate('/users/home', { replace: true });
+          return;
         }
+        if (userRole === 'guest') {
+          navigate('/guest/home', { replace: true });
+          return;
+        }
+
+        // Nếu không khớp role nào, về guest
+        navigate('/guest/home', { replace: true });
 
       } else {
         showNotification(data.message || 'Đăng nhập thất bại!', 'error');
