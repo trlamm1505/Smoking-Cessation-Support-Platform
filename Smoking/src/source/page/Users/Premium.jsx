@@ -539,7 +539,6 @@ const Premium = () => {
     const [isRenewMode, setIsRenewMode] = useState(false);
 
     const [packageList, setPackageList] = useState([]);
-    const [subscription, setSubscription] = useState(null);
     const [currentPackage, setCurrentPackage] = useState(null);
     const [paymentHistory, setPaymentHistory] = useState([]);
 
@@ -556,16 +555,6 @@ const Premium = () => {
             }
         };
         fetchPackages();
-    }, []);
-
-    useEffect(() => {
-        // Lấy userId từ localStorage hoặc mặc định là 1
-        const userId = Number(localStorage.getItem('userId')) || 1;
-        // Gọi API lấy thông tin thanh toán/gói premium
-        fetch(`http://localhost:8080/api/payments/${userId}`)
-            .then(res => res.json())
-            .then(data => setSubscription(data))
-            .catch(() => setSubscription(null));
     }, []);
 
     useEffect(() => {
@@ -633,13 +622,18 @@ const Premium = () => {
                 // Cập nhật lại thông tin gói mới nhất
                 fetch(`http://localhost:8080/api/payments/${userId}`)
                     .then(res => res.json())
-                    .then(data => setSubscription(data));
+                    .then(data => setCurrentPackage(data));
+                fetch(`http://localhost:8080/api/payments/current-package/${userId}`)
+                    .then(res => res.json())
+                    .then(data => setCurrentPackage(data));
+                fetch(`http://localhost:8080/api/payments?userId=${userId}`)
+                    .then(res => res.json())
+                    .then(data => setPaymentHistory(data));
                 setTimeout(() => {
                     setIsModalVisible(false);
                     setCurrentStep(0);
                     form.resetFields();
                     setIsLoading(false);
-                    // Đã xoá chuyển trang, chỉ ở lại trang premium
                 }, 2000);
             } else {
                 message.error('Đăng ký thất bại!');
@@ -902,6 +896,7 @@ const Premium = () => {
         return Math.max(0, diffDays); // Return 0 if negative
     };
 
+    // Lấy bản ghi cuối cùng từ paymentHistory
     const lastPayment = paymentHistory.length > 0 ? paymentHistory[paymentHistory.length - 1] : null;
 
     return (
@@ -916,7 +911,7 @@ const Premium = () => {
                 </p>
             </PageHeader>
 
-            {subscription && (
+            {currentPackage ? (
                 <>
                     <div
                         style={{
@@ -940,7 +935,7 @@ const Premium = () => {
                                     Thông tin đăng ký của bạn
                                 </span>
                             </div>
-                            {subscription.status === 'completed' && (
+                            {currentPackage.status === 'completed' && (
                                 <span style={{
                                     background: 'rgba(255,255,255,0.25)',
                                     color: '#fff',
@@ -975,7 +970,7 @@ const Premium = () => {
                                     <CrownOutlined /> Gói hiện tại
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, maxWidth: 320, marginBottom: 6 }}>
-                                    <span style={{ fontWeight: 700, fontSize: 22 }}>{currentPackage?.packageName?.toUpperCase() || subscription?.packageName?.toUpperCase() || '---'}</span>
+                                    <span style={{ fontWeight: 700, fontSize: 22 }}>{currentPackage.packageName?.toUpperCase() || '---'}</span>
                                     <span style={{
                                         display: 'inline-block',
                                         background: 'rgba(95,184,179,0.08)',
@@ -985,7 +980,7 @@ const Premium = () => {
                                         padding: '6px 14px',
                                         fontSize: 16
                                     }}>
-                                        {currentPackage?.amount?.toLocaleString() || subscription?.amount?.toLocaleString() || ''}đ/{currentPackage?.packageName?.includes('năm') || subscription?.packageName?.includes('năm') ? '1 năm' : '1 tháng'}
+                                        {currentPackage.amount?.toLocaleString() || ''}đ/{currentPackage.packageName?.includes('năm') ? '1 năm' : '1 tháng'}
                                     </span>
                                 </div>
                             </div>
@@ -1002,7 +997,7 @@ const Premium = () => {
                                 <div style={{ color: '#5FB8B3', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <CalendarOutlined /> Ngày bắt đầu
                                 </div>
-                                <div style={{ fontWeight: 700, fontSize: 22 }}>{currentPackage?.startDate || subscription?.startDate || '---'}</div>
+                                <div style={{ fontWeight: 700, fontSize: 22 }}>{currentPackage.startDate || '---'}</div>
                             </div>
                             <div style={{
                                 background: '#fff',
@@ -1075,6 +1070,10 @@ const Premium = () => {
                         </div>
                     </div>
                 </>
+            ) : (
+                <div style={{ textAlign: 'center', marginTop: 40, color: '#888' }}>
+                    Bạn chưa có gói thành viên nào. Hãy đăng ký gói mới để sử dụng các tính năng Premium!
+                </div>
             )}
 
             <Modal
