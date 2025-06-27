@@ -192,16 +192,6 @@ const CoachHome = () => {
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <StatisticCard>
-            <CheckCircleOutlined className="icon" />
-            <Statistic
-              title="Tỷ Lệ Thành Công"
-              value={coachData.successRate || 0}
-              suffix="%"
-            />
-          </StatisticCard>
-        </Col>
-        <Col xs={24} sm={12} lg={8}>
-          <StatisticCard>
             <CalendarOutlined className="icon" />
             <Statistic
               title="Buổi Tư Vấn Đang Chờ"

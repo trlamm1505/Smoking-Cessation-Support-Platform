@@ -1,8 +1,9 @@
-import React from 'react';
-import { Card, Typography, Row, Col, Statistic } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Typography, Row, Col, Statistic, Spin, message } from 'antd';
 import styled from 'styled-components';
 import { DollarOutlined, UserOutlined, LineChartOutlined, BarChartOutlined } from '@ant-design/icons';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import coachApi from '../Axios/coachApi';
 
 const { Title, Text } = Typography;
 
@@ -41,32 +42,63 @@ const StyledCard = styled(Card)`
 `;
 
 const RevenueStatistics = () => {
-  // Mock data for overall revenue statistics
+  const [loading, setLoading] = useState(true);
+  const [revenueTotal, setRevenueTotal] = useState(0);
+  const [revenueSubscribers, setRevenueSubscribers] = useState(0);
+  const [revenueAvg, setRevenueAvg] = useState(0);
+  const [mostPopularPackage, setMostPopularPackage] = useState(null);
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [monthlyUsers, setMonthlyUsers] = useState([]);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      coachApi.getRevenueTotal(),
+      coachApi.getRevenueSubscribers(),
+      coachApi.getRevenueAvgPerMember(),
+      coachApi.getMostPopularPackage(),
+      coachApi.getRevenueMonthly(),
+      coachApi.getUsersMonthly()
+    ])
+      .then(([
+        revenueTotalRes,
+        revenueSubscribersRes,
+        revenueAvgRes,
+        mostPopularPackageRes,
+        monthlyRevenueRes,
+        monthlyUsersRes
+      ]) => {
+        setRevenueTotal(revenueTotalRes.data);
+        setRevenueSubscribers(revenueSubscribersRes.data);
+        setRevenueAvg(revenueAvgRes.data);
+        setMostPopularPackage(mostPopularPackageRes.data);
+        setMonthlyRevenue(monthlyRevenueRes.data);
+        setMonthlyUsers(monthlyUsersRes.data);
+      })
+      .catch(() => {
+        message.error('Lỗi khi tải dữ liệu thống kê doanh thu!');
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Dữ liệu tổng quan
   const overallStats = [
-    { icon: <DollarOutlined style={{ color: '#52c41a' }} />, title: 'Tổng Doanh Thu', value: 15000000, suffix: 'VNĐ' },
-    { icon: <UserOutlined style={{ color: '#1890ff' }} />, title: 'Tổng Người Dùng Premium', value: 250 },
-    { icon: <LineChartOutlined style={{ color: '#eb2f96' }} />, title: 'Doanh thu trung bình / người', value: '60,000 VNĐ' },
-    { icon: <BarChartOutlined style={{ color: '#faad14' }} />, title: 'Gói Premium phổ biến nhất', value: 'Gói 3 tháng' },
+    { icon: <DollarOutlined style={{ color: '#52c41a' }} />, title: 'Tổng Doanh Thu', value: revenueTotal, suffix: 'VNĐ' },
+    { icon: <UserOutlined style={{ color: '#1890ff' }} />, title: 'Tổng Người Dùng Premium', value: revenueSubscribers },
+    { icon: <LineChartOutlined style={{ color: '#eb2f96' }} />, title: 'Doanh thu trung bình / người', value: revenueAvg ? revenueAvg.toLocaleString() + ' VNĐ' : '', suffix: '' },
+    { icon: <BarChartOutlined style={{ color: '#faad14' }} />, title: 'Gói Premium phổ biến nhất', value: mostPopularPackage ? mostPopularPackage.packageName : '', suffix: '' },
   ];
 
-   // Mock data for daily revenue and user participation
-   const dailyData = [
-      { date: '01/03', revenue: 500000, users: 10 },
-      { date: '02/03', revenue: 750000, users: 15 },
-      { date: '03/03', revenue: 600000, users: 12 },
-      { date: '04/03', revenue: 900000, users: 18 },
-      { date: '05/03', revenue: 800000, users: 14 },
-      { date: '06/03', revenue: 1200000, users: 25 },
-      { date: '07/03', revenue: 1100000, users: 22 },
-   ];
-
-    // Mock data for weekly user participation
-    const weeklyUserData = [
-        { week: 'Tuần 1', users: 70 },
-        { week: 'Tuần 2', users: 90 },
-        { week: 'Tuần 3', users: 65 },
-        { week: 'Tuần 4', users: 110 },
-    ];
+  // Dữ liệu biểu đồ doanh thu theo tháng
+  const chartRevenue = monthlyRevenue.map(item => ({
+    month: `${item.month}/${item.year}`,
+    total: item.total
+  }));
+  // Dữ liệu biểu đồ số người tham gia theo tháng
+  const chartUsers = monthlyUsers.map(item => ({
+    month: `${item.month}/${item.year}`,
+    total: item.total
+  }));
 
   return (
     <Container>
@@ -79,57 +111,62 @@ const RevenueStatistics = () => {
         </div>
       </Header>
 
-      <div style={{ marginBottom: 24 }}>
-        <Title level={3}>Tổng quan doanh thu</Title>
-        <Row gutter={[16, 16]}>
-          {overallStats.map((stat, index) => (
-            <Col xs={24} sm={12} md={6} key={index}>
-              <StyledCard>
-                <Statistic
-                  title={stat.title}
-                  value={stat.value}
-                  prefix={stat.icon}
-                  valueStyle={{ color: '#3f8600' }} // Example value color (green for positive)
-                  suffix={stat.suffix}
-                />
-              </StyledCard>
-            </Col>
-          ))}
-        </Row>
-      </div>
+      {loading ? (
+        <Spin size="large" style={{ display: 'block', margin: '40px auto' }} />
+      ) : (
+        <>
+          <div style={{ marginBottom: 24 }}>
+            <Title level={3}>Tổng quan doanh thu</Title>
+            <Row gutter={[16, 16]}>
+              {overallStats.map((stat, index) => (
+                <Col xs={24} sm={12} md={6} key={index}>
+                  <StyledCard>
+                    <Statistic
+                      title={stat.title}
+                      value={stat.value}
+                      prefix={stat.icon}
+                      valueStyle={{ color: '#3f8600' }}
+                      suffix={stat.suffix}
+                    />
+                  </StyledCard>
+                </Col>
+              ))}
+            </Row>
+          </div>
 
-      <div style={{ marginBottom: 24 }}>
-         <Title level={3}>Doanh thu theo ngày</Title>
-         <StyledCard>
-             <ResponsiveContainer width="100%" height={300}>
-                 <LineChart data={dailyData}>
-                     <CartesianGrid strokeDasharray="3 3" />
-                     <XAxis dataKey="date" />
-                     <YAxis />
-                     <Tooltip formatter={(value) => `${value.toLocaleString()} VNĐ`} />
-                     <Legend />
-                     <Line type="monotone" dataKey="revenue" stroke="#8884d8" name="Doanh thu" />
-                 </LineChart>
-             </ResponsiveContainer>
-         </StyledCard>
-      </div>
+          <div style={{ marginBottom: 24 }}>
+            <Title level={3}>Doanh thu theo tháng</Title>
+            <StyledCard>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartRevenue}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => `${value.toLocaleString()} VNĐ`} />
+                  <Legend />
+                  <Bar dataKey="total" fill="#8884d8" name="Doanh thu" />
+                </BarChart>
+              </ResponsiveContainer>
+            </StyledCard>
+          </div>
 
-      <div>
-        <Title level={3}>Số người tham gia theo tuần</Title>
-         <StyledCard>
-            <ResponsiveContainer width="100%" height={300}>
-                 <BarChart data={weeklyUserData}>
-                     <CartesianGrid strokeDasharray="3 3" />
-                     <XAxis dataKey="week" />
-                     <YAxis />
-                     <Tooltip />
-                     <Legend />
-                     <Bar dataKey="users" fill="#82ca9d" name="Số người tham gia" />
-                 </BarChart>
-            </ResponsiveContainer>
-         </StyledCard>
-      </div>
-
+          <div>
+            <Title level={3}>Số người tham gia theo tháng</Title>
+            <StyledCard>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartUsers}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="total" fill="#82ca9d" name="Số người tham gia" />
+                </BarChart>
+              </ResponsiveContainer>
+            </StyledCard>
+          </div>
+        </>
+      )}
     </Container>
   );
 };

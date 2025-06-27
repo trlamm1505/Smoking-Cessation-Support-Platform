@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Card, Table, Button, Space, Modal, Form, Input, Select, Statistic, Row, Col, Tabs } from 'antd';
 import {
     DashboardOutlined,
@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons';
 import styled from 'styled-components';
 import UserCoachManagement from './UserCoachManagement';
+import coachApi from '../Axios/coachApi';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -53,13 +54,27 @@ const Admin = () => {
     const [modalType, setModalType] = useState('');
     const [form] = Form.useForm();
 
-    // Mock data for statistics
-    const statistics = {
-        totalUsers: 1250,
-        totalPosts: 456,
-        totalRevenue: 15000000,
-        activeUsers: 850
-    };
+    // Tổng quan: fetch API
+    const [revenueTotal, setRevenueTotal] = useState(0);
+    const [revenueSubscribers, setRevenueSubscribers] = useState(0);
+    const [loadingStats, setLoadingStats] = useState(true);
+
+    useEffect(() => {
+        setLoadingStats(true);
+        Promise.all([
+            coachApi.getRevenueTotal(),
+            coachApi.getRevenueSubscribers()
+        ])
+        .then(([
+            revenueTotalRes,
+            revenueSubscribersRes
+        ]) => {
+            setRevenueTotal(revenueTotalRes.data);
+            setRevenueSubscribers(revenueSubscribersRes.data);
+        })
+        .catch(() => {})
+        .finally(() => setLoadingStats(false));
+    }, []);
 
     // Mock data for community posts
     const communityPosts = [
@@ -115,40 +130,24 @@ const Admin = () => {
                     <>
                         <Title level={2}>Tổng Quan</Title>
                         <Row gutter={[16, 16]}>
-                            <Col span={6}>
+                            <Col span={8}>
                                 <StatisticCard>
                                     <Statistic
-                                        title="Tổng số người dùng"
-                                        value={statistics.totalUsers}
-                                        prefix={<UserOutlined />}
-                                    />
-                                </StatisticCard>
-                            </Col>
-                            <Col span={6}>
-                                <StatisticCard>
-                                    <Statistic
-                                        title="Tổng số bài viết"
-                                        value={statistics.totalPosts}
-                                        prefix={<FileTextOutlined />}
-                                    />
-                                </StatisticCard>
-                            </Col>
-                            <Col span={6}>
-                                <StatisticCard>
-                                    <Statistic
-                                        title="Doanh thu"
-                                        value={statistics.totalRevenue}
+                                        title="Tổng Doanh Thu"
+                                        value={revenueTotal}
                                         prefix={<DollarOutlined />}
                                         suffix="VNĐ"
+                                        loading={loadingStats}
                                     />
                                 </StatisticCard>
                             </Col>
-                            <Col span={6}>
+                            <Col span={8}>
                                 <StatisticCard>
                                     <Statistic
-                                        title="Người dùng hoạt động"
-                                        value={statistics.activeUsers}
-                                        prefix={<TeamOutlined />}
+                                        title="Tổng Người Dùng Premium"
+                                        value={revenueSubscribers}
+                                        prefix={<UserOutlined />}
+                                        loading={loadingStats}
                                     />
                                 </StatisticCard>
                             </Col>
