@@ -50,7 +50,7 @@ const AdminReports = () => {
         setSelectedFeedback(null);
     };
 
-    const handleMarkAsResolved = (id) => {
+     const handleMarkAsResolved = (id) => {
         // Implementation needed
     };
 
@@ -76,11 +76,11 @@ const AdminReports = () => {
 
     // Table columns for admin feedbacks
     const feedbackColumns = [
-        {
+         {
             title: 'Loại',
             dataIndex: 'targetType',
             key: 'targetType',
-            render: (type) => {
+             render: (type) => {
                 let color = type === 'system' ? 'geekblue' : 'orange';
                 return <Tag color={color}>{type.toUpperCase()}</Tag>;
             },
@@ -110,13 +110,13 @@ const AdminReports = () => {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
-            render: (status) => {
+             render: (status) => {
                 let color = status === 'active' ? 'success' : 'default';
                 return <Tag color={color}>{status?.toUpperCase()}</Tag>;
             },
             width: 120,
         },
-        {
+         {
             title: 'Người gửi',
             key: 'sender',
             render: (_, record) => getSenderName(record.userId),
@@ -126,7 +126,7 @@ const AdminReports = () => {
             title: 'Thao tác',
             key: 'action',
             width: 90,
-            render: (_, record) => (
+             render: (_, record) => (
                 <Space>
                     <Button icon={<EyeOutlined />} onClick={() => handleViewFeedback(record)} />
                     {record.status === 'active' && (
@@ -161,7 +161,7 @@ const AdminReports = () => {
                 }}>Quản lý Phản hồi hệ thống & Báo cáo</h1>
             </Card>
             <Tabs activeKey={activeTab} onChange={setActiveTab} tabBarStyle={{ fontSize: 22, fontWeight: 700, color: '#38b2ac' }} style={{ maxWidth: 1100, margin: '0 auto' }}>
-                <TabPane
+                 <TabPane 
                     tab={
                         <span>
                             <InboxOutlined style={{ color: '#4fd1c5', fontSize: 26 }} />
@@ -191,10 +191,10 @@ const AdminReports = () => {
                             </Button>
                         </div>
                         <Spin spinning={loading} tip="Đang tải...">
-                            <Table
+                    <Table
                                 dataSource={feedbacks}
                                 columns={feedbackColumns}
-                                rowKey="id"
+                        rowKey="id"
                                 pagination={{ pageSize: 10 }}
                                 bordered
                                 size="large"
@@ -204,8 +204,8 @@ const AdminReports = () => {
                             />
                         </Spin>
                     </Card>
-                </TabPane>
-            </Tabs>
+                 </TabPane>
+             </Tabs>
             {/* Modal for viewing feedback details */}
             <Modal
                 title="Chi tiết phản hồi / báo cáo"
@@ -226,7 +226,7 @@ const AdminReports = () => {
                 )}
             </Modal>
             {/* Modal for sending a report */}
-            <Modal
+             <Modal
                 title="Gửi Báo cáo / Thông báo"
                 open={isSendModalVisible}
                 onOk={handleSendReport}

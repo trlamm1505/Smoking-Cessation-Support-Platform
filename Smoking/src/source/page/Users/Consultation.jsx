@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Typography, Avatar, Button, Modal, Form, DatePicker, Select, Input, message, Table } from 'antd';
+import { Card, Row, Col, Typography, Avatar, Button, Modal, Form, DatePicker, Select, Input, message, Table, Tag } from 'antd';
 import { MessageOutlined, UserOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
 import dayjs from 'dayjs';
@@ -51,12 +51,17 @@ const AnimatedIcon = styled(MessageOutlined)`
 
 const CoachCard = styled(Card)`
   margin-bottom: 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  background: white;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(95,184,179,0.10), 0 1.5px 6px rgba(44,122,117,0.08);
+  background: linear-gradient(135deg, #f8fffe 0%, #e6f7f6 100%);
   border: none;
   overflow: hidden;
-  .ant-card-body { padding: 20px; }
+  transition: box-shadow 0.3s, transform 0.3s;
+  &:hover {
+    box-shadow: 0 12px 32px rgba(95,184,179,0.18), 0 2px 8px rgba(44,122,117,0.12);
+    transform: translateY(-4px) scale(1.02);
+  }
+  .ant-card-body { padding: 28px 24px; }
 `;
 
 const BookingModal = styled(Modal)`
@@ -141,12 +146,69 @@ const AnimatedHistoryCard = styled(HistoryCard)`
   opacity: 0;
 `;
 
+const StyledBookingModal = styled(BookingModal)`
+  .ant-modal-content {
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f8fffe 0%, #e6f7f6 100%);
+    box-shadow: 0 8px 32px rgba(95,184,179,0.12);
+    padding: 0 8px 8px 8px;
+  }
+  .ant-modal-header {
+    border-radius: 18px 18px 0 0;
+    background: #e6f7f6;
+    border-bottom: none;
+    padding: 24px 32px 12px 32px;
+  }
+  .ant-modal-title {
+    color: #2c7a75;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.5px;
+  }
+  .ant-modal-body {
+    padding: 24px 32px 8px 32px;
+  }
+  .ant-form-item-label > label {
+    color: #2c7a75;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .ant-input, .ant-picker, .ant-select-selector, textarea {
+    border-radius: 10px !important;
+    background: #f6fcfb !important;
+    border: 1.5px solid #e3f6f5 !important;
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .ant-input:focus, .ant-picker-focused, .ant-select-focused .ant-select-selector {
+    border-color: #5FB8B3 !important;
+    box-shadow: 0 0 0 2px #5FB8B344;
+  }
+  .ant-btn-primary {
+    background: linear-gradient(90deg, #5FB8B3 0%, #2c7a75 100%) !important;
+    border: none;
+    font-weight: 700;
+    font-size: 18px;
+    border-radius: 12px;
+    height: 48px;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px #5FB8B344;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .ant-btn-primary:hover {
+    background: linear-gradient(90deg, #2c7a75 0%, #5FB8B3 100%) !important;
+    box-shadow: 0 4px 16px #5FB8B344;
+  }
+`;
+
 const Consultation = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedCoach, setSelectedCoach] = useState(null);
     const [appointments, setAppointments] = useState([]);
     const [form] = Form.useForm();
     const [coaches, setCoaches] = useState([]);
+    const [coachAppointments, setCoachAppointments] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(null);
     const userId = localStorage.getItem('userId');
 
     // Helper function to get meeting link from either meetingLink or meetLink field
@@ -170,6 +232,31 @@ const Consultation = () => {
     useEffect(() => {
         fetchUserConsultations(userId).then(res => setAppointments(res.data));
     }, [userId]);
+
+    // Fetch danh sách coach từ API khi load trang
+    useEffect(() => {
+        axiosClient.get('/api/coaches/all')
+            .then(res => setCoaches(res.data))
+            .catch(() => setCoaches([]));
+    }, []);
+
+    // Fetch all appointments for selected coach and selected date
+    useEffect(() => {
+        if (isModalVisible && selectedCoach && selectedDate) {
+            axiosClient.get(`/api/consultations/coach/${selectedCoach.coachId}`)
+                .then(res => setCoachAppointments(res.data || []))
+                .catch(() => setCoachAppointments([]));
+        }
+    }, [isModalVisible, selectedCoach, selectedDate]);
+
+    // Helper to get booked time slots for selected date
+    const getBookedSlots = (date) => {
+        if (!date) return [];
+        const dateStr = date.format('YYYY-MM-DD');
+        return (coachAppointments || [])
+            .filter(app => dayjs(app.scheduledTime).format('YYYY-MM-DD') === dateStr)
+            .map(app => dayjs(app.scheduledTime).format('HH:mm'));
+    };
 
     const handleModalOk = () => {
         form.validateFields().then(values => {
@@ -201,13 +288,6 @@ const Consultation = () => {
         form.resetFields();
     };
 
-    // Fetch danh sách coach từ API khi load trang
-    useEffect(() => {
-        axiosClient.get('/api/coaches/all')
-            .then(res => setCoaches(res.data))
-            .catch(() => setCoaches([]));
-    }, []);
-
     return (
         <PageContainer>
             <TitleRow>
@@ -218,17 +298,34 @@ const Consultation = () => {
                 {coaches.map((coach, index) => (
                     <Col xs={24} md={12} key={coach.coachId || coach.id || index}>
                         <AnimatedCoachCard delay={`${index * 0.1}s`}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-                                <Avatar size={64} src={coach.profilePictureUrl} icon={<UserOutlined />} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 18 }}>
+                                <Avatar size={76} src={coach.profilePictureUrl} icon={<UserOutlined />} style={{ border: '3px solid #5FB8B3', background: '#fff' }} />
                                 <div style={{ flex: 1 }}>
-                                    <Title level={4} style={{ margin: 0 }}>{coach.fullName}</Title>
-                                    <Text type="secondary">{coach.specialization}</Text>
-                                    <div style={{ marginTop: 4 }}>
-                                        <Text strong>Đánh giá:</Text> {coach.rating ? coach.rating : 'Chưa có'} ⭐
+                                    <Title level={4} style={{ margin: 0, color: '#2c7a75', fontWeight: 700, letterSpacing: 0.5 }}>{coach.fullName}
+                                        <Tag color="gold" style={{ marginLeft: 10, fontWeight: 600, fontSize: 15, borderRadius: 8, padding: '2px 12px' }}>Coach</Tag>
+                                    </Title>
+                                    <Text type="secondary" style={{ fontSize: 15 }}>{coach.specialization}</Text>
+                                    <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <Text strong>Đánh giá:</Text>
+                                        {coach.rating ? (
+                                            <span style={{ color: '#FFD700', fontWeight: 600, fontSize: 18 }}>
+                                                {coach.rating} <span style={{ fontSize: 18, verticalAlign: 'middle' }}>★</span>
+                                            </span>
+                                        ) : (
+                                            <span style={{ color: '#aaa', fontSize: 16 }}>Chưa có</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-                            <Button type="primary" block onClick={() => handleBooking(coach)}>
+                            <Button type="primary" block style={{
+                                background: 'linear-gradient(90deg, #5FB8B3 0%, #2c7a75 100%)',
+                                border: 'none',
+                                fontWeight: 700,
+                                fontSize: 17,
+                                borderRadius: 12,
+                                boxShadow: '0 2px 8px #5FB8B344',
+                                height: 48
+                            }} onClick={() => handleBooking(coach)}>
                                 Đặt Lịch Tư Vấn
                             </Button>
                         </AnimatedCoachCard>
@@ -270,9 +367,17 @@ const Consultation = () => {
                             key: 'meetingLink', 
                             render: (_, record) => {
                                 const link = getMeetingLink(record);
-                                return link && (record.status === 'approved' || record.status === 'confirmed') ? 
-                                    <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a> : 
-                                    '-';
+                                const scheduled = dayjs(record.scheduledTime);
+                                const now = dayjs();
+                                const isActive = now.isBefore(scheduled.add(1, 'hour'));
+                                if (link) {
+                                    if (isActive) {
+                                        return <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a>;
+                                    } else {
+                                        return <span style={{ opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}>Tham gia</span>;
+                                    }
+                                }
+                                return '-';
                             }
                         }
                     ]}
@@ -282,7 +387,7 @@ const Consultation = () => {
                 />
             </AnimatedHistoryCard>
 
-            <BookingModal
+            <StyledBookingModal
                 title={selectedCoach ? `Đặt Lịch Tư Vấn với ${selectedCoach.fullName}` : 'Đặt Lịch Tư Vấn'}
                 open={isModalVisible}
                 onOk={handleModalOk}
@@ -294,28 +399,43 @@ const Consultation = () => {
                     <Form form={form} layout="vertical">
                         <Form.Item
                             name="date"
-                            label="Ngày tư vấn"
+                            label={<span>Ngày tư vấn</span>}
                             rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
                         >
-                            <DatePicker style={{ width: '100%' }} disabledDate={current => current && current < dayjs().startOf('day')} />
+                            <DatePicker 
+                                style={{ width: '100%' }} 
+                                disabledDate={current => current && current < dayjs().startOf('day')} 
+                                onChange={date => {
+                                    setSelectedDate(date);
+                                    form.setFieldsValue({ time: undefined }); // Reset time khi đổi ngày
+                                }}
+                            />
                         </Form.Item>
                         <Form.Item
                             name="time"
-                            label="Chọn giờ tư vấn"
+                            label={<span>Chọn giờ tư vấn</span>}
                             rules={[{ required: true, message: 'Vui lòng chọn giờ!' }]}
                         >
-                            <Select placeholder="Chọn giờ tư vấn">
-                                {timeSlots.map(slot => (
-                                    <Option value={slot} key={slot}>{slot}</Option>
-                                ))}
+                            <Select placeholder="Chọn giờ tư vấn"
+                                disabled={!selectedDate}
+                            >
+                                {(() => {
+                                    const date = selectedDate;
+                                    const booked = getBookedSlots(date);
+                                    return timeSlots.map(slot => (
+                                        <Option value={slot} key={slot} disabled={booked.includes(slot)}>
+                                            {slot} {booked.includes(slot) ? '(Đã có người đặt)' : ''}
+                                        </Option>
+                                    ));
+                                })()}
                             </Select>
                         </Form.Item>
                         <Form.Item name="notes" label="Ghi chú">
-                            <TextArea rows={3} placeholder="Nhập thông tin về tình trạng và mục tiêu cai thuốc của bạn..." />
+                            <TextArea rows={3} placeholder="Nhập thông tin về tình trạng và mục tiêu cai thuốc của bạn..." style={{ minHeight: 60 }} />
                         </Form.Item>
                     </Form>
                 )}
-            </BookingModal>
+            </StyledBookingModal>
         </PageContainer>
     );
 };
