@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag, Spin } from 'antd';
 import styled from 'styled-components';
 import {
     UserOutlined,
@@ -10,8 +10,11 @@ import {
     ClockCircleOutlined,
     TrophyOutlined,
     CalendarOutlined,
-    DashboardOutlined
+    DashboardOutlined,
+    BarChartOutlined,
+    LineChartOutlined
 } from '@ant-design/icons';
+import coachApi from '../Axios/coachApi';
 
 const { Title, Text } = Typography;
 
@@ -124,15 +127,34 @@ const StatisticCard = styled(StyledCard)`
 `;
 
 const Dashboard = () => {
-    const statistics = {
-        totalUsers: 1250,
-        totalPosts: 456,
-        totalRevenue: 15000000,
-        activeUsers: 850,
-        newUsersToday: 15,
-        newPostsToday: 10,
-        pendingConsultations: 5
-    };
+    const [revenueTotal, setRevenueTotal] = useState(0);
+    const [revenueSubscribers, setRevenueSubscribers] = useState(0);
+    const [revenueAvg, setRevenueAvg] = useState(0);
+    const [mostPopularPackage, setMostPopularPackage] = useState(null);
+    const [loadingStats, setLoadingStats] = useState(true);
+
+    useEffect(() => {
+        setLoadingStats(true);
+        Promise.all([
+            coachApi.getRevenueTotal(),
+            coachApi.getRevenueSubscribers(),
+            coachApi.getRevenueAvgPerMember(),
+            coachApi.getMostPopularPackage()
+        ])
+        .then(([
+            revenueTotalRes,
+            revenueSubscribersRes,
+            revenueAvgRes,
+            mostPopularPackageRes
+        ]) => {
+            setRevenueTotal(revenueTotalRes.data);
+            setRevenueSubscribers(revenueSubscribersRes.data);
+            setRevenueAvg(revenueAvgRes.data);
+            setMostPopularPackage(mostPopularPackageRes.data);
+        })
+        .catch(() => {})
+        .finally(() => setLoadingStats(false));
+    }, []);
 
     return (
         <PageContainer>
@@ -146,17 +168,9 @@ const Dashboard = () => {
                      <StatisticCard>
                          <UserOutlined className="icon" />
                           <Statistic
-                             title="Tổng số người dùng"
-                             value={statistics.totalUsers}
-                         />
-                     </StatisticCard>
-                 </Col>
-                 <Col xs={24} sm={12} lg={6}>
-                     <StatisticCard>
-                         <FileTextOutlined className="icon" />
-                         <Statistic
-                             title="Tổng số bài viết"
-                             value={statistics.totalPosts}
+                             title="Tổng Người Dùng Premium"
+                             value={revenueSubscribers}
+                             loading={loadingStats}
                          />
                      </StatisticCard>
                  </Col>
@@ -165,17 +179,19 @@ const Dashboard = () => {
                          <DollarOutlined className="icon" />
                          <Statistic
                              title="Tổng doanh thu"
-                             value={statistics.totalRevenue}
-                              formatter={value => `${value.toLocaleString()} VNĐ`}
+                             value={revenueTotal}
+                             formatter={value => `${value ? value.toLocaleString() : 0} VNĐ`}
+                             loading={loadingStats}
                          />
                      </StatisticCard>
                  </Col>
                  <Col xs={24} sm={12} lg={6}>
                      <StatisticCard>
-                         <TeamOutlined className="icon" />
+                         <BarChartOutlined className="icon" />
                          <Statistic
-                             title="Người dùng hoạt động"
-                             value={statistics.activeUsers}
+                             title="Gói Premium phổ biến nhất"
+                             value={mostPopularPackage ? mostPopularPackage.packageName : ''}
+                             loading={loadingStats}
                          />
                      </StatisticCard>
                  </Col>
