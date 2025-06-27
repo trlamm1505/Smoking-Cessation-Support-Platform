@@ -316,25 +316,25 @@ const ReportPage = () => {
       </Header>
 
       {/* Nút gửi feedback hệ thống */}
-      <Button
-        type="primary"
+        <Button 
+          type="primary" 
         icon={<StarOutlined />}
         style={{ marginBottom: 16, background: 'linear-gradient(90deg, #5FB8B3 30%, #1890ff 100%)', border: 'none' }}
         onClick={() => setIsFeedbackModalVisible(true)}
       >
         Gửi feedback hệ thống
-      </Button>
+        </Button>
 
       {/* Bảng feedback hệ thống của coach (có thao tác) */}
       <Title level={4} style={{ color: '#2c7a75', margin: '24px 0 12px 0' }}>Feedback hệ thống của bạn</Title>
-      <Table
+        <Table 
         columns={mySystemFeedbackColumns}
         dataSource={mySystemFeedbacks}
         rowKey={record => record.feedbackId || record.id}
         pagination={false}
         bordered
         style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 32 }}
-      />
+        />
 
       {/* Modal gửi feedback hệ thống */}
       <Modal
