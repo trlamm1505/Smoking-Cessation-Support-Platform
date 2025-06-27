@@ -1,53 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 
 const UpgradePackages = () => {
   const [selectedPackage, setSelectedPackage] = useState(null);
+  const [packages, setPackages] = useState([]);
 
-  const packages = [
-    {
-      id: "basic",
-      name: "GÓI CƠ BẢN",
-      price: "100,000 VND",
-      duration: "1 tháng",
-      features: [
-        "Theo dõi tiến trình cai thuốc",
-        "Hướng dẫn các kỹ thuật cai thuốc cơ bản",
-        "Truy cập các bài viết chia sẻ kinh nghiệm",
-        "Tham gia cộng đồng hỗ trợ",
-        "Nhận thông báo động lực hàng ngày",
-      ],
-      highlight: "Theo dõi chi tiết tiến trình cai thuốc",
-    },
-    {
-      id: "pro",
-      name: "GÓI CHUYÊN NGHIỆP",
-      price: "550,000 VND",
-      duration: "3 tháng",
-      features: [
-        "Tất cả các lợi ích từ Gói Cơ bản",
-        "Tư vấn trực tiếp với chuyên gia y tế",
-        "Chương trình thử thách cai thuốc hàng tuần",
-        "Hỗ trợ ưu tiên qua chat và email",
-        "Hệ thống điểm thưởng và giải thưởng",
-      ],
-      highlight: "Tư vấn chuyên gia và hỗ trợ ưu tiên",
-    },
-    {
-      id: "premium",
-      name: "GÓI CAO CẤP",
-      price: "1000,000 VND",
-      duration: "6 tháng",
-      features: [
-        "Tất cả các lợi ích từ Gói Chuyên nghiệp",
-        "Chương trình huấn luyện cá nhân hóa",
-        "Truy cập các khóa học sức khỏe nâng cao",
-        "Hiệu ứng đặc biệt cho tài khoản và cộng đồng",
-        "Hỗ trợ ưu tiên 24/7",
-      ],
-      highlight: "Huấn luyện và hỗ trợ cá nhân hóa cấp cao",
-    },
-  ];
+  useEffect(() => {
+    fetch("http://localhost:8080/api/packages")
+      .then((res) => res.json())
+      .then((data) => {
+        // Map lại cho phù hợp UI cũ
+        const mapped = data.map((pkg) => ({
+          id: pkg.packageID,
+          name: pkg.packageName,
+          price: pkg.price.toLocaleString() + " VND",
+          duration: pkg.durationDays === 30 ? "1 tháng" : pkg.durationDays === 180 ? "6 tháng" : pkg.durationDays === 365 ? "12 tháng" : pkg.durationDays + " ngày",
+          features: pkg.description ? pkg.description.split(';').map(f => f.trim()).filter(Boolean) : [],
+          highlight: pkg.description ? pkg.description.split(';')[0] : '',
+        }));
+        setPackages(mapped);
+      });
+  }, []);
 
   return (
     <div id="package" className="max-w-5xl mx-auto px-6 py-10">
