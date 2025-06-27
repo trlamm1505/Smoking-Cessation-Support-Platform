@@ -19,8 +19,11 @@ const coachApi = {
   // Thêm coach mới (admin)
   adminCreate: (data) => axiosClient.post('/api/coaches/admin-create', data),
 
-  // Xóa coach theo id (admin)
-  adminDelete: (id) => axiosClient.delete(`/api/coaches/delete/${id}`),
+  // Xóa coach theo id (admin) - xóa cứng khỏi database
+  adminDelete: (id) => axiosClient.delete(`/api/coaches/delete/${id}?hardDelete=true`),
+
+  // Xóa coach hoàn toàn (cả coach và user tương ứng)
+  adminDeleteComplete: (id) => axiosClient.delete(`/api/coaches/delete-complete/${id}`),
 
   // BLOG POSTS API
   getAllBlogPosts: () => axiosClient.get('/api/blogposts'),

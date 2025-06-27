@@ -67,10 +67,27 @@ const UserCoachManagement = () => {
   // Xóa coach
   const handleDeleteCoach = async (id) => {
     try {
+      // Tìm coach trước khi xóa để lấy userId
+      const coach = coaches.find(c => c.coachId === id);
+      if (!coach) {
+        toast.error('Không tìm thấy coach');
+        return;
+      }
+
+      // Xóa coach trước
       await coachApi.adminDelete(id);
+      
+      // Xóa user tương ứng nếu có userId
+      if (coach.userId) {
+        await userApi.delete(coach.userId);
+      }
+      
       toast.success('Đã xóa coach');
+      // Cập nhật cả 2 danh sách
       fetchCoaches();
-    } catch {
+      fetchUsers();
+    } catch (err) {
+      console.error('Lỗi xóa coach:', err);
       toast.error('Xóa thất bại');
     }
   };
@@ -110,7 +127,12 @@ const UserCoachManagement = () => {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
-        <Popconfirm title="Xóa người dùng này?" onConfirm={() => handleDeleteUser(record.userId)} okText="Xóa" cancelText="Hủy">
+        <Popconfirm 
+          title="Xóa người dùng này?" 
+          onConfirm={() => handleDeleteUser(record.userId)} 
+          okText="Xóa" 
+          cancelText="Hủy"
+        >
           <Button icon={<DeleteOutlined />} danger size="small">Xóa</Button>
         </Popconfirm>
       ),
@@ -129,7 +151,13 @@ const UserCoachManagement = () => {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
-        <Popconfirm title="Xóa coach này?" onConfirm={() => handleDeleteCoach(record.coachId)} okText="Xóa" cancelText="Hủy">
+        <Popconfirm 
+          title="Xóa coach này?" 
+          description=""
+          onConfirm={() => handleDeleteCoach(record.coachId)} 
+          okText="Xóa" 
+          cancelText="Hủy"
+        >
           <Button icon={<DeleteOutlined />} danger size="small">Xóa</Button>
         </Popconfirm>
       ),
