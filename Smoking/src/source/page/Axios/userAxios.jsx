@@ -7,8 +7,8 @@ const userApi = {
     // Cập nhật thông tin user theo id
     put: (id, data) => axiosClient.put(`/api/user/${id}`, data),
 
-    // Xóa user theo id
-    delete: (id) => axiosClient.delete(`/api/user/${id}`),
+    // Xóa user theo id - xóa cứng khỏi database
+    delete: (id) => axiosClient.delete(`/api/user/${id}?hardDelete=true`),
 
     // Cập nhật profile (POST)
     updateProfile: (data) => axiosClient.post('/update-profile', data),
@@ -36,6 +36,13 @@ const userApi = {
 
     // Lấy user theo coachId
     getByCoachId: (coachId) => axiosClient.get(`/api/user/coach/${coachId}`),
+
+    // FEEDBACK API
+    getFeedbacks: (params) => axiosClient.get('/api/feedback', { params }),
+    getFeedbackById: (id) => axiosClient.get(`/api/feedback/${id}`),
+    createFeedback: (data) => axiosClient.post('/api/feedback', data),
+    updateFeedback: (id, data) => axiosClient.put(`/api/feedback/${id}`, data),
+    deleteFeedback: (id) => axiosClient.delete(`/api/feedback/${id}`),
 };
 
 export default userApi;

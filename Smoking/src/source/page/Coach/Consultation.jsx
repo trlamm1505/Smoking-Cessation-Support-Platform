@@ -495,9 +495,17 @@ const handleApprove = (consultationId) => {
                 key: 'meetingLink',
                 render: (_, record) => {
                   const link = record.meetingLink || record.meetLink;
-                  return link ? (
-                    <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a>
-                  ) : '-';
+                  const scheduled = dayjs(record.scheduledTime);
+                  const now = dayjs();
+                  const isActive = now.isBefore(scheduled.add(1, 'hour'));
+                  if (link) {
+                    if (isActive) {
+                      return <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a>;
+                    } else {
+                      return <span style={{ opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}>Tham gia</span>;
+                    }
+                  }
+                  return '-';
                 },
               },
             ]}

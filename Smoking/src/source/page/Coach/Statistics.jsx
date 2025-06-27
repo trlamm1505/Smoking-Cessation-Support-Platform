@@ -1,9 +1,10 @@
-import React from 'react';
-import { Card, Typography, Row, Col, Statistic } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Typography, Row, Col, Statistic, Spin, message } from 'antd';
 import styled from 'styled-components';
 import { UserOutlined, CalendarOutlined, SmileOutlined, LineChartOutlined, FileTextOutlined, BarChartOutlined } from '@ant-design/icons';
 // You might need charting libraries like Chart.js or Recharts here
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import coachApi from '../Axios/coachApi';
 
 const { Title, Text } = Typography;
 
@@ -42,21 +43,38 @@ const StyledCard = styled(Card)`
 `;
 
 const Statistics = () => {
-  // Mock data - replace with API calls
-  const stats = [
-    { icon: <UserOutlined style={{ color: '#1890ff' }} />, title: 'Tổng số thành viên', value: 150 },
-    { icon: <CalendarOutlined style={{ color: '#52c41a' }} />, title: 'Buổi tư vấn đã hoàn thành', value: 320 },
-    { icon: <SmileOutlined style={{ color: '#faad14' }} />, title: 'Tỷ lệ thành công (ước tính)', value: '85%' },
-    { icon: <LineChartOutlined style={{ color: '#eb2f96' }} />, title: 'Trung bình thời gian đồng hành', value: '60 ngày' },
-  ];
+  const coachId = 1; // TODO: lấy coachId động nếu cần
+  const [summary, setSummary] = useState(null);
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for charts - replace with API calls
-  const weeklyConsultations = [
-    { week: 'Tuần 1', consultations: 12 },
-    { week: 'Tuần 2', consultations: 15 },
-    { week: 'Tuần 3', consultations: 10 },
-    { week: 'Tuần 4', consultations: 18 },
-  ];
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      coachApi.getConsultationSummary(coachId),
+      coachApi.getMonthlyConsultations(coachId)
+    ])
+      .then(([summaryRes, monthlyRes]) => {
+        setSummary(summaryRes.data);
+        setMonthlyData(monthlyRes.data);
+      })
+      .catch((err) => {
+        message.error('Lỗi khi tải dữ liệu thống kê');
+      })
+      .finally(() => setLoading(false));
+  }, [coachId]);
+
+  // Chuyển đổi dữ liệu cho biểu đồ
+  const chartData = monthlyData.map(item => ({
+    month: `${item.month}/${item.year}`,
+    totalConsultations: item.totalConsultations
+  }));
+
+  const stats = summary ? [
+    { icon: <UserOutlined style={{ color: '#1890ff' }} />, title: 'Tổng số thành viên', value: summary.totalMembers },
+    { icon: <CalendarOutlined style={{ color: '#52c41a' }} />, title: 'Buổi tư vấn đã hoàn thành', value: summary.totalSessions },
+    { icon: <LineChartOutlined style={{ color: '#eb2f96' }} />, title: 'Số ngày hoạt động', value: summary.activeDays },
+  ] : [];
 
   return (
     <Container>
@@ -70,45 +88,45 @@ const Statistics = () => {
         {/* Optional: Add buttons or other elements on the right side of the header */}
       </Header>
 
-      <div style={{ marginBottom: 24 }}>
-        <Title level={3}>Tổng quan</Title>
-        <Row gutter={[16, 16]}>
-          {stats.map((stat, index) => (
-            <Col xs={24} sm={12} md={6} key={index}>
-              <StyledCard>
-                <Statistic
-                  title={stat.title}
-                  value={stat.value}
-                  prefix={stat.icon}
-                  valueStyle={{ color: '#3f8600' }} // Example value color
-                />
-              </StyledCard>
-            </Col>
-          ))}
-        </Row>
-      </div>
+      {loading ? (
+        <Spin size="large" style={{ display: 'block', margin: '40px auto' }} />
+      ) : (
+        <>
+          <div style={{ marginBottom: 24 }}>
+            <Title level={3}>Tổng quan</Title>
+            <Row gutter={[16, 16]}>
+              {stats.map((stat, index) => (
+                <Col xs={24} sm={12} md={6} key={index}>
+                  <StyledCard>
+                    <Statistic
+                      title={stat.title}
+                      value={stat.value}
+                      prefix={stat.icon}
+                      valueStyle={{ color: '#3f8600' }}
+                    />
+                  </StyledCard>
+                </Col>
+              ))}
+            </Row>
+          </div>
 
-      <div>
-        <Title level={3}>Biểu đồ hoạt động</Title>
-        <StyledCard>
-          {/* Placeholder for charts */}
-          {/* <div style={{ height: 300, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: '#999' }}>
-            Khu vực hiển thị biểu đồ (Ví dụ: số buổi tư vấn theo tuần, tỷ lệ bỏ thuốc theo thời gian...)<br/>(Cần tích hợp thư viện biểu đồ)
-            
-          </div> */}
-            <ResponsiveContainer width="100%" height={300}> {/* Set specific height */}
-              <BarChart data={weeklyConsultations}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" />
-                <YAxis />
-                {/* <Tooltip /> */}
-                <Legend />
-                <Bar dataKey="consultations" fill="#8884d8" name="Số buổi tư vấn" />
-              </BarChart>
-            </ResponsiveContainer>
-          
-        </StyledCard>
-      </div>
+          <div>
+            <Title level={3}>Biểu đồ số buổi tư vấn theo tháng</Title>
+            <StyledCard>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="totalConsultations" fill="#8884d8" name="Số buổi tư vấn" />
+                </BarChart>
+              </ResponsiveContainer>
+            </StyledCard>
+          </div>
+        </>
+      )}
 
       {/* Add more sections for different reports/statistics */}
 

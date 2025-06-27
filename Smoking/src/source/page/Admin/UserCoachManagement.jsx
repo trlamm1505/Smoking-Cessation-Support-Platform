@@ -29,7 +29,18 @@ const UserCoachManagement = () => {
       const res = await userApi.getAll();
       // Chỉ lấy user có role là 'member'
       const filteredUsers = (res.data || res).filter(u => u.role === 'member');
-      setUsers(filteredUsers);
+      // Lấy thông tin gói cho từng user
+      const usersWithPackage = await Promise.all(filteredUsers.map(async (user) => {
+        try {
+          const pkgRes = await fetch(`http://localhost:8080/api/payments/current-package/${user.userId}`);
+          if (!pkgRes.ok) return { ...user, endDate: null };
+          const pkg = await pkgRes.json();
+          return { ...user, endDate: pkg?.endDate || null };
+        } catch {
+          return { ...user, endDate: null };
+        }
+      }));
+      setUsers(usersWithPackage);
     } catch (err) {
       message.error('Lỗi tải danh sách người dùng');
     }
@@ -56,6 +67,15 @@ const UserCoachManagement = () => {
   // Xóa user
   const handleDeleteUser = async (id) => {
     try {
+      const user = users.find(u => u.userId === id);
+      if (user && user.endDate) {
+        const now = new Date();
+        const end = new Date(user.endDate);
+        if (end > now) {
+          toast.error('Không thể xóa người dùng khi gói Premium chưa hết hạn!');
+          return;
+        }
+      }
       await userApi.delete(id);
       toast.success('Đã xóa người dùng');
       fetchUsers();
@@ -67,10 +87,27 @@ const UserCoachManagement = () => {
   // Xóa coach
   const handleDeleteCoach = async (id) => {
     try {
+      // Tìm coach trước khi xóa để lấy userId
+      const coach = coaches.find(c => c.coachId === id);
+      if (!coach) {
+        toast.error('Không tìm thấy coach');
+        return;
+      }
+
+      // Xóa coach trước
       await coachApi.adminDelete(id);
+      
+      // Xóa user tương ứng nếu có userId
+      if (coach.userId) {
+        await userApi.delete(coach.userId);
+      }
+      
       toast.success('Đã xóa coach');
+      // Cập nhật cả 2 danh sách
       fetchCoaches();
-    } catch {
+      fetchUsers();
+    } catch (err) {
+      console.error('Lỗi xóa coach:', err);
       toast.error('Xóa thất bại');
     }
   };
@@ -106,11 +143,19 @@ const UserCoachManagement = () => {
     { title: 'Tên', dataIndex: 'fullName', key: 'fullName' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Vai trò', dataIndex: 'role', key: 'role' },
+    { title: 'Ngày kết thúc gói', dataIndex: 'endDate', key: 'endDate',
+      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : '-',
+    },
     {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
-        <Popconfirm title="Xóa người dùng này?" onConfirm={() => handleDeleteUser(record.userId)} okText="Xóa" cancelText="Hủy">
+        <Popconfirm 
+          title="Xóa người dùng này?" 
+          onConfirm={() => handleDeleteUser(record.userId)} 
+          okText="Xóa" 
+          cancelText="Hủy"
+        >
           <Button icon={<DeleteOutlined />} danger size="small">Xóa</Button>
         </Popconfirm>
       ),
@@ -129,7 +174,13 @@ const UserCoachManagement = () => {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
-        <Popconfirm title="Xóa coach này?" onConfirm={() => handleDeleteCoach(record.coachId)} okText="Xóa" cancelText="Hủy">
+        <Popconfirm 
+          title="Xóa coach này?" 
+          description=""
+          onConfirm={() => handleDeleteCoach(record.coachId)} 
+          okText="Xóa" 
+          cancelText="Hủy"
+        >
           <Button icon={<DeleteOutlined />} danger size="small">Xóa</Button>
         </Popconfirm>
       ),

@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
-import { Card, Button, Table, Select, Input, Typography } from 'antd';
-import { StarOutlined, UserOutlined, AppstoreOutlined, PlusOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Card, Button, Table, Select, Input, Typography, Popconfirm, Modal, Form } from 'antd';
+import { StarOutlined, UserOutlined, AppstoreOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
+import userApi from '../Axios/userAxios';
+import { message } from 'antd';
+import coachApi from '../Axios/coachApi';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -99,85 +104,171 @@ const AnimatedToggleContainer = styled(ToggleContainer)`
 `;
 
 const UserReviews = () => {
-    // No sample data by default
     const [coachReviews, setCoachReviews] = useState([]);
     const [systemReviews, setSystemReviews] = useState([]);
-    const [coachesForReview] = useState([
-        { id: 1, name: 'Huấn luyện viên A' },
-        { id: 2, name: 'Huấn luyện viên B' },
-        { id: 3, name: 'Huấn luyện viên C' },
-    ]);
+    const [coachesForReview, setCoachesForReview] = useState([]);
     const [activeReviewType, setActiveReviewType] = useState('coach');
-    const [coachReviewForm, setCoachReviewForm] = useState({ coachId: '', rating: 0, comment: '' });
+    const [coachReviewForm, setCoachReviewForm] = useState({ coachId: '', rating: 0, comment: '', title: '' });
     const [systemReviewForm, setSystemReviewForm] = useState({ rating: 0, comment: '' });
+    const [loading, setLoading] = useState(false);
+    const [editingReview, setEditingReview] = useState(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [form] = Form.useForm();
+    const userId = Number(localStorage.getItem('userId'));
 
-    // Handlers
-    const handleCoachFormChange = (field, value) => {
-        setCoachReviewForm({ ...coachReviewForm, [field]: value });
-    };
-    const handleSystemFormChange = (field, value) => {
-        setSystemReviewForm({ ...systemReviewForm, [field]: value });
-    };
-    const handleSubmitCoachReview = () => {
-        if (!coachReviewForm.coachId || coachReviewForm.rating < 1) {
-            window.alert('Vui lòng điền đầy đủ thông tin!');
-            return;
+    // Fetch feedbacks for coach
+    useEffect(() => {
+        if (activeReviewType === 'coach') {
+            setLoading(true);
+            userApi.getFeedbacks({ targetType: 'coach', userId }).then(res => {
+                setCoachReviews((res.data || []).map(fb => ({ ...fb, id: fb.feedbackId })));
+            }).catch(() => message.error('Lỗi tải feedback')).finally(() => setLoading(false));
         }
-        const selectedCoach = coachesForReview.find(coach => coach.id === parseInt(coachReviewForm.coachId));
-        const coachName = selectedCoach ? selectedCoach.name : 'Không rõ';
-        setCoachReviews([
-            ...coachReviews,
-            {
-                id: Date.now(),
-                coachName,
-                rating: parseInt(coachReviewForm.rating),
-                comment: coachReviewForm.comment,
-                date: new Date().toISOString().split('T')[0],
-            },
-        ]);
-        setCoachReviewForm({ coachId: '', rating: 0, comment: '' });
-    };
-    const handleSubmitSystemReview = () => {
-        if (systemReviewForm.rating < 1) {
-            window.alert('Vui lòng điền đầy đủ thông tin!');
-            return;
+    }, [activeReviewType, userId]);
+
+    // Lấy danh sách coach thực tế
+    useEffect(() => {
+        coachApi.getAll().then(res => {
+            // Giả sử mỗi coach có id: coachId hoặc id, tên: fullName hoặc name
+            setCoachesForReview((res.data || []).map(c => ({
+                id: c.coachId || c.id,
+                name: c.fullName || c.name || c.username || 'Coach',
+            })));
+        });
+    }, []);
+
+    // Fetch feedbacks for system
+    useEffect(() => {
+        if (activeReviewType === 'system') {
+            setLoading(true);
+            userApi.getFeedbacks({ targetType: 'system', userId }).then(res => {
+                setSystemReviews((res.data || []).map(fb => ({ ...fb, id: fb.feedbackId })));
+            }).catch(() => message.error('Lỗi tải feedback hệ thống')).finally(() => setLoading(false));
         }
-        setSystemReviews([
-            ...systemReviews,
-            {
-                id: Date.now(),
-                rating: parseInt(systemReviewForm.rating),
-                comment: systemReviewForm.comment,
-                date: new Date().toISOString().split('T')[0],
-            },
-        ]);
-        setSystemReviewForm({ rating: 0, comment: '' });
+    }, [activeReviewType, userId]);
+
+    // Gửi feedback mới hoặc cập nhật
+    const handleSubmitCoachReview = (values) => {
+        if (editingReview) {
+            userApi.updateFeedback(editingReview.id, {
+                ...editingReview,
+                ...values,
+                userId,
+                targetType: 'coach',
+                targetId: values.coachId,
+            }).then(() => {
+                toast.success('Cập nhật feedback thành công!');
+                setEditingReview(null);
+                setIsModalVisible(false);
+                setCoachReviewForm({ coachId: '', rating: 0, comment: '', title: '' });
+                // Reload
+                userApi.getFeedbacks({ targetType: 'coach', userId }).then(res => setCoachReviews((res.data || []).map(fb => ({ ...fb, id: fb.feedbackId }))));
+            });
+        } else {
+            userApi.createFeedback({
+                userId,
+                targetType: 'coach',
+                targetId: values.coachId,
+                rating: values.rating,
+                comment: values.comment,
+                title: values.title || '',
+                status: 'active',
+            }).then(() => {
+                toast.success('Gửi feedback thành công!');
+                setIsModalVisible(false);
+                setCoachReviewForm({ coachId: '', rating: 0, comment: '', title: '' });
+                userApi.getFeedbacks({ targetType: 'coach', userId }).then(res => setCoachReviews((res.data || []).map(fb => ({ ...fb, id: fb.feedbackId }))));
+            });
+        }
     };
 
-    // Table columns
-    const coachColumns = [
-        {
-            title: 'Huấn luyện viên',
-            dataIndex: 'coachName',
-            key: 'coachName',
-        },
-        {
-            title: 'Số sao',
-            dataIndex: 'rating',
-            key: 'rating',
-            render: (rating) => <>{Array.from({ length: rating }, (_, i) => <Star key={i} />)}</>,
-        },
-        {
-            title: 'Nội dung đánh giá',
-            dataIndex: 'comment',
-            key: 'comment',
-        },
-        {
-            title: 'Ngày đánh giá',
-            dataIndex: 'date',
-            key: 'date',
-        },
-    ];
+    // Xóa feedback
+    const handleDeleteFeedback = (id) => {
+        userApi.deleteFeedback(id).then(() => {
+            toast.success('Xóa feedback thành công!');
+            userApi.getFeedbacks({ targetType: 'coach', userId }).then(res => setCoachReviews((res.data || []).map(fb => ({ ...fb, id: fb.feedbackId }))));
+        });
+    };
+
+    // Sửa feedback
+    const handleEditFeedback = (record) => {
+        setEditingReview(record);
+        setIsModalVisible(true);
+        form.setFieldsValue({
+            coachId: record.targetId,
+            rating: record.rating,
+            comment: record.comment,
+            title: record.title,
+        });
+    };
+
+    // Hiển thị form modal
+    const showModal = () => {
+        setEditingReview(null);
+        setIsModalVisible(true);
+        form.resetFields();
+    };
+
+    // Gửi feedback hệ thống mới hoặc cập nhật
+    const [editingSystemReview, setEditingSystemReview] = useState(null);
+    const [isSystemModalVisible, setIsSystemModalVisible] = useState(false);
+    const [systemForm] = Form.useForm();
+    const handleSubmitSystemReview = (values) => {
+        if (editingSystemReview) {
+            userApi.updateFeedback(editingSystemReview.id, {
+                ...editingSystemReview,
+                ...values,
+                userId,
+                targetType: 'system',
+                targetId: 0,
+            }).then(() => {
+                toast.success('Cập nhật feedback hệ thống thành công!');
+                setEditingSystemReview(null);
+                setIsSystemModalVisible(false);
+                systemForm.resetFields();
+                userApi.getFeedbacks({ targetType: 'system', userId }).then(res => setSystemReviews((res.data || []).map(fb => ({ ...fb, id: fb.feedbackId }))));
+            });
+        } else {
+            userApi.createFeedback({
+                userId,
+                targetType: 'system',
+                targetId: 0,
+                rating: values.rating,
+                comment: values.comment,
+                title: values.title || '',
+                status: 'active',
+            }).then(() => {
+                toast.success('Gửi feedback hệ thống thành công!');
+                setIsSystemModalVisible(false);
+                systemForm.resetFields();
+                userApi.getFeedbacks({ targetType: 'system', userId }).then(res => setSystemReviews((res.data || []).map(fb => ({ ...fb, id: fb.feedbackId }))));
+            });
+        }
+    };
+    // Xóa feedback hệ thống
+    const handleDeleteSystemFeedback = (id) => {
+        userApi.deleteFeedback(id).then(() => {
+            toast.success('Xóa feedback hệ thống thành công!');
+            userApi.getFeedbacks({ targetType: 'system', userId }).then(res => setSystemReviews((res.data || []).map(fb => ({ ...fb, id: fb.feedbackId }))));
+        });
+    };
+    // Sửa feedback hệ thống
+    const handleEditSystemFeedback = (record) => {
+        setEditingSystemReview(record);
+        setIsSystemModalVisible(true);
+        systemForm.setFieldsValue({
+            rating: record.rating,
+            comment: record.comment,
+            title: record.title,
+        });
+    };
+    // Hiển thị form modal system
+    const showSystemModal = () => {
+        setEditingSystemReview(null);
+        setIsSystemModalVisible(true);
+        systemForm.resetFields();
+    };
+    // Columns cho feedback hệ thống
     const systemColumns = [
         {
             title: 'Số sao',
@@ -186,19 +277,49 @@ const UserReviews = () => {
             render: (rating) => <>{Array.from({ length: rating }, (_, i) => <Star key={i} />)}</>,
         },
         {
-            title: 'Nội dung đánh giá',
+            title: 'Tiêu đề',
+            dataIndex: 'title',
+            key: 'title',
+        },
+        {
+            title: 'Nội dung',
             dataIndex: 'comment',
             key: 'comment',
         },
+    ];
+
+    // Columns cho feedback coach
+    const coachColumns = [
         {
-            title: 'Ngày đánh giá',
-            dataIndex: 'date',
-            key: 'date',
+            title: 'Huấn luyện viên',
+            dataIndex: 'targetId',
+            key: 'coachName',
+            render: (id) => {
+                const coach = coachesForReview.find(c => c.id === id);
+                return coach ? coach.name : id;
+            }
+        },
+        {
+            title: 'Số sao',
+            dataIndex: 'rating',
+            key: 'rating',
+            render: (rating) => <>{Array.from({ length: rating }, (_, i) => <Star key={i} />)}</>,
+        },
+        {
+            title: 'Tiêu đề',
+            dataIndex: 'title',
+            key: 'title',
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'comment',
+            key: 'comment',
         },
     ];
 
     return (
         <PageContainer>
+            <ToastContainer position="top-right" autoClose={2000} />
             <Title level={2} className="page-title">
                 <StarOutlined /> Đánh Giá Của Tôi
             </Title>
@@ -217,94 +338,141 @@ const UserReviews = () => {
                 </ToggleButton>
             </AnimatedToggleContainer>
 
-            <AnimatedCard
-                title={activeReviewType === 'coach' ? 'Viết đánh giá Huấn luyện viên' : 'Viết đánh giá Hệ thống'}
-                style={{ marginBottom: 24, borderRadius: 12 }}
-                delay="0.5s"
-            >
-                <ReviewForm>
-                    {activeReviewType === 'coach' ? (
-                        <>
-                            <div style={{ marginBottom: 16 }}>
-                                <label>Chọn Huấn luyện viên:</label>
-                                <Select
-                                    style={{ width: '100%' }}
-                                    value={coachReviewForm.coachId}
-                                    onChange={v => handleCoachFormChange('coachId', v)}
-                                    placeholder="-- Chọn huấn luyện viên --"
-                                >
+            {activeReviewType === 'coach' && (
+                <>
+                    <Button type="primary" style={{ marginBottom: 16 }} onClick={showModal} icon={<PlusOutlined />}>Gửi feedback mới</Button>
+                    <AnimatedCard
+                        title={<span><UserOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử feedback Huấn luyện viên</span>}
+                        style={{ borderRadius: 12 }}
+                        delay="0.5s"
+                    >
+                        <Table
+                            columns={coachColumns}
+                            dataSource={coachReviews.filter(fb => fb.targetType === 'coach')}
+                            rowKey="id"
+                            loading={loading}
+                            locale={{ emptyText: 'Chưa có feedback nào' }}
+                            pagination={{ pageSize: 5 }}
+                        />
+                    </AnimatedCard>
+                    <Modal
+                        title={editingReview ? 'Sửa feedback' : 'Gửi feedback mới'}
+                        open={isModalVisible}
+                        onCancel={() => { setIsModalVisible(false); setEditingReview(null); }}
+                        footer={null}
+                    >
+                        <Form
+                            form={form}
+                            layout="vertical"
+                            initialValues={coachReviewForm}
+                            onFinish={handleSubmitCoachReview}
+                        >
+                            <Form.Item
+                                name="coachId"
+                                label="Chọn Huấn luyện viên"
+                                rules={[{ required: true, message: 'Vui lòng chọn huấn luyện viên!' }]}
+                            >
+                                <Select placeholder="-- Chọn huấn luyện viên --">
                                     {coachesForReview.map(coach => (
                                         <Option key={coach.id} value={coach.id}>{coach.name}</Option>
                                     ))}
                                 </Select>
-                            </div>
-                            <div style={{ marginBottom: 16 }}>
-                                <label>Số sao (1-5):</label>
-                                <Select
-                                    style={{ width: '100%' }}
-                                    value={coachReviewForm.rating || undefined}
-                                    onChange={v => handleCoachFormChange('rating', v)}
-                                    placeholder="Chọn số sao"
-                                >
+                            </Form.Item>
+                            <Form.Item
+                                name="rating"
+                                label="Số sao (1-5)"
+                                rules={[{ required: true, message: 'Vui lòng chọn số sao!' }]}
+                            >
+                                <Select placeholder="Chọn số sao">
                                     {[1, 2, 3, 4, 5].map(star => <Option key={star} value={star}>{Array.from({ length: star }, (_, i) => <Star key={i} />)}</Option>)}
                                 </Select>
-                            </div>
-                            <div style={{ marginBottom: 16 }}>
-                                <label>Nội dung đánh giá:</label>
-                                <Input.TextArea
-                                    rows={4}
-                                    value={coachReviewForm.comment}
-                                    onChange={e => handleCoachFormChange('comment', e.target.value)}
-                                    placeholder="Chia sẻ trải nghiệm của bạn với huấn luyện viên..."
-                                />
-                            </div>
-                            <Button type="primary" onClick={handleSubmitCoachReview} icon={<PlusOutlined />}>Gửi đánh giá</Button>
-                        </>
-                    ) : (
-                        <>
-                            <div style={{ marginBottom: 16 }}>
-                                <label>Số sao (1-5):</label>
-                                <Select
-                                    style={{ width: '100%' }}
-                                    value={systemReviewForm.rating || undefined}
-                                    onChange={v => handleSystemFormChange('rating', v)}
-                                    placeholder="Chọn số sao"
-                                >
-                                    {[1, 2, 3, 4, 5].map(star => <Option key={star} value={star}>{Array.from({ length: star }, (_, i) => <Star key={i} />)}</Option>)}
-                                </Select>
-                            </div>
-                            <div style={{ marginBottom: 16 }}>
-                                <label>Nội dung đánh giá:</label>
-                                <Input.TextArea
-                                    rows={4}
-                                    value={systemReviewForm.comment}
-                                    onChange={e => handleSystemFormChange('comment', e.target.value)}
-                                    placeholder="Chia sẻ trải nghiệm của bạn với hệ thống..."
-                                />
-                            </div>
-                            <Button type="primary" onClick={handleSubmitSystemReview} icon={<PlusOutlined />}>Gửi đánh giá</Button>
-                        </>
-                    )}
-                </ReviewForm>
-            </AnimatedCard>
+                            </Form.Item>
+                            <Form.Item
+                                name="title"
+                                label="Tiêu đề"
+                                rules={[{ required: false }]}
+                            >
+                                <Input placeholder="Nhập tiêu đề (nếu có)" />
+                            </Form.Item>
+                            <Form.Item
+                                name="comment"
+                                label="Nội dung đánh giá"
+                                rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}
+                            >
+                                <Input.TextArea rows={4} placeholder="Chia sẻ trải nghiệm của bạn với huấn luyện viên..." />
+                            </Form.Item>
+                            <Form.Item>
+                                <Button type="primary" htmlType="submit">
+                                    {editingReview ? 'Cập nhật' : 'Gửi feedback'}
+                                </Button>
+                                <Button style={{ marginLeft: 8 }} onClick={() => { setIsModalVisible(false); setEditingReview(null); }}>Hủy</Button>
+                            </Form.Item>
+                        </Form>
+                    </Modal>
+                </>
+            )}
 
-            <AnimatedCard
-                title={activeReviewType === 'coach' ? (
-                    <span><UserOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử đánh giá Huấn luyện viên</span>
-                ) : (
-                    <span><AppstoreOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử đánh giá Hệ thống</span>
-                )}
-                style={{ borderRadius: 12 }}
-                delay="0.5s"
-            >
-                <Table
-                    columns={activeReviewType === 'coach' ? coachColumns : systemColumns}
-                    dataSource={activeReviewType === 'coach' ? coachReviews : systemReviews}
-                    rowKey="id"
-                    locale={{ emptyText: 'Chưa có đánh giá nào' }}
-                    pagination={{ pageSize: 5 }}
-                />
-            </AnimatedCard>
+            {activeReviewType === 'system' && (
+                <>
+                    <Button type="primary" style={{ marginBottom: 16 }} onClick={showSystemModal} icon={<PlusOutlined />}>Gửi feedback hệ thống</Button>
+                    <AnimatedCard
+                        title={<span><AppstoreOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử feedback hệ thống</span>}
+                        style={{ borderRadius: 12 }}
+                        delay="0.5s"
+                    >
+                        <Table
+                            columns={systemColumns}
+                            dataSource={systemReviews.filter(fb => fb.targetType === 'system' && fb.userId === userId)}
+                            rowKey="id"
+                            loading={loading}
+                            locale={{ emptyText: 'Chưa có feedback nào' }}
+                            pagination={{ pageSize: 5 }}
+                        />
+                    </AnimatedCard>
+                    <Modal
+                        title={editingSystemReview ? 'Sửa feedback hệ thống' : 'Gửi feedback hệ thống'}
+                        open={isSystemModalVisible}
+                        onCancel={() => { setIsSystemModalVisible(false); setEditingSystemReview(null); }}
+                        footer={null}
+                    >
+                        <Form
+                            form={systemForm}
+                            layout="vertical"
+                            onFinish={handleSubmitSystemReview}
+                        >
+                            <Form.Item
+                                name="rating"
+                                label="Số sao (1-5)"
+                                rules={[{ required: true, message: 'Vui lòng chọn số sao!' }]}
+                            >
+                                <Select placeholder="Chọn số sao">
+                                    {[1, 2, 3, 4, 5].map(star => <Option key={star} value={star}>{Array.from({ length: star }, (_, i) => <Star key={i} />)}</Option>)}
+                                </Select>
+                            </Form.Item>
+                            <Form.Item
+                                name="title"
+                                label="Tiêu đề"
+                                rules={[{ required: false }]}
+                            >
+                                <Input placeholder="Nhập tiêu đề (nếu có)" />
+                            </Form.Item>
+                            <Form.Item
+                                name="comment"
+                                label="Nội dung feedback"
+                                rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}
+                            >
+                                <Input.TextArea rows={4} placeholder="Chia sẻ trải nghiệm của bạn với hệ thống..." />
+                            </Form.Item>
+                            <Form.Item>
+                                <Button type="primary" htmlType="submit">
+                                    {editingSystemReview ? 'Cập nhật' : 'Gửi feedback'}
+                                </Button>
+                                <Button style={{ marginLeft: 8 }} onClick={() => { setIsSystemModalVisible(false); setEditingSystemReview(null); }}>Hủy</Button>
+                            </Form.Item>
+                        </Form>
+                    </Modal>
+                </>
+            )}
         </PageContainer>
     );
 };

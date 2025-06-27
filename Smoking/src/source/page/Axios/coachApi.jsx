@@ -19,8 +19,11 @@ const coachApi = {
   // Thêm coach mới (admin)
   adminCreate: (data) => axiosClient.post('/api/coaches/admin-create', data),
 
-  // Xóa coach theo id (admin)
-  adminDelete: (id) => axiosClient.delete(`/api/coaches/delete/${id}`),
+  // Xóa coach theo id (admin) - xóa cứng khỏi database
+  adminDelete: (id) => axiosClient.delete(`/api/coaches/delete/${id}?hardDelete=true`),
+
+  // Xóa coach hoàn toàn (cả coach và user tương ứng)
+  adminDeleteComplete: (id) => axiosClient.delete(`/api/coaches/delete-complete/${id}`),
 
   // BLOG POSTS API
   getAllBlogPosts: () => axiosClient.get('/api/blogposts'),
@@ -28,6 +31,20 @@ const coachApi = {
   createBlogPost: (data) => axiosClient.post('/api/blogposts', data),
   updateBlogPost: (id, data) => axiosClient.put(`/api/blogposts/${id}`, data),
   deleteBlogPost: (id) => axiosClient.delete(`/api/blogposts/${id}`),
+
+  // Lấy thống kê tổng quan cho coach
+  getConsultationSummary: (coachId) => axiosClient.get(`/api/statistics/consultations/summary/${coachId}`),
+
+  // Lấy thống kê số buổi tư vấn theo tháng cho coach
+  getMonthlyConsultations: (coachId) => axiosClient.get(`/api/statistics/consultations/monthly/${coachId}`),
+
+  // Thống kê doanh thu và người dùng cho admin
+  getRevenueTotal: () => axiosClient.get('/api/statistics/revenue/total'),
+  getRevenueSubscribers: () => axiosClient.get('/api/statistics/revenue/subscribers'),
+  getMostPopularPackage: () => axiosClient.get('/api/statistics/revenue/most-popular-package'),
+  getRevenueMonthly: () => axiosClient.get('/api/statistics/revenue/monthly'),
+  getRevenueAvgPerMember: () => axiosClient.get('/api/statistics/revenue/average-per-member'),
+  getUsersMonthly: () => axiosClient.get('/api/statistics/users/monthly'),
 };
 
 export default coachApi; 

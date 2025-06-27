@@ -336,6 +336,7 @@ const CoachBlog = () => {
     };
 
     const handleCreateArticle = async (values) => {
+        setLoading(true);
         try {
             const authorId = localStorage.getItem('coachId') || localStorage.getItem('userId') || 0;
             const payload = {
@@ -348,8 +349,16 @@ const CoachBlog = () => {
             handleCloseCreateModal();
             fetchArticles();
         } catch (err) {
-            toast.error('Tạo bài viết thất bại!');
+            // Hiển thị lỗi chi tiết nếu có từ API
+            let errorMsg = 'Tạo bài viết thất bại!';
+            if (err?.response?.data?.message) {
+                errorMsg = err.response.data.message;
+            } else if (err?.message) {
+                errorMsg = err.message;
+            }
+            toast.error(errorMsg);
         }
+        setLoading(false);
     };
 
    
@@ -452,7 +461,7 @@ const CoachBlog = () => {
                 
 
                 <AuthorInfo>
-                    <img src={article.authorAvatar || 'https://source.unsplash.com/random/100x100/?coach'} alt={article.authorName || 'Coach'} />
+                   
                     <div className="author-details">
                         <div className="author-name">{article.authorName || 'Coach'}</div>
                         <div className="author-title">Coach</div>
@@ -529,7 +538,7 @@ const CoachBlog = () => {
                          </div>
 
                          <div className="modal-author-info">
-                             <img src={selectedArticle.authorAvatar || 'https://source.unsplash.com/random/100x100/?coach'} alt={selectedArticle.authorName || 'Coach'} />
+                             
                              <div className="author-details">
                                  <div className="author-name">{selectedArticle.authorName || 'Coach'}</div>
                                  <div className="author-title">Coach</div>
@@ -556,7 +565,7 @@ const CoachBlog = () => {
                       form={form}
                       layout="vertical"
                       onFinish={handleCreateArticle}
-                      onFinishFailed={(err) => {console.log('Form submit failed:', err);}}
+                      onFinishFailed={(err) => {toast.error('Vui lòng điền đầy đủ thông tin!')}}
                   >
                       <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}> 
                           <Input placeholder="Nhập tiêu đề bài viết" />
@@ -586,8 +595,8 @@ const CoachBlog = () => {
                           <Input placeholder="Nhập URL ảnh đại diện" />
                       </Form.Item>
                       <Form.Item style={{ textAlign: 'center', marginTop: 24 }}>
-                          <Button type="primary" htmlType="submit">Tạo bài viết</Button>
-                          <Button style={{ marginLeft: 12 }} onClick={handleCloseCreateModal}>Hủy</Button>
+                          <Button type="primary" htmlType="submit" loading={loading} disabled={loading}>Tạo bài viết</Button>
+                          <Button style={{ marginLeft: 12 }} onClick={handleCloseCreateModal} disabled={loading}>Hủy</Button>
                       </Form.Item>
                   </Form>
                 </BlogFormModalContent>
