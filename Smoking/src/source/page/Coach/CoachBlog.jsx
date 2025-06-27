@@ -452,7 +452,7 @@ const CoachBlog = () => {
                 
 
                 <AuthorInfo>
-                    <img src={article.authorAvatar || 'https://source.unsplash.com/random/100x100/?coach'} alt={article.authorName || 'Coach'} />
+                   
                     <div className="author-details">
                         <div className="author-name">{article.authorName || 'Coach'}</div>
                         <div className="author-title">Coach</div>
@@ -529,7 +529,7 @@ const CoachBlog = () => {
                          </div>
 
                          <div className="modal-author-info">
-                             <img src={selectedArticle.authorAvatar || 'https://source.unsplash.com/random/100x100/?coach'} alt={selectedArticle.authorName || 'Coach'} />
+                             
                              <div className="author-details">
                                  <div className="author-name">{selectedArticle.authorName || 'Coach'}</div>
                                  <div className="author-title">Coach</div>
