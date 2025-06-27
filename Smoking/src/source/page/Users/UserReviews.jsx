@@ -286,34 +286,6 @@ const UserReviews = () => {
             dataIndex: 'comment',
             key: 'comment',
         },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-        },
-        {
-            title: 'Thao tác',
-            key: 'action',
-            render: (_, record) => (
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                    <Button
-                        size="small"
-                        icon={<EditOutlined />}
-                        style={{
-                            background: 'linear-gradient(90deg, #f9d923 0%, #f8b400 100%)',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: 6,
-                            fontWeight: 600,
-                            boxShadow: '0 2px 8px rgba(249,217,35,0.08)',
-                        }}
-                        onClick={() => handleEditSystemFeedback(record)}
-                    >
-                        Sửa
-                    </Button>
-                </div>
-            )
-        },
     ];
 
     // Columns cho feedback coach
@@ -342,34 +314,6 @@ const UserReviews = () => {
             title: 'Nội dung',
             dataIndex: 'comment',
             key: 'comment',
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-        },
-        {
-            title: 'Thao tác',
-            key: 'action',
-            render: (_, record) => (
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                    <Button
-                        size="small"
-                        icon={<EditOutlined />}
-                        style={{
-                            background: 'linear-gradient(90deg, #f9d923 0%, #f8b400 100%)',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: 6,
-                            fontWeight: 600,
-                            boxShadow: '0 2px 8px rgba(249,217,35,0.08)',
-                        }}
-                        onClick={() => handleEditFeedback(record)}
-                    >
-                        Sửa
-                    </Button>
-                </div>
-            )
         },
     ];
 
