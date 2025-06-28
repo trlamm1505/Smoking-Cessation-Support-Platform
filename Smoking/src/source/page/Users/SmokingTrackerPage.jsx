@@ -254,7 +254,7 @@ const SmokingTrackerPage = () => {
       userId,
       logDate: values.logDate ? values.logDate.format('YYYY-MM-DD') : new Date().toISOString().slice(0, 10),
       smokedToday: values.smokedToday !== undefined ? values.smokedToday : true,
-      cigarettesSmoked: values.cigaretteCount,
+      cigarettesSmoked: values.cigaretteCount !== undefined && values.cigaretteCount !== null ? values.cigaretteCount : 0,
       cravingsLevel: Number(values.cravingLevel),
       mood: values.mood,
       notes: values.healthNote || '',
@@ -327,9 +327,9 @@ const SmokingTrackerPage = () => {
 
   const filteredEntries = planRange.start && planRange.end
     ? entries.filter(entry => {
-        const entryDate = dayjs(entry.date);
-        return entryDate.isSameOrAfter(planRange.start, 'day') && entryDate.isSameOrBefore(planRange.end, 'day');
-      })
+      const entryDate = dayjs(entry.date);
+      return entryDate.isSameOrAfter(planRange.start, 'day') && entryDate.isSameOrBefore(planRange.end, 'day');
+    })
     : entries;
 
   return (
@@ -354,9 +354,9 @@ const SmokingTrackerPage = () => {
                 <span>Số điếu thuốc</span>
               </Space>
             }
-            rules={[{ required: true, message: 'Vui lòng nhập số điếu!' }]}
+            rules={[]}
           >
-            <InputNumber min={1} placeholder="Nhập số điếu" style={{ width: '100%' }} />
+            <InputNumber min={0} placeholder="Nhập số điếu" style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item
