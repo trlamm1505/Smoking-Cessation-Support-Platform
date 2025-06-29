@@ -374,14 +374,9 @@ const Home = () => {
                 const years = user.years || 5;
                 const cigarettesPerDay = user.cigarettesPerDay || user.cigarettes_per_day || 5;
                 const soNgay = planData ? getPlanDays(planData.startDate, planData.targetQuitDate) : 20;
-                // Log giá trị truyền vào API
-                console.log('years:', years, 'cigarettesPerDay:', cigarettesPerDay, 'soNgay:', soNgay);
                 // Gọi API stages/generate với đúng tham số
                 const stagesRes = await axios.post('http://localhost:8080/stages/generate', { years, cigarettesPerDay, soNgay });
                 setStages(stagesRes.data);
-                // Log kiểm tra
-                console.log('stages:', stagesRes.data);
-                console.log('plan:', planData);
             } catch (err) {
                 setError('Lỗi khi tải dữ liệu người dùng.');
             } finally {
@@ -460,10 +455,6 @@ const Home = () => {
             };
         });
     }, [stages, plan]);
-
-    console.log('stages:', stages);
-    console.log('plan:', plan);
-    console.log('stageProgress:', stageProgress);
 
     // Thêm phases tĩnh giống DetailedSchedule.jsx
     const phases = [
