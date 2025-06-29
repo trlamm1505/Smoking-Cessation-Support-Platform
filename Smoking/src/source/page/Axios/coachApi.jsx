@@ -45,6 +45,9 @@ const coachApi = {
   getRevenueMonthly: () => axiosClient.get('/api/statistics/revenue/monthly'),
   getRevenueAvgPerMember: () => axiosClient.get('/api/statistics/revenue/average-per-member'),
   getUsersMonthly: () => axiosClient.get('/api/statistics/users/monthly'),
+
+  // Lấy danh sách consultation của coach
+  getCoachConsultations: (coachId) => axiosClient.get(`/api/consultations/coach/${coachId}`),
 };
 
 export default coachApi; 

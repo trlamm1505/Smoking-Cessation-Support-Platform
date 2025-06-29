@@ -258,6 +258,22 @@ const Consultation = () => {
             .map(app => dayjs(app.scheduledTime).format('HH:mm'));
     };
 
+    // Helper để lấy endTime lớn nhất trong ngày
+    const getMaxEndTime = (date) => {
+        if (!date) return null;
+        const dateStr = date.format('YYYY-MM-DD');
+        let maxEndTime = null;
+        (coachAppointments || []).forEach(app => {
+            if (dayjs(app.scheduledTime).format('YYYY-MM-DD') === dateStr && app.endTime) {
+                const end = dayjs(app.endTime);
+                if (!maxEndTime || end.isAfter(maxEndTime)) {
+                    maxEndTime = end;
+                }
+            }
+        });
+        return maxEndTime;
+    };
+
     const handleModalOk = () => {
         form.validateFields().then(values => {
             const coachId = selectedCoach.coachId;
@@ -272,13 +288,19 @@ const Consultation = () => {
                 notes: values.notes || ''
             })
                 .then(() => {
-            message.success('Đặt lịch tư vấn thành công!');
-            setIsModalVisible(false);
-            form.resetFields();
+                    message.success('Đặt lịch tư vấn thành công!');
+                    setIsModalVisible(false);
+                    form.resetFields();
                     fetchUserConsultations(userId).then(res => setAppointments(res.data));
                 })
-                .catch(() => {
-                    message.error('Đặt lịch thất bại!');
+                .catch((err) => {
+                    let errorMsg = 'Đặt lịch thất bại!';
+                    if (err?.response?.data?.message) {
+                        errorMsg = err.response.data.message;
+                    } else if (err?.message) {
+                        errorMsg = err.message;
+                    }
+                    message.error(errorMsg);
                 });
         });
     };
@@ -367,11 +389,10 @@ const Consultation = () => {
                             key: 'meetingLink', 
                             render: (_, record) => {
                                 const link = getMeetingLink(record);
-                                const scheduled = dayjs(record.scheduledTime);
                                 const now = dayjs();
-                                const isActive = now.isBefore(scheduled.add(1, 'hour'));
+                                const endTime = record.endTime ? dayjs(record.endTime) : null;
                                 if (link) {
-                                    if (isActive) {
+                                    if (endTime && now.isBefore(endTime)) {
                                         return <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a>;
                                     } else {
                                         return <span style={{ opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}>Tham gia</span>;
@@ -416,17 +437,24 @@ const Consultation = () => {
                             label={<span>Chọn giờ tư vấn</span>}
                             rules={[{ required: true, message: 'Vui lòng chọn giờ!' }]}
                         >
-                            <Select placeholder="Chọn giờ tư vấn"
-                                disabled={!selectedDate}
-                            >
+                            <Select placeholder="Chọn giờ tư vấn" disabled={!selectedDate}>
                                 {(() => {
                                     const date = selectedDate;
                                     const booked = getBookedSlots(date);
-                                    return timeSlots.map(slot => (
-                                        <Option value={slot} key={slot} disabled={booked.includes(slot)}>
-                                            {slot} {booked.includes(slot) ? '(Đã có người đặt)' : ''}
-                                        </Option>
-                                    ));
+                                    const fixedSlots = ['07:00', '09:30', '12:30', '15:00'];
+                                    const now = dayjs();
+                                    const isToday = date && date.isSame(now, 'day');
+                                    return fixedSlots.map(slot => {
+                                        const isBooked = booked.includes(slot);
+                                        // Nếu là hôm nay và giờ hiện tại đã qua slot thì disable
+                                        const slotTime = date ? dayjs(date.format('YYYY-MM-DD') + 'T' + slot) : null;
+                                        const isPast = isToday && slotTime && now.isAfter(slotTime);
+                                        return (
+                                            <Option value={slot} key={slot} disabled={isBooked || isPast}>
+                                                {slot} {isBooked ? '(Đã có người đặt)' : isPast ? '(Đã qua giờ)' : ''}
+                                            </Option>
+                                        );
+                                    });
                                 })()}
                             </Select>
                         </Form.Item>
