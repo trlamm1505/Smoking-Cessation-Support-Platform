@@ -335,6 +335,8 @@ const Home = () => {
     const [stages, setStages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [leaderboard, setLeaderboard] = useState([]);
+    const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -347,12 +349,11 @@ const Home = () => {
                     setLoading(false);
                     return;
                 }
-                // Gọi song song 3 API: userApi.get, habit-logs/stats/plan, cessation-plans, stages/generate
-                const [userRes, statsRes, planRes, stagesRes] = await Promise.all([
+                // Gọi song song 3 API: userApi.get, habit-logs/stats/plan, cessation-plans
+                const [userRes, statsRes, planRes] = await Promise.all([
                     userApi.get(userId),
                     axios.get(`http://localhost:8080/habit-logs/stats/plan/${userId}`),
-                    axios.get(`http://localhost:8080/api/cessation-plans/user/${userId}`),
-                    axios.post('http://localhost:8080/stages/generate', { userId })
+                    axios.get(`http://localhost:8080/api/cessation-plans/user/${userId}`)
                 ]);
                 const user = userRes.data;
                 const stats = Array.isArray(statsRes.data) && statsRes.data.length > 0 ? statsRes.data[0] : null;
@@ -369,7 +370,18 @@ const Home = () => {
                     recentActivities: user.recentActivities || [],
                 });
                 setPlan(planData);
+                // Lấy tham số cho stages/generate
+                const years = user.years || 5;
+                const cigarettesPerDay = user.cigarettesPerDay || user.cigarettes_per_day || 5;
+                const soNgay = planData ? getPlanDays(planData.startDate, planData.targetQuitDate) : 20;
+                // Log giá trị truyền vào API
+                console.log('years:', years, 'cigarettesPerDay:', cigarettesPerDay, 'soNgay:', soNgay);
+                // Gọi API stages/generate với đúng tham số
+                const stagesRes = await axios.post('http://localhost:8080/stages/generate', { years, cigarettesPerDay, soNgay });
                 setStages(stagesRes.data);
+                // Log kiểm tra
+                console.log('stages:', stagesRes.data);
+                console.log('plan:', planData);
             } catch (err) {
                 setError('Lỗi khi tải dữ liệu người dùng.');
             } finally {
@@ -377,6 +389,24 @@ const Home = () => {
             }
         };
         fetchData();
+    }, []);
+
+    // Fetch leaderboard
+    useEffect(() => {
+        const fetchLeaderboard = async () => {
+            setLoadingLeaderboard(true);
+            try {
+                const res = await axios.get('http://localhost:8080/achievements/user-summary');
+                // Sắp xếp theo achievementCount giảm dần
+                const sorted = [...res.data].sort((a, b) => b.achievementCount - a.achievementCount);
+                setLeaderboard(sorted);
+            } catch (err) {
+                setLeaderboard([]);
+            } finally {
+                setLoadingLeaderboard(false);
+            }
+        };
+        fetchLeaderboard();
     }, []);
 
     function formatDate(dateStr) {
@@ -409,14 +439,15 @@ const Home = () => {
         // Nhóm theo stageOrder
         const grouped = {};
         stages.forEach(item => {
-            if (!grouped[item.stageOrder]) grouped[item.stageOrder] = [];
-            grouped[item.stageOrder].push(item);
+            const key = item.stageOrder || item.stage_name || item.stageName;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(item);
         });
         // Tính số ngày đã hoàn thành cho từng giai đoạn
         let remain = getDaysDoneCapped(plan.startDate, plan.targetQuitDate);
         return Object.keys(grouped).sort((a, b) => a - b).map(order => {
             const arr = grouped[order];
-            const stageName = arr[0].stageName;
+            const stageName = arr[0].stageName || arr[0].stage_name || `Giai đoạn ${order}`;
             const goal = arr[0].goal;
             const totalDays = arr.length;
             const done = Math.max(0, Math.min(remain, totalDays));
@@ -429,6 +460,10 @@ const Home = () => {
             };
         });
     }, [stages, plan]);
+
+    console.log('stages:', stages);
+    console.log('plan:', plan);
+    console.log('stageProgress:', stageProgress);
 
     // Thêm phases tĩnh giống DetailedSchedule.jsx
     const phases = [
@@ -461,8 +496,9 @@ const Home = () => {
                 {`Xin chào, ${userData.name}`}
             </WelcomeTitle>
 
-            <Row gutter={[24, 24]}>
-                <Col xs={24} sm={12} lg={12}>
+            {/* Hàng 1: 2 thẻ thống kê kéo dài ngang khung hình */}
+            <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+                <Col xs={24} lg={12}>
                     <StatisticCard>
                         <ClockCircleOutlined className="icon" />
                         <Statistic
@@ -472,7 +508,7 @@ const Home = () => {
                         />
                     </StatisticCard>
                 </Col>
-                <Col xs={24} sm={12} lg={12}>
+                <Col xs={24} lg={12}>
                     <StatisticCard>
                         <DollarOutlined className="icon" />
                         <Statistic
@@ -485,27 +521,80 @@ const Home = () => {
                 </Col>
             </Row>
 
-            {/* Thanh tiến trình cai thuốc dựa trên kế hoạch */}
-            <Col xs={24} lg={16}>
-                <Row gutter={[24, 24]}>
-                    <Col xs={24}>
-                        <ProgressCard title="Tiến Trình Cai Thuốc" style={{ marginTop: 32 }}>
-                            <Progress
-                                percent={plan ? Math.round((getDaysDoneCapped(plan.startDate, plan.targetQuitDate) / getPlanDays(plan.startDate, plan.targetQuitDate)) * 100) : 0}
-                                strokeColor={{
-                                    '0%': '#5FB8B3',
-                                    '100%': '#4ca29d'
-                                }}
-                                strokeWidth={12}
-                                format={() => plan ? `${getDaysDoneCapped(plan.startDate, plan.targetQuitDate)}/${getPlanDays(plan.startDate, plan.targetQuitDate)}` : '0/0'}
-                            />
-                            <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: 20, fontSize: '15px' }}>
-                                {plan ? `Còn ${getPlanDays(plan.startDate, plan.targetQuitDate) - getDaysDoneCapped(plan.startDate, plan.targetQuitDate)} ngày nữa đến mốc ${getPlanDays(plan.startDate, plan.targetQuitDate)} ngày!` : 'Chưa có kế hoạch.'}
-                            </Text>
-                        </ProgressCard>
-                    </Col>
-                </Row>
-            </Col>
+            {/* Hàng 2: Tiến trình và Leaderboard */}
+            <Row gutter={[24, 24]}>
+                {/* Cột trái: Tiến trình cai thuốc */}
+                <Col xs={24} lg={16}>
+                    <ProgressCard title="Tiến Trình Cai Thuốc" style={{ height: 'auto' }}>
+                        <Progress
+                            percent={plan ? Math.round((getDaysDoneCapped(plan.startDate, plan.targetQuitDate) / getPlanDays(plan.startDate, plan.targetQuitDate)) * 100) : 0}
+                            strokeColor={{
+                                '0%': '#5FB8B3',
+                                '100%': '#4ca29d'
+                            }}
+                            strokeWidth={12}
+                            format={() => plan ? `${getDaysDoneCapped(plan.startDate, plan.targetQuitDate)}/${getPlanDays(plan.startDate, plan.targetQuitDate)}` : '0/0'}
+                        />
+                        <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: 20, fontSize: '15px' }}>
+                            {plan ? `Còn ${getPlanDays(plan.startDate, plan.targetQuitDate) - getDaysDoneCapped(plan.startDate, plan.targetQuitDate)} ngày nữa đến mốc ${getPlanDays(plan.startDate, plan.targetQuitDate)} ngày!` : 'Chưa có kế hoạch.'}
+                        </Text>
+                    </ProgressCard>
+
+                    {/* Tiến trình theo giai đoạn */}
+                    <ProgressCard title="Tiến Trình Theo Giai Đoạn" style={{ height: 'auto', marginTop: 24 }}>
+                        {stageProgress && stageProgress.length > 0 ? (
+                            stageProgress.map((stage, idx) => (
+                                <div key={idx} style={{ marginBottom: 20 }}>
+                                    <div style={{ fontWeight: 700, fontSize: 15 }}>{stage.stageName}</div>
+                                    <div style={{ fontWeight: 500, color: '#5FB8B3', marginBottom: 4 }}>{stage.goal}</div>
+                                    <Progress
+                                        percent={stage.totalDays > 0 ? Math.round((stage.done / stage.totalDays) * 100) : 0}
+                                        strokeColor={{
+                                            '0%': '#5FB8B3',
+                                            '100%': '#4ca29d'
+                                        }}
+                                        strokeWidth={10}
+                                        format={percent => `${percent}%`}
+                                    />
+                                </div>
+                            ))
+                        ) : (
+                            <Text type="secondary">Chưa có dữ liệu giai đoạn.</Text>
+                        )}
+                    </ProgressCard>
+                </Col>
+                {/* Cột phải: Leaderboard */}
+                <Col xs={24} lg={8}>
+                    <LeaderboardCard>
+                        <div className="leaderboard-header">
+                            <TrophyOutlined className="trophy-icon" />
+                            <span style={{ fontWeight: 600, fontSize: 18 }}>Bảng Xếp Hạng</span>
+                        </div>
+                        {loadingLeaderboard ? (
+                            <Spin />
+                        ) : (
+                            leaderboard.length === 0 ? (
+                                <Text type="secondary">Chưa có dữ liệu xếp hạng.</Text>
+                            ) : (
+                                leaderboard.slice(0, 10).map((user, idx) => (
+                                    <div className="leaderboard-item" key={user.userId}>
+                                        <span className={`rank rank-${idx < 3 ? idx + 1 : 'other'}`}>{`#${idx + 1}`}</span>
+                                        <img src={user.avatarUrl || user.avatarURL || user.avatar || ''} alt="avatar" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', marginLeft: 12, border: '2px solid #5FB8B3' }} />
+                                        <div className="user-info">
+                                            <div className="user-name">{user.fullName}</div>
+                                            <div className="stats">
+                                                <div className="stat-item"><ClockCircleOutlined /> {user.noSmokeDays} ngày</div>
+                                                <div className="stat-item"><DollarOutlined /> {user.moneySaved?.toLocaleString()}đ</div>
+                                                <div className="stat-item"><TrophyOutlined /> {user.achievementCount} thành tích</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )
+                        )}
+                    </LeaderboardCard>
+                </Col>
+            </Row>
         </PageContainer>
     );
 };
