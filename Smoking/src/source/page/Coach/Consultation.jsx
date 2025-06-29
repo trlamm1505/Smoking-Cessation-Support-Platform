@@ -96,6 +96,73 @@ const ConsultationEntry = styled.div`
     word-break: break-word;
 `;
 
+const StyledConfirmModal = styled(Modal)`
+  .ant-modal-content {
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f8fffe 0%, #e6f7f6 100%);
+    box-shadow: 0 8px 32px rgba(95,184,179,0.12);
+    padding: 0 8px 8px 8px;
+  }
+  .ant-modal-header {
+    border-radius: 18px 18px 0 0;
+    background: #e6f7f6;
+    border-bottom: none;
+    padding: 24px 32px 12px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .ant-modal-title {
+    color: #2c7a75;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ant-modal-body {
+    padding: 24px 32px 8px 32px;
+  }
+  .ant-form-item-label > label {
+    color: #2c7a75;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .ant-input, .ant-select-selector, textarea {
+    border-radius: 10px !important;
+    background: #f6fcfb !important;
+    border: 1.5px solid #e3f6f5 !important;
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .ant-input:focus, .ant-select-focused .ant-select-selector {
+    border-color: #5FB8B3 !important;
+    box-shadow: 0 0 0 2px #5FB8B344;
+  }
+  .ant-btn-primary {
+    background: linear-gradient(90deg, #5FB8B3 0%, #2c7a75 100%) !important;
+    border: none;
+    font-weight: 700;
+    font-size: 18px;
+    border-radius: 12px;
+    height: 48px;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px #5FB8B344;
+    transition: background 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  .ant-btn-primary:hover {
+    background: linear-gradient(90deg, #2c7a75 0%, #5FB8B3 100%) !important;
+    box-shadow: 0 4px 16px #5FB8B344;
+  }
+  .ant-btn {
+    border-radius: 12px;
+    font-size: 16px;
+    height: 44px;
+  }
+`;
+
 const TimeConsultation = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs()); // Default to today
   const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
@@ -495,11 +562,10 @@ const handleApprove = (consultationId) => {
                 key: 'meetingLink',
                 render: (_, record) => {
                   const link = record.meetingLink || record.meetLink;
-                  const scheduled = dayjs(record.scheduledTime);
                   const now = dayjs();
-                  const isActive = now.isBefore(scheduled.add(1, 'hour'));
+                  const endTime = record.endTime ? dayjs(record.endTime) : null;
                   if (link) {
-                    if (isActive) {
+                    if (endTime && now.isBefore(endTime)) {
                       return <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a>;
                     } else {
                       return <span style={{ opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}>Tham gia</span>;
@@ -543,12 +609,15 @@ const handleApprove = (consultationId) => {
        </Modal>
 
         {/* Confirm Modal */}
-        <Modal
-            title="Xác nhận cuộc hẹn và thêm Link Meet"
+        <StyledConfirmModal
+            title={"Xác nhận cuộc hẹn & Link Meet"}
             open={isConfirmModalVisible}
             onCancel={handleCancelConfirmModal}
             footer={null}
         >
+            <div style={{ marginBottom: 18, color: '#2c7a75', fontSize: 16, textAlign: 'center' }}>
+              Vui lòng nhập link Google Meet để xác nhận và gửi cho thành viên!
+            </div>
             <Form
                 form={confirmForm}
                 layout="vertical"
@@ -564,18 +633,16 @@ const handleApprove = (consultationId) => {
                 >
                     <Input placeholder="Dán link Google Meet vào đây..." />
                 </Form.Item>
-                <Form.Item>
-                    <Space>
-                        <Button onClick={handleCancelConfirmModal}>
-                            Hủy
-                        </Button>
-                        <Button type="primary" htmlType="submit">
-                            Lưu và Xác nhận
-                        </Button>
-                    </Space>
+                <Form.Item style={{ display: 'flex', justifyContent: 'flex-start', gap: 12, marginBottom: 0 }}>
+                    <Button onClick={handleCancelConfirmModal} style={{ background: '#f5f5f5', color: '#666', border: 'none', boxShadow: 'none', fontWeight: 500, borderRadius: 10, padding: '0 22px', height: 40 }}>
+                        Hủy
+                    </Button>
+                    <Button type="primary" htmlType="submit">
+                        Lưu và Xác nhận
+                    </Button>
                 </Form.Item>
             </Form>
-        </Modal>
+        </StyledConfirmModal>
 
     </Container>
   );

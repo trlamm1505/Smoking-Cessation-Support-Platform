@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Table, Input, Button, Tag, Space, Modal, message, Typography, Card, Row, Col, Progress as AntProgress, List } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Table, Input, Button, Tag, Space, Modal, message, Typography, Card, Row, Col, Progress as AntProgress, List, Spin } from 'antd';
 import styled from 'styled-components';
 import { SearchOutlined, UserOutlined, PhoneOutlined, MailOutlined, CalendarOutlined, CheckCircleOutlined, HeartOutlined, TrophyOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import coachApi from '../Axios/coachApi';
 
 const { Title, Text } = Typography;
 
@@ -91,41 +92,69 @@ const Members = () => {
   const [searchText, setSearchText] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with API call
-  const members = [
-    { id: 1, name: 'Nguyễn Văn A', phone: '0987654321', email: 'nguyenvana@example.com', status: 'active', lastConsultation: '2024-03-15', progress: 75,
-       details: {
-        startDate: '2024-01-01',
-        targetDate: '2024-04-01',
-        cigarettesPerDay: 20,
-        quitReason: 'Vì sức khỏe gia đình',
-        journal: [
-          { date: '2024-03-20', entry: 'Ngày thứ 80 không hút thuốc. Cảm thấy tràn đầy năng lượng.' },
-          { date: '2024-03-19', entry: 'Hơi thèm thuốc vào buổi sáng nhưng đã vượt qua.' },
-        ],
-        achievements: [
-            'Đạt mốc 1 tháng không hút thuốc',
-            'Tiết kiệm được 5 triệu đồng',
-        ]
+  // Fetch consultation data from API
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const coachId = localStorage.getItem('coachId');
+        if (!coachId) {
+          message.error('Không tìm thấy coachId!');
+          setLoading(false);
+          return;
+        }
+
+        const response = await coachApi.getCoachConsultations(coachId);
+        const consultations = response.data || [];
+        
+        // Transform consultation data to match the table structure
+        // Lọc trùng thành viên theo email, chỉ lấy lịch tư vấn gần nhất
+        const memberMap = new Map();
+        consultations.forEach(consultation => {
+          const key = consultation.email || consultation.userId;
+          // Nếu đã có, chỉ giữ lại lịch tư vấn mới nhất (so sánh scheduledTime)
+          if (!memberMap.has(key) || dayjs(consultation.scheduledTime).isAfter(dayjs(memberMap.get(key).scheduledTime))) {
+            memberMap.set(key, consultation);
+          }
+        });
+        const uniqueConsultations = Array.from(memberMap.values());
+        const transformedMembers = uniqueConsultations.map(consultation => ({
+          id: consultation.consultationId,
+          name: consultation.fullName,
+          phone: consultation.phoneNumber,
+          email: consultation.email,
+          status: consultation.status === 'approved' ? 'approved' : consultation.status === 'pending' ? 'pending' : 'cancelled',
+          lastConsultation: dayjs(consultation.scheduledTime).format('YYYY-MM-DD'),
+          progress: consultation.status === 'approved' ? 75 : consultation.status === 'pending' ? 30 : consultation.status === 'cancelled' ? 0 : 100,
+          meetingLink: consultation.meetingLink,
+          details: {
+            startDate: dayjs(consultation.scheduledTime).format('YYYY-MM-DD'),
+            targetDate: dayjs(consultation.endTime).format('YYYY-MM-DD'),
+            cigarettesPerDay: 20, // Default value since API doesn't provide this
+            quitReason: 'Vì sức khỏe gia đình', // Default value since API doesn't provide this
+            journal: [
+              { date: dayjs(consultation.scheduledTime).format('YYYY-MM-DD'), entry: `Buổi tư vấn với ${consultation.fullName} - ${consultation.notes || 'Không có ghi chú'}` },
+            ],
+            achievements: [
+              'Đặt lịch tư vấn thành công',
+              consultation.status === 'approved' ? 'Buổi tư vấn đã được xác nhận' : 'Đang chờ xác nhận',
+            ]
+          }
+        }));
+
+        setMembers(transformedMembers);
+      } catch (error) {
+        console.error('Error fetching consultations:', error);
+        message.error('Lỗi khi tải danh sách thành viên!');
+      } finally {
+        setLoading(false);
       }
-     },
-    { id: 2, name: 'Trần Thị B', phone: '0123456789', email: 'tranthib@example.com', status: 'paused', lastConsultation: '2024-03-10', progress: 30,
-      details: {
-        startDate: '2024-02-15',
-        targetDate: '2024-05-15',
-        cigarettesPerDay: 10,
-        quitReason: 'Muốn sống khỏe hơn',
-         journal: [
-          { date: '2024-03-10', entry: 'Đang gặp khó khăn trong việc giảm số điếu hút.' },
-        ],
-         achievements: [
-            'Giảm số điếu hút hàng ngày',
-        ]
-      }
-    },
-    // Add more mock data as needed
-  ];
+    };
+
+    fetchMembers();
+  }, []);
 
   const columns = [
     {
@@ -170,6 +199,9 @@ const Members = () => {
           active: { color: 'success', text: 'Đang tư vấn' },
           completed: { color: 'default', text: 'Hoàn thành' },
           paused: { color: 'warning', text: 'Tạm dừng' },
+          approved: { color: 'success', text: 'Đã xác nhận' },
+          pending: { color: 'warning', text: 'Chờ xác nhận' },
+          cancelled: { color: 'error', text: 'Đã hủy' },
         };
         const config = statusConfig[status] || { color: 'default', text: status };
         return <StatusTag color={config.color}>{config.text}</StatusTag>;
@@ -236,17 +268,29 @@ const Members = () => {
         />
       </Header>
 
-      <Table
-        columns={columns}
-        dataSource={filteredMembers}
-        rowKey="id"
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total) => `Tổng số ${total} thành viên`,
-        }}
-        bordered={false}
-      />
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          <Spin size="large" />
+          <div style={{ marginTop: '16px' }}>Đang tải danh sách thành viên...</div>
+        </div>
+      ) : (
+        <>
+          <Table
+            columns={columns}
+            dataSource={filteredMembers}
+            rowKey="id"
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Tổng số ${total} thành viên`,
+            }}
+            bordered={false}
+            locale={{
+              emptyText: 'Chưa có thành viên nào đặt lịch tư vấn'
+            }}
+          />
+        </>
+      )}
 
       <Modal
         title={selectedMember ? `Chi tiết thành viên: ${selectedMember.name}` : 'Chi tiết thành viên'}
