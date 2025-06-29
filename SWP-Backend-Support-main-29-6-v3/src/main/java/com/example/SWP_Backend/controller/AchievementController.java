@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/achievements")
@@ -61,7 +62,11 @@ public class AchievementController {
     // API lấy danh sách tổng hợp thành tích từng user (top cộng đồng)
     @GetMapping("/user-summary")
     public ResponseEntity<List<UserAchievementSummaryDTO>> getUserAchievementSummaries() {
-        List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findAll()
+                .stream()
+                .filter(u -> "member".equalsIgnoreCase(u.getRole()))
+                .toList();
+
         List<UserAchievementSummaryDTO> result = new ArrayList<>();
 
         for (User user : users) {
@@ -88,7 +93,9 @@ public class AchievementController {
     public ResponseEntity<UserAchievementSummaryDTO> getUserAchievementSummary(@PathVariable Long userId) {
         // Lấy user từ repo (nếu không tồn tại trả 404)
         User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return ResponseEntity.notFound().build();
+        if (user == null || !"member".equalsIgnoreCase(user.getRole())) {
+            return ResponseEntity.notFound().build(); // Hoặc trả về thông báo "Chỉ member mới có thành tích"
+        }
 
         String fullName = user.getFullName();
         String avatarUrl = user.getProfilePictureUrl();
@@ -126,4 +133,27 @@ public class AchievementController {
             @PathVariable String type) {
         return achievementService.getAchievementStatusForUserByType(userId, type);
     }
+
+    // GET: Tất cả achievements CHƯA đạt của user (chỉ member mới có, coach/admin trả về tất cả achievements với achieved = false)
+    @GetMapping("/not-achieved/{userId}")
+    public List<AchievementStatusDTO> getNotAchievedAchievements(@PathVariable Long userId) {
+        // Lấy trạng thái tất cả thành tích của user (nếu không phải member sẽ trả về all false)
+        List<AchievementStatusDTO> all = achievementService.getAchievementStatusForUser(userId);
+        // Lọc những cái chưa đạt (achieved = false)
+        return all.stream()
+                .filter(dto -> !dto.isAchieved())
+                .collect(Collectors.toList());
+    }
+
+    // GET: Tất cả achievements ĐÃ đạt của user (chỉ member mới có, coach/admin trả về rỗng)
+    @GetMapping("/achieved/{userId}")
+    public List<AchievementStatusDTO> getAchievedAchievements(@PathVariable Long userId) {
+        // Lấy trạng thái tất cả thành tích của user (nếu không phải member sẽ trả về all false)
+        List<AchievementStatusDTO> all = achievementService.getAchievementStatusForUser(userId);
+        // Lọc những cái đã đạt (achieved = true)
+        return all.stream()
+                .filter(AchievementStatusDTO::isAchieved)
+                .collect(Collectors.toList());
+    }
+
 }

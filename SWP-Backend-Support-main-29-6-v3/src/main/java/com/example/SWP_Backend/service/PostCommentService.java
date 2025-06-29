@@ -2,7 +2,6 @@ package com.example.SWP_Backend.service;
 
 import com.example.SWP_Backend.dto.PostCommentCreateRequest;
 import com.example.SWP_Backend.dto.PostCommentDTO;
-import com.example.SWP_Backend.dto.PostCommentEditRequest;
 import com.example.SWP_Backend.dto.PostCommentUpdateRequest;
 import com.example.SWP_Backend.entity.BlogPosts;
 import com.example.SWP_Backend.entity.PostComments;
@@ -11,14 +10,10 @@ import com.example.SWP_Backend.repository.BlogPostsRepository;
 import com.example.SWP_Backend.repository.PostCommentsRepository;
 import com.example.SWP_Backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +41,7 @@ public class PostCommentService {
         comment.setUser(user);
         comment.setContent(req.getContent());
         comment.setIsApproved(true); // auto-duyệt, muốn duyệt tay thì set false
-        comment.setCommentDate(java.time.LocalDateTime.now());
+        comment.setCommentDate(LocalDateTime.now());
         comment.setUpvotes(0);
         comment.setDownvotes(0);
 
@@ -119,7 +114,7 @@ public class PostCommentService {
             throw new RuntimeException("You are not the author of this comment");
         }
         comment.setContent(req.getContent());
-        comment.setLastEditedAt(java.time.LocalDateTime.now());
+        comment.setLastEditedAt(LocalDateTime.now());
         postCommentsRepository.save(comment);
         return toDTO(comment);
     }

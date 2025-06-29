@@ -1,8 +1,6 @@
 package com.example.SWP_Backend.service;
 
 import com.example.SWP_Backend.dto.NotificationCreateRequest;
-import com.example.SWP_Backend.dto.NotificationDTO;
-import com.example.SWP_Backend.dto.NotificationResponseDTO;
 import com.example.SWP_Backend.entity.Notifications;
 import com.example.SWP_Backend.entity.User;
 import com.example.SWP_Backend.repository.NotificationsRepository;
@@ -10,9 +8,9 @@ import com.example.SWP_Backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Service xử lý logic cho Notifications.

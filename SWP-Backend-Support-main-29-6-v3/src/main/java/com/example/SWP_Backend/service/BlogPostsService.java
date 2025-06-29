@@ -1,7 +1,7 @@
 package com.example.SWP_Backend.service;
 
-import com.example.SWP_Backend.entity.BlogPosts;
 import com.example.SWP_Backend.dto.BlogPostsDTO;
+import com.example.SWP_Backend.entity.BlogPosts;
 import com.example.SWP_Backend.repository.BlogPostsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

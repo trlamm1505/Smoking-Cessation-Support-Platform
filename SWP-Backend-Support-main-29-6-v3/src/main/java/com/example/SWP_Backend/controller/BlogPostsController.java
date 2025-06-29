@@ -1,12 +1,10 @@
 package com.example.SWP_Backend.controller;
 
-import com.example.SWP_Backend.dto.BlogPostsDTO;
 import com.example.SWP_Backend.dto.BlogPostsCreateRequest;
+import com.example.SWP_Backend.dto.BlogPostsDTO;
 import com.example.SWP_Backend.entity.BlogPosts;
 import com.example.SWP_Backend.entity.Coach;
-import com.example.SWP_Backend.entity.User;
 import com.example.SWP_Backend.repository.CoachRepository;
-import com.example.SWP_Backend.repository.UserRepository;
 import com.example.SWP_Backend.service.BlogPostsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

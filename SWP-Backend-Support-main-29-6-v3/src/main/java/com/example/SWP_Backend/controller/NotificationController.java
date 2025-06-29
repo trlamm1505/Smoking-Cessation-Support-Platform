@@ -1,7 +1,6 @@
 package com.example.SWP_Backend.controller;
 
 import com.example.SWP_Backend.dto.NotificationCreateRequest;
-import com.example.SWP_Backend.dto.NotificationDTO;
 import com.example.SWP_Backend.entity.Notifications;
 import com.example.SWP_Backend.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;

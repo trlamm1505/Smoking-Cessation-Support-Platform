@@ -15,12 +15,21 @@ public class AchievementService {
     @Autowired private AchievementRepository achievementRepo;
     @Autowired private UserAchievementRepository userAchievementRepo;
     @Autowired private HabitLogRepository habitLogRepo;
+    @Autowired private UserRepository userRepo; // Để lấy thông tin user và role
 
     /**
      * Kiểm tra và tự động gán thành tích cho user dựa trên lịch sử HabitLog.
      * Gọi hàm này sau mỗi lần logHabit thành công.
+     * CHỈ tính cho user có role = "member". Các role khác (coach, admin) sẽ không được xét thành tích.
      */
     public void checkAndAwardAchievements(Long userId) {
+        // Kiểm tra role user, chỉ member mới tính thành tích
+        User user = userRepo.findById(userId).orElse(null);
+        if (user == null || !"member".equalsIgnoreCase(user.getRole())) {
+            // Nếu không phải member thì bỏ qua
+            return;
+        }
+
         List<Achievement> allAchievements = achievementRepo.findAll();
         List<HabitLog> logs = habitLogRepo.findByUserIdOrderByLogDateAsc(userId);
         List<UserAchievement> userAchievements = userAchievementRepo.findByUserUserId(userId);
@@ -115,7 +124,7 @@ public class AchievementService {
 
             if (achieved && achievedDate != null) {
                 UserAchievement ua = new UserAchievement();
-                ua.setUser(new User(userId)); // Chỉ cần set userId, không cần fetch full User
+                ua.setUser(user); // Có thể truyền user luôn (không cần tạo new User(userId))
                 ua.setAchievement(ach);
                 ua.setAchievedDate(achievedDate);
                 userAchievementRepo.save(ua);
@@ -164,21 +173,65 @@ public class AchievementService {
     private LocalDate findFirstDateTotalMoney(List<HabitLog> logs, double targetMoney) {
         double sum = 0;
         for (HabitLog log : logs) {
-            sum += log.getMoneySaved(); // Vì là double nên mặc định 0.0 nếu không nhập
+            sum += log.getMoneySaved(); // double mặc định 0.0 nếu không nhập
             if (sum >= targetMoney) return log.getLogDate();
         }
         return null;
     }
 
     // ================== API bổ sung ==================
-    // Lấy toàn bộ achievements theo type (dành cho FE lọc hiển thị)
+
+    /**
+     * Lấy toàn bộ achievements theo type (dành cho FE lọc hiển thị).
+     */
     public List<Achievement> getAchievementsByType(String type) {
         return achievementRepo.findByType(type);
     }
 
-    // Lấy trạng thái thành tích (đã đạt/chưa, ngày đạt) của 1 user theo type
+    /**
+     * Lấy trạng thái thành tích (đã đạt/chưa, ngày đạt) của 1 user theo type.
+     * Nếu user không phải "member", trả về tất cả thành tích với trạng thái chưa đạt.
+     */
     public List<AchievementStatusDTO> getAchievementStatusForUserByType(Long userId, String type) {
+        User user = userRepo.findById(userId).orElse(null);
         List<Achievement> achievements = achievementRepo.findByType(type);
+
+        if (user == null || !"member".equalsIgnoreCase(user.getRole())) {
+            // Nếu không phải member thì trả về all false (chưa đạt)
+            return achievements.stream()
+                    .map(a -> new AchievementStatusDTO(a, false, null))
+                    .collect(Collectors.toList());
+        }
+
+        List<UserAchievement> userAchievements = userAchievementRepo.findByUserUserId(userId);
+
+        return achievements.stream().map(a -> {
+            Optional<UserAchievement> match = userAchievements.stream()
+                    .filter(ua -> ua.getAchievement().getId().equals(a.getId()))
+                    .findFirst();
+            boolean achieved = match.isPresent();
+            return new AchievementStatusDTO(
+                    a,
+                    achieved,
+                    achieved ? match.get().getAchievedDate() : null
+            );
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * Lấy trạng thái tất cả thành tích (đã đạt/chưa, ngày đạt) của 1 user (mọi loại).
+     * Nếu không phải member, trả về all false.
+     */
+    public List<AchievementStatusDTO> getAchievementStatusForUser(Long userId) {
+        User user = userRepo.findById(userId).orElse(null);
+        List<Achievement> achievements = achievementRepo.findAll();
+
+        if (user == null || !"member".equalsIgnoreCase(user.getRole())) {
+            return achievements.stream()
+                    .map(a -> new AchievementStatusDTO(a, false, null))
+                    .collect(Collectors.toList());
+        }
+
         List<UserAchievement> userAchievements = userAchievementRepo.findByUserUserId(userId);
 
         return achievements.stream().map(a -> {

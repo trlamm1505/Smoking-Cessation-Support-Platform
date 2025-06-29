@@ -2,9 +2,7 @@ package com.example.SWP_Backend.controller;
 
 import com.example.SWP_Backend.dto.PostCommentCreateRequest;
 import com.example.SWP_Backend.dto.PostCommentDTO;
-import com.example.SWP_Backend.dto.PostCommentEditRequest;
 import com.example.SWP_Backend.dto.PostCommentUpdateRequest;
-import com.example.SWP_Backend.entity.PostComments;
 import com.example.SWP_Backend.service.PostCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
