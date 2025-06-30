@@ -1,8 +1,10 @@
 package com.example.SWP_Backend.controller;
 
+import com.example.SWP_Backend.dto.NotificationRequestDTO;
 import com.example.SWP_Backend.entity.User;
 import com.example.SWP_Backend.repository.TokenRepository;
 import com.example.SWP_Backend.repository.UserRepository;
+import com.example.SWP_Backend.service.NotificationService;
 import com.example.SWP_Backend.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,10 @@ public class AuthController {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    // Thêm NotificationService để gửi thông báo
+    @Autowired
+    private NotificationService notificationService;
 
     // ======== Đăng ký tài khoản sử dụng OTP xác minh ========
 
@@ -78,12 +84,36 @@ public class AuthController {
 
     /**
      * Xác minh mã OTP để hoàn tất đăng ký tài khoản.
+     * GỬI THÔNG BÁO cho user mới và admin khi đăng ký thành công.
      */
     @PostMapping("/register-verify-otp")
     public ResponseEntity<Map<String, Object>> confirmRegistrationOtp(@RequestBody VerifyOtpRequest request) {
         Map<String, Object> response = new HashMap<>();
         boolean verified = userService.verifyOtpAndRegister(request.getEmail(), request.getOtp());
+
         if (verified) {
+            // ======== GỬI THÔNG BÁO CHO USER MỚI & ADMIN ========
+            User user = userService.getUserByEmail(request.getEmail());
+            if (user != null) {
+                // 1. Thông báo cho user mới
+                NotificationRequestDTO userNoti = new NotificationRequestDTO();
+                userNoti.setTitle("Đăng ký thành công");
+                userNoti.setContent("Bạn đã đăng ký tài khoản thành công! Chào mừng bạn đến với nền tảng.");
+                userNoti.setSenderId(3L); // ID hệ thống hoặc admin, cập nhật nếu khác
+                userNoti.setRecipientId(user.getUserId());
+                userNoti.setType("register");
+                notificationService.sendNotification(userNoti);
+
+                // 2. Thông báo cho admin (gửi theo role)
+                NotificationRequestDTO adminNoti = new NotificationRequestDTO();
+                adminNoti.setTitle("Thành viên mới đăng ký");
+                adminNoti.setContent("Người dùng " + user.getFullName() + " (" + user.getEmail() + ") vừa đăng ký tài khoản.");
+                adminNoti.setSenderId(3L); // ID hệ thống hoặc admin
+                adminNoti.setTargetRole("admin");
+                adminNoti.setType("register");
+                notificationService.sendNotification(adminNoti);
+            }
+
             response.put("success", true);
             response.put("message", "Đăng ký thành công. Bạn đã có thể đăng nhập.");
             return ResponseEntity.ok(response);
@@ -135,23 +165,18 @@ public class AuthController {
 
             if ("admin".equalsIgnoreCase(currentRole) || "coach".equalsIgnoreCase(currentRole)) {
                 // KHÔNG can thiệp role của admin/coach
-                // Đảm bảo không đổi role, kể cả hết hạn hay có hạn
             } else if ("member".equalsIgnoreCase(currentRole)) {
-                // Member: Nếu hết hạn thì về guest
                 if (user.getSubscriptionEndDate() == null || user.getSubscriptionEndDate().isBefore(today)) {
                     user.setRole("guest");
                     user.setCurrentMembershipPackageId(null);
                     userRepository.save(user);
                 }
-                // Còn hạn thì giữ nguyên role member
             } else if ("guest".equalsIgnoreCase(currentRole)) {
-                // Guest: Nếu có hạn thì nâng lên member
                 if (user.getSubscriptionEndDate() != null && user.getSubscriptionEndDate().isAfter(today.minusDays(1))) {
                     user.setRole("member");
                     userRepository.save(user);
                 }
             }
-            // ===============================================================
 
             response.put("success", true);
             response.put("message", "Đăng nhập thành công.");

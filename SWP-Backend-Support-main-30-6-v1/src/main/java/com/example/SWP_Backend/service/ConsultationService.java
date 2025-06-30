@@ -3,6 +3,7 @@ package com.example.SWP_Backend.service;
 import com.example.SWP_Backend.dto.ConsultationDetailDTO;
 import com.example.SWP_Backend.dto.ConsultationRequest;
 import com.example.SWP_Backend.dto.ConsultationWithUserDTO;
+import com.example.SWP_Backend.dto.NotificationRequestDTO;
 import com.example.SWP_Backend.entity.Coach;
 import com.example.SWP_Backend.entity.Consultation;
 import com.example.SWP_Backend.entity.User;
@@ -17,6 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Service xử lý chức năng đặt lịch và quản lý cuộc tư vấn giữa user và coach.
+ */
 @Service
 public class ConsultationService {
 
@@ -29,8 +33,12 @@ public class ConsultationService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationService notificationService; // Inject NotificationService để gửi thông báo
+
     /**
      * Tạo yêu cầu tư vấn mới sau khi xác thực user và coach có tồn tại.
+     * Đồng thời gửi thông báo cho coach (thành viên vừa đặt lịch).
      */
     public Consultation createConsultation(ConsultationRequest request) {
         // Kiểm tra người dùng
@@ -59,12 +67,28 @@ public class ConsultationService {
         consultation.setStatus("pending");
         consultation.setMeetingLink(null); // Chưa xác nhận
 
-        return consultationRepository.save(consultation);
+        Consultation saved = consultationRepository.save(consultation);
+
+        // ======= Gửi thông báo cho Coach khi có lịch mới =======
+        User coachUser = coach.getUser(); // Entity User của coach
+        String timeStr = request.getScheduledTime().toString(); // Có thể format đẹp lại nếu muốn
+
+        NotificationRequestDTO coachNoti = new NotificationRequestDTO();
+        coachNoti.setTitle("Bạn vừa nhận lịch tư vấn mới");
+        coachNoti.setContent("Thành viên " + user.getFullName() + " vừa đặt lịch tư vấn vào lúc " + timeStr);
+        coachNoti.setType("consultation");
+        coachNoti.setSenderId(user.getUserId()); // Người đặt lịch là sender
+        coachNoti.setRecipientId(coachUser.getUserId()); // Gửi riêng cho coach
+
+        notificationService.sendNotification(coachNoti);
+
+        // Member CHƯA được xác nhận, chỉ gửi thông báo xác nhận khi coach xác nhận (ở hàm updateMeetingLinkAndStatus)
+        return saved;
     }
 
-
     /**
-     * Coach xác nhận và dán link Google Meet.
+     * Coach xác nhận và dán link Google Meet (và đổi trạng thái).
+     * Đồng thời gửi thông báo xác nhận lại cho member.
      */
     public Consultation updateMeetingLinkAndStatus(Long id, String meetingLink, String status) {
         Consultation c = consultationRepository.findById(id)
@@ -73,37 +97,45 @@ public class ConsultationService {
         c.setMeetingLink(meetingLink);
         c.setStatus(status);
 
-        return consultationRepository.save(c);
+        Consultation saved = consultationRepository.save(c);
+
+        // ======= Gửi thông báo xác nhận lại cho Member =======
+        User user = userRepository.findById(c.getUserId()).orElse(null);
+        Coach coach = coachRepository.findById(c.getCoachId()).orElse(null);
+        if (user != null && coach != null && "confirmed".equalsIgnoreCase(status)) {
+            String timeStr = c.getScheduledTime() != null ? c.getScheduledTime().toString() : "";
+
+            NotificationRequestDTO memberNoti = new NotificationRequestDTO();
+            memberNoti.setTitle("Lịch tư vấn của bạn đã được xác nhận");
+            memberNoti.setContent("Huấn luyện viên " + coach.getFullName() + " đã xác nhận lịch tư vấn vào lúc " + timeStr
+                    + (meetingLink != null ? ". Link: " + meetingLink : ""));
+            memberNoti.setType("consultation");
+            memberNoti.setSenderId(coach.getUser().getUserId()); // coach là người xác nhận
+            memberNoti.setRecipientId(user.getUserId()); // gửi cho member
+
+            notificationService.sendNotification(memberNoti);
+        }
+        return saved;
     }
 
-    /**
-     * Lấy danh sách lịch tư vấn theo User.
-     */
-//    public List<Consultation> getByUserId(Long userId) {
-//        if (!userRepository.existsById(userId)) {
-//            throw new RuntimeException("User not found with ID: " + userId);
-//        }
-//        return consultationRepository.findByUserId(userId);
-//    }
+    // ... các hàm getByUserId, getByCoachId giữ nguyên như cũ (không thay đổi gì)
+    // (copy các hàm getByUserId, getByCoachId từ code của bạn bên trên)
+    // ...
     public List<ConsultationDetailDTO> getByUserId(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found with ID: " + userId);
         }
         List<Consultation> consultations = consultationRepository.findByUserId(userId);
 
-        // Lấy user (chủ account - member) luôn 1 lần
         User user = userRepository.findById(userId).orElse(null);
 
-        // Lấy list coachId unique
         List<Long> coachIds = consultations.stream()
                 .map(Consultation::getCoachId)
                 .distinct()
                 .collect(Collectors.toList());
-        // Lấy map coachId -> Coach
         Map<Long, Coach> coachMap = coachRepository.findAllById(coachIds).stream()
                 .collect(Collectors.toMap(Coach::getCoachId, c -> c));
 
-        // Nếu cần lấy cả thông tin coachUser
         List<Long> coachUserIds = coachMap.values().stream()
                 .map(c -> c.getUser().getUserId())
                 .distinct()
@@ -111,28 +143,24 @@ public class ConsultationService {
         Map<Long, User> coachUserMap = userRepository.findAllById(coachUserIds).stream()
                 .collect(Collectors.toMap(User::getUserId, u -> u));
 
-        // Build DTO
         return consultations.stream().map(c -> {
             ConsultationDetailDTO dto = new ConsultationDetailDTO();
             dto.setConsultationId(c.getConsultationId());
             dto.setUserId(c.getUserId());
             dto.setUsername(user != null ? user.getUsername() : null);
             dto.setUserFullName(user != null ? user.getFullName() : null);
-
-            // Bổ sung số điện thoại và email của member cho FE
             dto.setUserPhoneNumber(user != null ? user.getPhoneNumber() : null);
             dto.setUserEmail(user != null ? user.getEmail() : null);
 
             dto.setCoachId(c.getCoachId());
-            Coach coach = coachMap.get(c.getCoachId());
-            if (coach != null) {
-                dto.setCoachName(coach.getFullName());
-                dto.setCoachSpecialization(coach.getSpecialization());
-                User coachUser = coachUserMap.get(coach.getUser().getUserId());
-                dto.setCoachUsername(coachUser != null ? coachUser.getUsername() : null);
+            Coach coachObj = coachMap.get(c.getCoachId());
+            if (coachObj != null) {
+                dto.setCoachName(coachObj.getFullName());
+                dto.setCoachSpecialization(coachObj.getSpecialization());
+                User coachUserObj = coachUserMap.get(coachObj.getUser().getUserId());
+                dto.setCoachUsername(coachUserObj != null ? coachUserObj.getUsername() : null);
             }
             dto.setScheduledTime(c.getScheduledTime());
-            // Bổ sung thời gian kết thúc: endTime = scheduledTime + 2 tiếng
             if (c.getScheduledTime() != null) {
                 dto.setEndTime(c.getScheduledTime().plusHours(2));
             }
@@ -143,42 +171,32 @@ public class ConsultationService {
         }).collect(Collectors.toList());
     }
 
-
-    /**
-     * Lấy danh sách lịch tư vấn theo Coach.
-     */
     public List<ConsultationWithUserDTO> getByCoachId(Long coachId) {
         if (!coachRepository.existsById(coachId)) {
             throw new RuntimeException("Coach not found with ID: " + coachId);
         }
         List<Consultation> consultations = consultationRepository.findByCoachId(coachId);
 
-        // Lấy userId unique để tránh query dư thừa
         List<Long> userIds = consultations.stream()
                 .map(Consultation::getUserId)
                 .distinct()
                 .collect(Collectors.toList());
 
-        // Lấy map userId -> User cho nhanh
         Map<Long, User> userMap = userRepository.findAllById(userIds).stream()
                 .collect(Collectors.toMap(User::getUserId, u -> u));
 
-        // Build DTO
         return consultations.stream().map(c -> {
             ConsultationWithUserDTO dto = new ConsultationWithUserDTO();
             dto.setConsultationId(c.getConsultationId());
             dto.setUserId(c.getUserId());
-            User user = userMap.get(c.getUserId());
-            dto.setUsername(user != null ? user.getUsername() : null);
-            dto.setFullName(user != null ? user.getFullName() : null);
-
-            // Bổ sung số điện thoại và email của member cho Coach xem
-            dto.setPhoneNumber(user != null ? user.getPhoneNumber() : null);
-            dto.setEmail(user != null ? user.getEmail() : null);
+            User userObj = userMap.get(c.getUserId());
+            dto.setUsername(userObj != null ? userObj.getUsername() : null);
+            dto.setFullName(userObj != null ? userObj.getFullName() : null);
+            dto.setPhoneNumber(userObj != null ? userObj.getPhoneNumber() : null);
+            dto.setEmail(userObj != null ? userObj.getEmail() : null);
 
             dto.setCoachId(c.getCoachId());
             dto.setScheduledTime(c.getScheduledTime());
-            // Bổ sung thời gian kết thúc: endTime = scheduledTime + 2 tiếng
             if (c.getScheduledTime() != null) {
                 dto.setEndTime(c.getScheduledTime().plusHours(2));
             }

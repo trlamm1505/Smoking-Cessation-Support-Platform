@@ -1,6 +1,7 @@
 package com.example.SWP_Backend.service;
 
 import com.example.SWP_Backend.dto.BlogPostsDTO;
+import com.example.SWP_Backend.dto.NotificationRequestDTO;
 import com.example.SWP_Backend.entity.BlogPosts;
 import com.example.SWP_Backend.repository.BlogPostsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +19,52 @@ public class BlogPostsService {
     @Autowired
     private BlogPostsRepository blogPostsRepository;
 
+    // ====== BỔ SUNG NOTIFICATION ======
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private UserService userService; // Để lấy user theo role "member" và "guest" nếu muốn
+
     // Trả về entity BlogPosts gốc, dùng cho update
     public Optional<BlogPosts> getEntityById(Long id) {
         return blogPostsRepository.findById(id);
     }
 
-
-
     /**
      * Tạo mới một bài viết, nhận entity BlogPosts, trả về DTO sau khi lưu.
+     * Sau khi tạo, gửi thông báo tới toàn bộ user có role "member", "guest"
      */
     public BlogPostsDTO createBlogPost(BlogPosts blogPost) {
         BlogPosts saved = blogPostsRepository.save(blogPost);
+
+        // ======== THÔNG BÁO TOÀN BỘ USER (member, guest) ========
+
+        // Thông báo cho member
+        NotificationRequestDTO notiMember = new NotificationRequestDTO();
+        notiMember.setTitle("Bài viết mới trên Blog!");
+        notiMember.setContent("Coach vừa đăng bài mới: " + saved.getTitle());
+        notiMember.setSenderId(blogPost.getAuthor() != null && blogPost.getAuthor().getUser() != null
+                ? blogPost.getAuthor().getUser().getUserId()
+                : null); // Nếu có userId của tác giả coach, truyền vào
+        notiMember.setTargetRole("member");
+        notiMember.setType("blog");
+        notificationService.sendNotification(notiMember);
+
+        // Nếu muốn gửi cho guest:
+        NotificationRequestDTO notiGuest = new NotificationRequestDTO();
+        notiGuest.setTitle("Bài viết mới trên Blog!");
+        notiGuest.setContent("Coach vừa đăng bài mới: " + saved.getTitle());
+        notiGuest.setSenderId(blogPost.getAuthor() != null && blogPost.getAuthor().getUser() != null
+                ? blogPost.getAuthor().getUser().getUserId()
+                : null);
+        notiGuest.setTargetRole("guest");
+        notiGuest.setType("blog");
+        notificationService.sendNotification(notiGuest);
+
+        // (Nếu muốn broadcast cho tất cả, có thể dùng targetRole = "all" thay vì 2 lần như trên)
+        // Nếu chỉ muốn member, bạn bỏ đoạn guest đi là xong.
+
         return toDTO(saved);
     }
 
@@ -38,7 +73,6 @@ public class BlogPostsService {
      */
     public List<BlogPostsDTO> getAllBlogPosts() {
         List<BlogPosts> posts = blogPostsRepository.findAll();
-        // Chuyển từng entity sang DTO rồi trả về list
         return posts.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
@@ -74,6 +108,7 @@ public class BlogPostsService {
      */
     public void deleteBlogPost(Long id) {
         blogPostsRepository.deleteById(id);
+        // Nếu muốn gửi notification "Bài viết đã bị xoá" thì bổ sung tại đây
     }
 
     /**
@@ -94,5 +129,4 @@ public class BlogPostsService {
         dto.setFeaturedImageURL(post.getFeaturedImageURL());
         return dto;
     }
-
 }

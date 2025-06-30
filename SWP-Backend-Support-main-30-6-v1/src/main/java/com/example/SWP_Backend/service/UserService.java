@@ -1,6 +1,7 @@
 package com.example.SWP_Backend.service;
 
 import com.example.SWP_Backend.dto.UpdateCoachProfileRequest;
+import com.example.SWP_Backend.dto.NotificationRequestDTO;
 import com.example.SWP_Backend.entity.Coach;
 import com.example.SWP_Backend.entity.Payment;
 import com.example.SWP_Backend.entity.Token;
@@ -40,6 +41,13 @@ public class UserService {
 
     @Autowired
     private PaymentRepository paymentRepository;
+
+    // ==== THÊM NotificationService ĐỂ GỬI THÔNG BÁO ====
+    @Autowired
+    private NotificationService notificationService;
+
+    // ==== ID của admin mặc định là 3 (điều chỉnh theo thực tế nếu cần) ====
+    private static final Long ADMIN_USER_ID = 3L;
 
     /**
      * Cập nhật role nếu user member bị hết hạn,
@@ -129,8 +137,27 @@ public class UserService {
                 return false;
             }
             user.setEnabled(true);
-            userRepository.save(user);
+            User savedUser = userRepository.save(user);
             tokenRepository.delete(vt);
+
+            // ==== GỬI THÔNG BÁO: ĐĂNG KÝ THÀNH CÔNG (NotificationService, NotificationRequestDTO) ====
+            NotificationRequestDTO notiUser = new NotificationRequestDTO();
+            notiUser.setRecipientId(savedUser.getUserId());
+            notiUser.setTitle("Chào mừng bạn đến với hệ thống!");
+            notiUser.setContent("Đăng ký thành công. Chúc bạn trải nghiệm vui vẻ.");
+            notiUser.setType("register_success");
+            notiUser.setSenderId(ADMIN_USER_ID);
+            notificationService.sendNotification(notiUser);
+
+            // ==== GỬI THÔNG BÁO CHO ADMIN ====
+            NotificationRequestDTO notiAdmin = new NotificationRequestDTO();
+            notiAdmin.setTargetRole("admin");
+            notiAdmin.setTitle("Có người dùng mới đăng ký");
+            notiAdmin.setContent("User " + savedUser.getFullName() + " (" + savedUser.getEmail() + ") vừa đăng ký tài khoản.");
+            notiAdmin.setType("new_user_register");
+            notiAdmin.setSenderId(ADMIN_USER_ID);
+            notificationService.sendNotification(notiAdmin);
+
             return true;
         } catch (Exception e) {
             tokenRepository.delete(vt);
@@ -198,17 +225,12 @@ public class UserService {
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
             user.setUsername(user.getEmail());
         }
-        // Đảm bảo role luôn hợp lệ
         if (user.getRole() == null || user.getRole().isEmpty()) {
             user.setRole("guest");
         }
         return userRepository.save(user);
     }
 
-    /**
-     * Update user theo ID (member/coach đều dùng, tự động đồng bộ với coach nếu cần).
-     * Lưu ý: chỉ coach mới có coachId khác null.
-     */
     public User updateUserById(Long id, User updatedUser) {
         return userRepository.findById(id)
                 .map(user -> {
@@ -384,18 +406,6 @@ public class UserService {
         userRepository.save(user);
         return true;
     }
-
-    // ==== CÁC HÀM LIÊN QUAN ĐẾN COACH ====
-
-    // Lấy danh sách user là coach (chỉ user có coachId khác null)
-//    public List<User> getAllCoachUsers() {
-//        return userRepository.findByCoachIdIsNotNull();
-//    }
-
-    // Lấy user là coach theo coachId (trả về đúng 1 user)
-//    public User getUserByCoachId(Long coachId) {
-//        return userRepository.findByCoachId(coachId);
-//    }
 
     /**
      * Dùng cho coach cập nhật toàn bộ hồ sơ (cả trường chung & riêng coach)

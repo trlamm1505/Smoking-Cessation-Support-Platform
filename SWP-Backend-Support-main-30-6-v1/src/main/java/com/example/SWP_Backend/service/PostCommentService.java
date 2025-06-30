@@ -3,6 +3,7 @@ package com.example.SWP_Backend.service;
 import com.example.SWP_Backend.dto.PostCommentCreateRequest;
 import com.example.SWP_Backend.dto.PostCommentDTO;
 import com.example.SWP_Backend.dto.PostCommentUpdateRequest;
+import com.example.SWP_Backend.dto.NotificationRequestDTO;
 import com.example.SWP_Backend.entity.BlogPosts;
 import com.example.SWP_Backend.entity.PostComments;
 import com.example.SWP_Backend.entity.User;
@@ -28,6 +29,10 @@ public class PostCommentService {
     private BlogPostsRepository blogPostsRepository;
     @Autowired
     private UserRepository userRepository;
+
+    // ===== BỔ SUNG NOTIFICATION =====
+    @Autowired
+    private NotificationService notificationService;
 
     /** Tạo mới bình luận và trả về DTO */
     public PostCommentDTO createComment(PostCommentCreateRequest req) {
@@ -55,7 +60,49 @@ public class PostCommentService {
         }
 
         PostComments saved = postCommentsRepository.save(comment);
+
+        // ===== GỬI THÔNG BÁO =====
+
+        // 1. Gửi thông báo khi có bình luận mới cho chủ bài viết (nếu không phải tự mình bình luận bài mình)
+        if (post.getAuthor() != null && post.getAuthor().getUser() != null
+                && !user.getUserId().equals(post.getAuthor().getUser().getUserId())) {
+            NotificationRequestDTO noti = new NotificationRequestDTO();
+            noti.setTitle("Bài viết của bạn có bình luận mới");
+            noti.setContent(user.getFullName() + " đã bình luận: \"" + comment.getContent() + "\"");
+            noti.setSenderId(user.getUserId());
+            noti.setRecipientId(post.getAuthor().getUser().getUserId());
+            noti.setType("comment");
+            notificationService.sendNotification(noti);
+        }
+
+        // 2. Nếu là trả lời comment, gửi cho chủ comment cha (nếu không phải mình)
+        if (comment.getParentComment() != null) {
+            User parentOwner = comment.getParentComment().getUser();
+            if (parentOwner != null && !parentOwner.getUserId().equals(user.getUserId())) {
+                NotificationRequestDTO notiReply = new NotificationRequestDTO();
+                notiReply.setTitle("Có phản hồi cho bình luận của bạn");
+                notiReply.setContent(user.getFullName() + " đã trả lời bình luận của bạn: \"" + comment.getContent() + "\"");
+                notiReply.setSenderId(user.getUserId());
+                notiReply.setRecipientId(parentOwner.getUserId());
+                notiReply.setType("comment_reply");
+                notificationService.sendNotification(notiReply);
+            }
+        }
+
         return toDTO(saved);
+    }
+
+    /** Khi có bài viết mới trong cộng đồng, gửi thông báo tới tất cả member */
+    public void notifyNewCommunityPost(BlogPosts post) {
+        // Dùng khi một bài viết cộng đồng mới được tạo
+        NotificationRequestDTO noti = new NotificationRequestDTO();
+        noti.setTitle("Cộng đồng có bài viết mới!");
+        noti.setContent("Bài viết mới: " + post.getTitle());
+        noti.setSenderId(post.getAuthor() != null && post.getAuthor().getUser() != null
+                ? post.getAuthor().getUser().getUserId() : null);
+        noti.setTargetRole("member");
+        noti.setType("community_post");
+        notificationService.sendNotification(noti);
     }
 
     /** Lấy bình luận theo post, chỉ lấy đã duyệt */
@@ -98,7 +145,6 @@ public class PostCommentService {
     public void softDeleteComment(Long commentId, Long userId) {
         PostComments comment = postCommentsRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
-        // Chỉ cho xóa nếu là chủ comment hoặc admin
         if (!comment.getUser().getUserId().equals(userId) /* && !isAdmin(userId) */) {
             throw new RuntimeException("No permission");
         }
@@ -109,7 +155,6 @@ public class PostCommentService {
     public PostCommentDTO updateComment(Long commentId, PostCommentUpdateRequest req) {
         PostComments comment = postCommentsRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
-        // Kiểm tra quyền sửa: userId phải là chủ comment (nếu cần)
         if (!comment.getUser().getUserId().equals(req.getUserId())) {
             throw new RuntimeException("You are not the author of this comment");
         }
@@ -119,18 +164,19 @@ public class PostCommentService {
         return toDTO(comment);
     }
 
-
-
     public void reportComment(Long commentId, Long userId) {
         PostComments comment = postCommentsRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
-        // Có thể kiểm tra user đã report chưa (nếu có bảng report riêng)
         comment.setReportCount(comment.getReportCount() + 1);
         postCommentsRepository.save(comment);
+
+        // ===== GỬI THÔNG BÁO CHO ADMIN =====
+        NotificationRequestDTO noti = new NotificationRequestDTO();
+        noti.setTitle("Có bình luận bị báo cáo vi phạm");
+        noti.setContent("Bình luận ID " + commentId + " đã bị báo cáo bởi user ID " + userId);
+        noti.setSenderId(userId);
+        noti.setTargetRole("admin");
+        noti.setType("comment_report");
+        notificationService.sendNotification(noti);
     }
-
-
-
-
-
 }

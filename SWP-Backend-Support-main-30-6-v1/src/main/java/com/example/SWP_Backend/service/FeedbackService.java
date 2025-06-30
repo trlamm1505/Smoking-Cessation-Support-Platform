@@ -2,7 +2,10 @@ package com.example.SWP_Backend.service;
 
 import com.example.SWP_Backend.entity.Feedback;
 import com.example.SWP_Backend.dto.FeedbackDTO;
+import com.example.SWP_Backend.dto.NotificationRequestDTO;
+import com.example.SWP_Backend.entity.User;
 import com.example.SWP_Backend.repository.FeedbackRepository;
+import com.example.SWP_Backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,17 +21,56 @@ public class FeedbackService {
     @Autowired
     private FeedbackRepository feedbackRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public Optional<Feedback> getEntityById(Long id) {
         return feedbackRepository.findById(id);
     }
-
 
     /**
      * Tạo mới feedback, trả về DTO.
      */
     public FeedbackDTO createFeedback(Feedback feedback) {
         Feedback saved = feedbackRepository.save(feedback);
+
+        // ======= TÍCH HỢP THÔNG BÁO =======
+        User sender = feedback.getUser(); // Người gửi feedback
+        String senderName = sender != null ? sender.getFullName() : "Người dùng";
+        String feedbackTitle = feedback.getTitle() != null ? feedback.getTitle() : "";
+        String type = "feedback";
+        String content = senderName + " đã gửi phản hồi: \"" + feedbackTitle + "\"";
+
+        // 1. Thông báo cho Coach (nếu feedback target là coach)
+        if ("coach".equalsIgnoreCase(feedback.getTargetType())) {
+            // Gửi cho đúng coach nhận feedback (giả sử targetId là coachId, và coach có user liên kết)
+            Long coachId = feedback.getTargetId();
+            if (coachId != null) {
+                Optional<User> coachUserOpt = userRepository.findCoachUserByCoachId(coachId); // Hàm này bạn phải có
+                coachUserOpt.ifPresent(coachUser -> {
+                    NotificationRequestDTO noti = new NotificationRequestDTO();
+                    noti.setTitle("Bạn nhận được phản hồi mới");
+                    noti.setContent(content);
+                    noti.setType(type);
+                    noti.setSenderId(sender != null ? sender.getUserId() : null);
+                    noti.setRecipientId(coachUser.getUserId());
+                    notificationService.sendNotification(noti);
+                });
+            }
+        }
+
+        // 2. Thông báo cho Admin (tất cả feedback đều gửi cho admin)
+        NotificationRequestDTO adminNoti = new NotificationRequestDTO();
+        adminNoti.setTitle("Có phản hồi mới từ người dùng");
+        adminNoti.setContent(content);
+        adminNoti.setType(type);
+        adminNoti.setSenderId(sender != null ? sender.getUserId() : null);
+        adminNoti.setTargetRole("admin"); // Gửi broadcast cho tất cả admin
+        notificationService.sendNotification(adminNoti);
+
         return toDTO(saved);
     }
 

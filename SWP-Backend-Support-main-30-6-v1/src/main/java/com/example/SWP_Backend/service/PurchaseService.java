@@ -1,5 +1,6 @@
 package com.example.SWP_Backend.service;
 
+import com.example.SWP_Backend.dto.NotificationRequestDTO;
 import com.example.SWP_Backend.dto.PurchaseRequest;
 import com.example.SWP_Backend.entity.MembershipPackage;
 import com.example.SWP_Backend.entity.Payment;
@@ -13,8 +14,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * Service xử lý mua/gia hạn gói thành viên.
+ */
 @Service
-
 public class PurchaseService {
 
     @Autowired
@@ -25,6 +28,10 @@ public class PurchaseService {
 
     @Autowired
     private PaymentRepository paymentRepository;
+
+    // === BỔ SUNG NOTIFICATION SERVICE ===
+    @Autowired
+    private NotificationService notificationService;
 
     /**
      * Xử lý mua/gia hạn gói thành viên cho user.
@@ -38,11 +45,15 @@ public class PurchaseService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         MembershipPackage membershipPackage = packageRepository.findById(request.getPackageId())
                 .orElseThrow(() -> new RuntimeException("Package not found"));
+
+        // Không cho phép admin/coach mua gói
         if ("admin".equalsIgnoreCase(user.getRole()) || "coach".equalsIgnoreCase(user.getRole())) {
             throw new RuntimeException("Admin and Coach are not allowed to purchase membership packages.");
         }
+
         LocalDate today = LocalDate.now();
         LocalDate startDate;
+        // Nếu user còn hạn thì gói mới nối tiếp sau ngày hết hạn cũ, còn lại thì từ hôm nay
         if (user.getSubscriptionEndDate() != null && !user.getSubscriptionEndDate().isBefore(today)) {
             startDate = user.getSubscriptionEndDate().plusDays(1);
         } else {
@@ -51,7 +62,7 @@ public class PurchaseService {
         LocalDate endDate = startDate.plusDays(membershipPackage.getDurationDays() - 1);
         LocalDate renewalDate = endDate.plusDays(1);
 
-        // 3. Tạo payment mới
+        // 3. Tạo bản ghi payment mới
         Payment payment = new Payment();
         payment.setUser(user);
         payment.setPackageInfo(membershipPackage);
@@ -84,7 +95,28 @@ public class PurchaseService {
         }
         userRepository.save(user);
 
+        // ======= TÍCH HỢP GỬI THÔNG BÁO =======
+
+        // Gửi noti cho USER về việc mua/gia hạn thành công
+        NotificationRequestDTO userNoti = new NotificationRequestDTO();
+        userNoti.setTitle("Bạn đã mua/gia hạn gói thành viên thành công");
+        userNoti.setContent("Chúc mừng! Bạn đã đăng ký gói \"" + membershipPackage.getPackageName() +
+                "\". Hạn sử dụng đến: " + maxEndDate + ".");
+        userNoti.setSenderId(3L); // Admin gửi (thay bằng id admin thật nếu cần)
+        userNoti.setRecipientId(user.getUserId());
+        userNoti.setType("package_update");
+        notificationService.sendNotification(userNoti);
+
+        // Gửi noti cho ADMIN biết có member mới/gia hạn
+        NotificationRequestDTO adminNoti = new NotificationRequestDTO();
+        adminNoti.setTitle("Thành viên mới/gia hạn gói");
+        adminNoti.setContent("Người dùng " + user.getFullName() + " (" + user.getEmail() + ") vừa đăng ký/gia hạn gói \"" +
+                membershipPackage.getPackageName() + "\" đến ngày " + maxEndDate + ".");
+        adminNoti.setSenderId(3L); // Admin gửi
+        adminNoti.setTargetRole("admin"); // Gửi cho tất cả admin
+        adminNoti.setType("package_update");
+        notificationService.sendNotification(adminNoti);
+
         return payment;
     }
-
 }

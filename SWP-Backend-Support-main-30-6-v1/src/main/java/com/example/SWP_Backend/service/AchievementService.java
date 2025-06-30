@@ -1,6 +1,7 @@
 package com.example.SWP_Backend.service;
 
 import com.example.SWP_Backend.dto.AchievementStatusDTO;
+import com.example.SWP_Backend.dto.NotificationRequestDTO;
 import com.example.SWP_Backend.entity.*;
 import com.example.SWP_Backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,11 @@ public class AchievementService {
     @Autowired private AchievementRepository achievementRepo;
     @Autowired private UserAchievementRepository userAchievementRepo;
     @Autowired private HabitLogRepository habitLogRepo;
-    @Autowired private UserRepository userRepo; // Để lấy thông tin user và role
+    @Autowired private UserRepository userRepo;
+
+    // ======== TÍCH HỢP NOTIFICATION ========
+    @Autowired private NotificationService notificationService;
+    // =======================================
 
     /**
      * Kiểm tra và tự động gán thành tích cho user dựa trên lịch sử HabitLog.
@@ -82,7 +87,6 @@ public class AchievementService {
                     break;
 
                 // --- Thành tích tiết kiệm tiền ---
-                // [DÙNG THỰC TẾ] – unlock khi BẤT KỲ 1 NGÀY nào tiết kiệm vượt mốc
                 case "SAVE_MONEY_100K":
                     achievedDate = findFirstDateMoneySaved(logs, 100_000);
                     achieved = (achievedDate != null);
@@ -104,41 +108,30 @@ public class AchievementService {
                     achieved = (achievedDate != null);
                     break;
 
-                /*
-                 ===== [THAM KHẢO – KHÔNG DÙNG] – Cộng dồn nhiều ngày mới đạt =====
-                 // Nếu muốn unlock thành tích khi tổng cộng dồn nhiều ngày mới đạt, thay thế đoạn trên bằng đoạn này:
-                case "SAVE_MONEY_100K":
-                    achievedDate = findFirstDateTotalMoney(logs, 100_000);
-                    achieved = (achievedDate != null);
-                    break;
-                case "SAVE_MONEY_500K":
-                    achievedDate = findFirstDateTotalMoney(logs, 500_000);
-                    achieved = (achievedDate != null);
-                    break;
-                // ... các mốc khác tương tự ...
-                ===================================================================
-                */
                 default:
                     break;
             }
 
             if (achieved && achievedDate != null) {
                 UserAchievement ua = new UserAchievement();
-                ua.setUser(user); // Có thể truyền user luôn (không cần tạo new User(userId))
+                ua.setUser(user);
                 ua.setAchievement(ach);
                 ua.setAchievedDate(achievedDate);
                 userAchievementRepo.save(ua);
 
-                // // Nếu sau này có Badge, gắn thêm code cấp badge ở đây
-                // badgeService.grantBadgeIfNeeded(userId, ach.getCode(), achievedDate);
+                // ====== GỬI THÔNG BÁO THÀNH TÍCH ======
+                NotificationRequestDTO noti = new NotificationRequestDTO();
+                noti.setTitle("Chúc mừng bạn đạt thành tích mới!");
+                noti.setContent("Bạn vừa đạt thành tích: " + ach.getName());
+                noti.setRecipientId(user.getUserId());
+                noti.setType("achievement");
+                notificationService.sendNotification(noti);
+                // =======================================
             }
         }
     }
 
-    /**
-     * Tìm ngày đầu tiên user đạt chuỗi N ngày liên tiếp không hút thuốc.
-     * Nếu không có chuỗi nào đủ dài thì trả null.
-     */
+    // ... các hàm phụ, API getAchievements giữ nguyên (không cần sửa) ...
     private LocalDate findConsecutiveNoSmokeDay(List<HabitLog> logs, int days) {
         int count = 0;
         for (int i = 0; i < logs.size(); i++) {
@@ -152,11 +145,6 @@ public class AchievementService {
         return null;
     }
 
-    /**
-     * [DÙNG THỰC TẾ] Tìm ngày đầu tiên có số tiền tiết kiệm >= targetMoney trong 1 ngày.
-     * Unlock thành tích nếu chỉ cần 1 ngày vượt mốc (như user nhập 1 ngày lớn là đạt).
-     * (Dành cho kiểu moneySaved là double, không cần check null)
-     */
     private LocalDate findFirstDateMoneySaved(List<HabitLog> logs, double targetMoney) {
         return logs.stream()
                 .filter(log -> log.getMoneySaved() >= targetMoney)
@@ -165,15 +153,10 @@ public class AchievementService {
                 .orElse(null);
     }
 
-    /**
-     * [THAM KHẢO – KHÔNG DÙNG] Tìm ngày đầu tiên tổng tiền tiết kiệm tích lũy vượt targetMoney (cộng dồn nhiều ngày).
-     * Nếu muốn đổi rule sang kiểu “cộng dồn nhiều ngày mới đạt”, dùng hàm này thay hàm trên.
-     * (Dành cho kiểu moneySaved là double, không cần check null)
-     */
     private LocalDate findFirstDateTotalMoney(List<HabitLog> logs, double targetMoney) {
         double sum = 0;
         for (HabitLog log : logs) {
-            sum += log.getMoneySaved(); // double mặc định 0.0 nếu không nhập
+            sum += log.getMoneySaved();
             if (sum >= targetMoney) return log.getLogDate();
         }
         return null;
@@ -181,23 +164,15 @@ public class AchievementService {
 
     // ================== API bổ sung ==================
 
-    /**
-     * Lấy toàn bộ achievements theo type (dành cho FE lọc hiển thị).
-     */
     public List<Achievement> getAchievementsByType(String type) {
         return achievementRepo.findByType(type);
     }
 
-    /**
-     * Lấy trạng thái thành tích (đã đạt/chưa, ngày đạt) của 1 user theo type.
-     * Nếu user không phải "member", trả về tất cả thành tích với trạng thái chưa đạt.
-     */
     public List<AchievementStatusDTO> getAchievementStatusForUserByType(Long userId, String type) {
         User user = userRepo.findById(userId).orElse(null);
         List<Achievement> achievements = achievementRepo.findByType(type);
 
         if (user == null || !"member".equalsIgnoreCase(user.getRole())) {
-            // Nếu không phải member thì trả về all false (chưa đạt)
             return achievements.stream()
                     .map(a -> new AchievementStatusDTO(a, false, null))
                     .collect(Collectors.toList());
@@ -218,10 +193,6 @@ public class AchievementService {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * Lấy trạng thái tất cả thành tích (đã đạt/chưa, ngày đạt) của 1 user (mọi loại).
-     * Nếu không phải member, trả về all false.
-     */
     public List<AchievementStatusDTO> getAchievementStatusForUser(Long userId) {
         User user = userRepo.findById(userId).orElse(null);
         List<Achievement> achievements = achievementRepo.findAll();
