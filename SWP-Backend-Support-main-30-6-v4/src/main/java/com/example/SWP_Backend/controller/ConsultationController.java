@@ -54,6 +54,36 @@ public class ConsultationController {
         return ResponseEntity.ok(updated);
     }
 
+
+    // Coach từ chối lịch tư vấn (status = "rejected")
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<?> rejectConsultation(
+            @PathVariable Long id,
+            @RequestParam(required = false) String note // Lý do từ chối (tùy chọn)
+    ) {
+        Consultation updated = consultationService.rejectOrCancelConsultation(id, "rejected", note);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Đã từ chối lịch thành công.",
+                "data", updated
+        ));
+    }
+
+    // Coach hủy lịch tư vấn (status = "cancelled")
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelConsultation(
+            @PathVariable Long id,
+            @RequestParam(required = false) String note // Lý do hủy (tùy chọn)
+    ) {
+        Consultation updated = consultationService.rejectOrCancelConsultation(id, "cancelled", note);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Đã hủy lịch thành công.",
+                "data", updated
+        ));
+    }
+
+
     // Optional: Lấy tư vấn của User
 //    @GetMapping("/user/{userId}")
 //    public ResponseEntity<?> getByUser(@PathVariable Long userId) {

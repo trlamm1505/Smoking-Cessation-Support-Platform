@@ -86,25 +86,25 @@ public class AchievementService {
                     achieved = (achievedDate != null);
                     break;
 
-                // --- Thành tích tiết kiệm tiền ---
+                // --- Thành tích tiết kiệm tiền (cộng dồn) ---
                 case "SAVE_MONEY_100K":
-                    achievedDate = findFirstDateMoneySaved(logs, 100_000);
+                    achievedDate = findFirstDateTotalMoney(logs, 100_000);
                     achieved = (achievedDate != null);
                     break;
                 case "SAVE_MONEY_500K":
-                    achievedDate = findFirstDateMoneySaved(logs, 500_000);
+                    achievedDate = findFirstDateTotalMoney(logs, 500_000);
                     achieved = (achievedDate != null);
                     break;
                 case "SAVE_MONEY_1M":
-                    achievedDate = findFirstDateMoneySaved(logs, 1_000_000);
+                    achievedDate = findFirstDateTotalMoney(logs, 1_000_000);
                     achieved = (achievedDate != null);
                     break;
                 case "SAVE_MONEY_2M":
-                    achievedDate = findFirstDateMoneySaved(logs, 2_000_000);
+                    achievedDate = findFirstDateTotalMoney(logs, 2_000_000);
                     achieved = (achievedDate != null);
                     break;
                 case "SAVE_MONEY_5M":
-                    achievedDate = findFirstDateMoneySaved(logs, 5_000_000);
+                    achievedDate = findFirstDateTotalMoney(logs, 5_000_000);
                     achieved = (achievedDate != null);
                     break;
 
@@ -145,14 +145,9 @@ public class AchievementService {
         return null;
     }
 
-    private LocalDate findFirstDateMoneySaved(List<HabitLog> logs, double targetMoney) {
-        return logs.stream()
-                .filter(log -> log.getMoneySaved() >= targetMoney)
-                .map(HabitLog::getLogDate)
-                .findFirst()
-                .orElse(null);
-    }
+    // Đã loại bỏ findFirstDateMoneySaved (không dùng nữa)
 
+    // Hàm cộng dồn tiền tiết kiệm đạt mốc
     private LocalDate findFirstDateTotalMoney(List<HabitLog> logs, double targetMoney) {
         double sum = 0;
         for (HabitLog log : logs) {

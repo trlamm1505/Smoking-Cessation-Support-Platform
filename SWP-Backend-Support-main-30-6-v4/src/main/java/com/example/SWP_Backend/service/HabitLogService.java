@@ -75,14 +75,10 @@ public class HabitLogService {
             saved = habitLogRepository.save(habitLog);
         }
 
-        // ==============================
-        // Sau khi lưu log, kiểm tra & gán thành tích cho user
         // Sau khi lưu log, kiểm tra & gán thành tích cho user
         if (achievementService != null) {
             achievementService.checkAndAwardAchievements(habitLog.getUserId());
         }
-
-        // ==============================
 
         return saved;
     }
@@ -117,7 +113,7 @@ public class HabitLogService {
     }
 
     /**
-     * Thống kê theo từng plan: tổng số ngày không hút, tổng tiền tiết kiệm.
+     * Thống kê theo từng plan: tổng số ngày không hút, tổng tiền tiết kiệm cộng dồn từng ngày.
      */
     public List<QuitStatsByPlanDTO> getQuitStatsByPlan(Long userId) {
         // Lấy tất cả plan của user
@@ -127,11 +123,11 @@ public class HabitLogService {
                 .collect(Collectors.toList());
 
         // Lấy tất cả HabitLog của user, có liên kết plan
-        List<HabitLog> logs = habitLogRepository.findByUserIdOrderByLogDateDesc(userId);
+        List<HabitLog> logs = habitLogRepository.findByUserIdOrderByLogDateAsc(userId);
 
         List<QuitStatsByPlanDTO> stats = new ArrayList<>();
         for (CessationPlan plan : plans) {
-            // Lấy logs thuộc về plan này
+            // Lấy logs thuộc về plan này, sắp xếp theo ngày tăng dần để cộng dồn cho chính xác
             List<HabitLog> logsOfPlan = logs.stream()
                     .filter(l -> l.getCessationPlan() != null
                             && l.getCessationPlan().getPlanID().equals(plan.getPlanID()))
@@ -148,12 +144,13 @@ public class HabitLogService {
                 pricePerCigarette = plan.getCostPerPack().doubleValue() / cigarettesPerPack;
             }
 
+            // ==== Tổng tiền tiết kiệm cộng dồn từng ngày ====
             double totalMoneySaved = 0;
             List<String> autoCalculatedNotes = new ArrayList<>(); // Nếu muốn ghi chú lại ngày tự động tính
 
             for (HabitLog log : logsOfPlan) {
                 if (log.getMoneySaved() > 0) {
-                    // Ưu tiên số tiền tiết kiệm do FE nhập
+                    // Số tiền tiết kiệm user nhập hôm đó (cộng dồn)
                     totalMoneySaved += log.getMoneySaved();
                 } else {
                     // Nếu FE không nhập, backend tự động tính số tiền tiết kiệm dựa trên số điếu giảm được
@@ -203,8 +200,8 @@ public class HabitLogService {
 
         CessationPlan plan = planOpt.get();
 
-        // Lấy log của plan này
-        List<HabitLog> logsOfPlan = habitLogRepository.findByUserIdOrderByLogDateDesc(userId)
+        // Lấy log của plan này (sắp xếp ngày tăng dần)
+        List<HabitLog> logsOfPlan = habitLogRepository.findByUserIdOrderByLogDateAsc(userId)
                 .stream()
                 .filter(l -> l.getCessationPlan() != null
                         && l.getCessationPlan().getPlanID().equals(plan.getPlanID()))
@@ -220,6 +217,7 @@ public class HabitLogService {
             pricePerCigarette = plan.getCostPerPack().doubleValue() / cigarettesPerPack;
         }
 
+        // ==== Tổng tiền tiết kiệm cộng dồn từng ngày ====
         double totalMoneySaved = 0;
         for (HabitLog log : logsOfPlan) {
             if (log.getMoneySaved() > 0) {

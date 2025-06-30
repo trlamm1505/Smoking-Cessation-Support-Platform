@@ -99,19 +99,35 @@ public class ConsultationService {
 
         Consultation saved = consultationRepository.save(c);
 
-        // ======= Gửi thông báo xác nhận lại cho Member =======
+        // ======= Gửi thông báo xác nhận HOẶC từ chối lại cho Member =======
         User user = userRepository.findById(c.getUserId()).orElse(null);
         Coach coach = coachRepository.findById(c.getCoachId()).orElse(null);
-        if (user != null && coach != null && "confirmed".equalsIgnoreCase(status)) {
-            String timeStr = c.getScheduledTime() != null ? c.getScheduledTime().toString() : "";
 
+        if (user != null && coach != null) {
+            String timeStr = c.getScheduledTime() != null ? c.getScheduledTime().toString() : "";
             NotificationRequestDTO memberNoti = new NotificationRequestDTO();
-            memberNoti.setTitle("Lịch tư vấn của bạn đã được xác nhận");
-            memberNoti.setContent("Huấn luyện viên " + coach.getFullName() + " đã xác nhận lịch tư vấn vào lúc " + timeStr
-                    + (meetingLink != null ? ". Link: " + meetingLink : ""));
-            memberNoti.setType("consultation");
-            memberNoti.setSenderId(coach.getUser().getUserId()); // coach là người xác nhận
-            memberNoti.setRecipientId(user.getUserId()); // gửi cho member
+
+            // Nếu được xác nhận (approved/confirmed)
+            if ("approved".equalsIgnoreCase(status) || "confirmed".equalsIgnoreCase(status)) {
+                memberNoti.setTitle("Lịch tư vấn của bạn đã được xác nhận");
+                memberNoti.setContent("Huấn luyện viên " + coach.getFullName() + " đã xác nhận lịch tư vấn vào lúc " + timeStr
+                        + (meetingLink != null ? ". Link: " + meetingLink : ""));
+                memberNoti.setType("consultation_approved");
+            }
+            // Nếu bị từ chối/hủy
+            else if ("rejected".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status) || "denied".equalsIgnoreCase(status)) {
+                memberNoti.setTitle("Lịch tư vấn của bạn bị từ chối/hủy");
+                memberNoti.setContent("Huấn luyện viên " + coach.getFullName() + " đã từ chối/hủy lịch tư vấn vào lúc " + timeStr + ".");
+                memberNoti.setType("consultation_rejected");
+            }
+            // Gửi nếu là 2 trường hợp trên
+            else {
+                // Không gửi noti cho trạng thái khác
+                return saved;
+            }
+
+            memberNoti.setSenderId(coach.getUser().getUserId());
+            memberNoti.setRecipientId(user.getUserId());
 
             notificationService.sendNotification(memberNoti);
         }
@@ -206,4 +222,63 @@ public class ConsultationService {
             return dto;
         }).collect(Collectors.toList());
     }
+
+    /**
+     * Coach từ chối hoặc hủy lịch tư vấn.
+     * Tự động gửi thông báo cho member.
+     * @param id       ID cuộc tư vấn
+     * @param status   "rejected" hoặc "cancelled"
+     * @param note     Lý do từ chối/hủy (có thể null)
+     */
+    public Consultation rejectOrCancelConsultation(Long id, String status, String note) {
+        Consultation c = consultationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Consultation not found with ID: " + id));
+
+        c.setStatus(status);
+        if (note != null && !note.trim().isEmpty()) {
+            c.setNotes(note);
+        }
+        // Nếu là cancelled có thể set lại meetingLink = null
+        if ("cancelled".equalsIgnoreCase(status)) {
+            c.setMeetingLink(null);
+        }
+
+        Consultation saved = consultationRepository.save(c);
+
+        // Gửi thông báo cho member
+        User user = userRepository.findById(c.getUserId()).orElse(null);
+        Coach coach = coachRepository.findById(c.getCoachId()).orElse(null);
+
+        if (user != null && coach != null) {
+            String timeStr = c.getScheduledTime() != null ? c.getScheduledTime().toString() : "";
+            String title = "Lịch tư vấn của bạn đã bị ";
+            String content;
+
+            if ("rejected".equalsIgnoreCase(status)) {
+                title += "từ chối";
+                content = "Huấn luyện viên " + coach.getFullName() + " đã từ chối lịch tư vấn vào lúc " + timeStr
+                        + (note != null && !note.trim().isEmpty() ? ". Lý do: " + note : ".");
+            } else if ("cancelled".equalsIgnoreCase(status)) {
+                title += "hủy";
+                content = "Huấn luyện viên " + coach.getFullName() + " đã hủy lịch tư vấn vào lúc " + timeStr
+                        + (note != null && !note.trim().isEmpty() ? ". Lý do: " + note : ".");
+            } else {
+                title += "thay đổi";
+                content = "Lịch tư vấn đã được cập nhật.";
+            }
+
+            NotificationRequestDTO memberNoti = new NotificationRequestDTO();
+            memberNoti.setTitle(title);
+            memberNoti.setContent(content);
+            memberNoti.setType("consultation");
+            memberNoti.setSenderId(coach.getUser().getUserId());
+            memberNoti.setRecipientId(user.getUserId());
+
+            notificationService.sendNotification(memberNoti);
+        }
+
+        return saved;
+    }
+
+
 }
