@@ -77,7 +77,11 @@ const Login = () => {
         }
 
         // --- Store correct info ---
-        localStorage.setItem('token', data.user.token);
+        if (data.user.token) {
+          localStorage.setItem('token', data.user.token);
+        } else {
+          localStorage.removeItem('token');
+        }
         localStorage.setItem('userRole', data.user.role);
         localStorage.setItem('userId', userId); // Store the found ID with a consistent key
 

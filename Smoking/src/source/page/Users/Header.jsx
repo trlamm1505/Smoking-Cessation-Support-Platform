@@ -4,6 +4,7 @@ import { SearchOutlined, BellOutlined, UserOutlined } from '@ant-design/icons';
 import { Link } from 'react-router';
 import styled from 'styled-components';
 import Notification from './Notification';
+import axiosClient from '../Axios/AxiosCLients';
 
 const HeaderContainer = styled.header`
   background: white;
@@ -93,6 +94,21 @@ const NavIcons = styled.div`
 
 const Header = () => {
   const [notiOpen, setNotiOpen] = React.useState(false);
+  const [unreadCount, setUnreadCount] = React.useState(0);
+  const userId = localStorage.getItem('userId');
+
+  React.useEffect(() => {
+    if (!userId) return;
+    axiosClient.get(`/api/notifications/unread-count/${userId}`)
+      .then(res => {
+        setUnreadCount(res.data.unreadCount);
+      });
+  }, [notiOpen, userId]);
+
+  const updateUnreadCount = () => {
+    axiosClient.get(`/api/notifications/unread-count/${userId}`)
+      .then(res => setUnreadCount(res.data.unreadCount));
+  };
 
   return (
     <HeaderContainer>
@@ -115,7 +131,7 @@ const Header = () => {
           onClick={() => setNotiOpen((open) => !open)}
           aria-label="Thông báo"
         >
-          <Badge count={2} style={{ backgroundColor: '#5FB8B3' }}>
+          <Badge count={Number(unreadCount)} showZero style={{ backgroundColor: '#5FB8B3' }}>
             <BellOutlined style={{ color: notiOpen ? '#5FB8B3' : '#666' }} />
           </Badge>
         </button>
@@ -123,7 +139,12 @@ const Header = () => {
           <UserOutlined />
         </Link>
       </NavIcons>
-      <Notification visible={notiOpen} onClose={() => setNotiOpen(false)} />
+      <Notification
+        visible={notiOpen}
+        onClose={() => setNotiOpen(false)}
+        userId={userId}
+        onUpdateUnreadCount={updateUnreadCount}
+      />
     </HeaderContainer>
   );
 };
