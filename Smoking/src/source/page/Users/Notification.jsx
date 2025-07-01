@@ -115,91 +115,95 @@ const LoadMoreButton = styled.button`
 
 // Thêm hàm formatTimeAgo
 function formatTimeAgo(dateString) {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diff = Math.floor((now - date) / 1000); // giây
+  const now = new Date();
+  const date = new Date(dateString);
+  const diff = Math.floor((now - date) / 1000); // giây
 
-    if (diff < 60) return `${diff} giây trước`;
-    if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
-    if (diff < 2592000) return `${Math.floor(diff / 86400)} ngày trước`;
+  if (diff < 60) return `${diff} giây trước`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)} ngày trước`;
 
-    // Nếu quá 30 ngày thì hiện ngày/tháng/năm
-    return date.toLocaleDateString('vi-VN');
+  // Nếu quá 30 ngày thì hiện ngày/tháng/năm
+  return date.toLocaleDateString('vi-VN');
 }
 
 const Notification = ({ visible, onClose, userId, onUpdateUnreadCount }) => {
-    const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [beforeCount, setBeforeCount] = useState(1); // Số trang thông báo cũ đã load
-    const PAGE_SIZE = 3;
-    // Nếu không truyền userId qua prop thì lấy từ localStorage
-    const realUserId = userId || localStorage.getItem('userId');
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [beforeCount, setBeforeCount] = useState(1); // Số trang thông báo cũ đã load
+  const PAGE_SIZE = 3;
+  // Nếu không truyền userId qua prop thì lấy từ localStorage
+  const realUserId = userId || localStorage.getItem('userId');
 
-    useEffect(() => {
-        if (!visible || !realUserId) return;
-        setLoading(true);
-        axiosClient.get(`/api/notifications/inbox/${realUserId}`)
-            .then(res => {
-                console.log('Notification API data:', res.data);
-                const notifications = Array.isArray(res.data)
-                    ? res.data.map(n => ({ ...n, unread: n.read === false }))
-                    : [];
-                setNotifications(notifications);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error('Notification API error:', err);
-                setLoading(false);
-            });
-    }, [visible, realUserId]);
+  useEffect(() => {
+    if (!visible || !realUserId) return;
+    setLoading(true);
+    axiosClient.get(`/api/notifications/inbox/${realUserId}`)
+      .then(res => {
+        console.log('Notification API data:', res.data);
+        const notifications = Array.isArray(res.data)
+          ? res.data.map(n => ({
+            ...n.notification, // flatten các trường trong notification ra ngoài
+            unread: n.read === false,
+            readAt: n.readAt
+          }))
+          : [];
+        setNotifications(notifications);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Notification API error:', err);
+        setLoading(false);
+      });
+  }, [visible, realUserId]);
 
-    // Bỏ filter theo section, chỉ hiển thị tất cả thông báo
-    const allNotifications = notifications;
+  // Bỏ filter theo section, chỉ hiển thị tất cả thông báo
+  const allNotifications = notifications;
 
-    const handleMarkRead = (notification) => {
-        if (!notification.unread) return;
-        const userId = notification.recipientId || localStorage.getItem('userId');
-        axiosClient.post('/api/notifications/mark-read', {
-            notificationId: notification.id,
-            userId: userId,
-        }).then(res => {
-            setNotifications((prev) => prev.map(n => n.id === notification.id ? { ...n, unread: false } : n));
-            if (onUpdateUnreadCount) onUpdateUnreadCount();
-        });
-    };
+  const handleMarkRead = (notification) => {
+    if (!notification.unread) return;
+    const userId = notification.recipientId || localStorage.getItem('userId');
+    axiosClient.post('/api/notifications/mark-read', {
+      notificationId: notification.id,
+      userId: userId,
+    }).then(res => {
+      setNotifications((prev) => prev.map(n => n.id === notification.id ? { ...n, unread: false } : n));
+      if (onUpdateUnreadCount) onUpdateUnreadCount();
+    });
+  };
 
-    if (!visible) return null;
+  if (!visible) return null;
 
-    return (
-        <PanelWrapper>
-            <PanelHeader>
-                <div style={{ color: '#2c7a75', fontSize: '1.5rem', fontWeight: 700, marginBottom: 8 }}>Thông báo</div>
-            </PanelHeader>
-            <PanelBody>
-                {loading && <div style={{ color: '#b0b3b8', textAlign: 'center', marginTop: 40 }}>Đang tải...</div>}
-                {!loading && (
-                    <>
-                        {allNotifications.length > 0 ? (
-                            allNotifications.map((n) => (
-                                <NotificationItem key={n.id} unread={n.unread} onClick={() => handleMarkRead(n)}>
-                                    <div style={{ flex: 1 }}>
-                                        <div>
-                                            <Name>{n.title || n.name}</Name> <Content>{n.content}</Content>
-                                        </div>
-                                        <Time>{formatTimeAgo(n.createdAt || n.time)}</Time>
-                                    </div>
-                                    {n.unread && <Dot />}
-                                </NotificationItem>
-                            ))
-                        ) : (
-                            <div style={{ color: '#b0b3b8', textAlign: 'center', marginTop: 40 }}>Không có thông báo nào.</div>
-                        )}
-                    </>
-                )}
-            </PanelBody>
-        </PanelWrapper>
-    );
+  return (
+    <PanelWrapper>
+      <PanelHeader>
+        <div style={{ color: '#2c7a75', fontSize: '1.5rem', fontWeight: 700, marginBottom: 8 }}>Thông báo</div>
+      </PanelHeader>
+      <PanelBody>
+        {loading && <div style={{ color: '#b0b3b8', textAlign: 'center', marginTop: 40 }}>Đang tải...</div>}
+        {!loading && (
+          <>
+            {allNotifications.length > 0 ? (
+              allNotifications.map((n) => (
+                <NotificationItem key={n.id} unread={n.unread} onClick={() => handleMarkRead(n)}>
+                  <div style={{ flex: 1 }}>
+                    <div>
+                      <Name>{n.title || n.name}</Name> <Content>{n.content}</Content>
+                    </div>
+                    <Time>{formatTimeAgo(n.createdAt || n.time)}</Time>
+                  </div>
+                  {n.unread && <Dot />}
+                </NotificationItem>
+              ))
+            ) : (
+              <div style={{ color: '#b0b3b8', textAlign: 'center', marginTop: 40 }}>Không có thông báo nào.</div>
+            )}
+          </>
+        )}
+      </PanelBody>
+    </PanelWrapper>
+  );
 };
 
 export default Notification; 
