@@ -53,6 +53,11 @@ const AdminLayout = () => {
             label: 'Thống kê doanh thu',
         },
         {
+            key: 'package-manage',
+            icon: <DollarOutlined />,
+            label: 'Quản lý gói Premium',
+        },
+        {
             key: 'community',
             icon: <TeamOutlined />,
             label: 'Cộng đồng',

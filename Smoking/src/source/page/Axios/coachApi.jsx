@@ -10,7 +10,6 @@ const coachApi = {
   // Cập nhật coach (RESTful style, giữ lại nếu đang dùng ở nơi khác)
   update: (id, data) => axiosClient.put(`/api/coaches/update/${id}`, data),
 
-  // Cập nhật profile coach đúng chuẩn API backend (userId truyền qua query string)
   updateProfile: (userId, data) => axiosClient.put(`/api/coaches/update-profile?userId=${userId}`, data),
 
   // Lấy danh sách coach (cho admin)
@@ -44,10 +43,17 @@ const coachApi = {
   getMostPopularPackage: () => axiosClient.get('/api/statistics/revenue/most-popular-package'),
   getRevenueMonthly: () => axiosClient.get('/api/statistics/revenue/monthly'),
   getRevenueAvgPerMember: () => axiosClient.get('/api/statistics/revenue/average-per-member'),
-  getUsersMonthly: () => axiosClient.get('/api/statistics/users/monthly'),
+  getUsersMonthly: () => axiosClient.get('/api/statistics/users/guest-member-monthly'),
 
   // Lấy danh sách consultation của coach
   getCoachConsultations: (coachId) => axiosClient.get(`/api/consultations/coach/${coachId}`),
+
+  // PACKAGE API
+  getAllPackages: () => axiosClient.get('/api/packages'),
+  getPackageById: (id) => axiosClient.get(`/api/packages/${id}`),
+  createPackage: (data) => axiosClient.post('/api/packages', data),
+  updatePackage: (id, data) => axiosClient.put(`/api/packages/${id}`, data),
+  deletePackage: (id) => axiosClient.delete(`/api/packages/${id}`),
 };
 
 export default coachApi; 

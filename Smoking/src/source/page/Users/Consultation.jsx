@@ -288,9 +288,9 @@ const Consultation = () => {
                 notes: values.notes || ''
             })
                 .then(() => {
-                    message.success('Đặt lịch tư vấn thành công!');
-                    setIsModalVisible(false);
-                    form.resetFields();
+            message.success('Đặt lịch tư vấn thành công!');
+            setIsModalVisible(false);
+            form.resetFields();
                     fetchUserConsultations(userId).then(res => setAppointments(res.data));
                 })
                 .catch((err) => {
