@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import styled from 'styled-components';
 import userApi from '../Axios/userAxios';
+import coachApi from '../Axios/coachApi';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -23,20 +24,30 @@ const AdminReports = () => {
     const [isSendModalVisible, setIsSendModalVisible] = useState(false);
     const [form] = Form.useForm();
     const [feedbacks, setFeedbacks] = useState([]);
+    const [coachFeedbacks, setCoachFeedbacks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState([]);
+    const [coaches, setCoaches] = useState([]);
 
     useEffect(() => {
         setLoading(true);
         userApi.getAll().then(res => {
             setUsers(res.data || res);
         });
+        coachApi.getAll().then(res => {
+            setCoaches(res.data || res);
+        });
         userApi.getFeedbacks({}).then(res => {
-            // Only show feedbacks where targetType !== 'coach'
             const data = (res.data || res).filter(fb => fb.targetType !== 'coach');
             setFeedbacks(data.map(fb => ({ ...fb, id: fb.feedbackId })));
         }).catch(() => {
             message.error('Lỗi tải phản hồi');
+        });
+        userApi.getFeedbacks({ targetType: 'coach' }).then(res => {
+            const data = (res.data || res);
+            setCoachFeedbacks(data.map(fb => ({ ...fb, id: fb.feedbackId })));
+        }).catch(() => {
+            message.error('Lỗi tải phản hồi tới coach');
         }).finally(() => setLoading(false));
     }, []);
 
@@ -74,7 +85,13 @@ const AdminReports = () => {
         return user ? user.fullName : userId;
     };
 
-    // Table columns for admin feedbacks
+    // Helper to get coach name by targetId
+    const getCoachName = (targetId) => {
+        const coach = coaches.find(c => c.userId === targetId || c.coachId === targetId);
+        return coach ? (coach.fullName || coach.name || coach.coachName || coach.username || coach.email || targetId) : targetId;
+    };
+
+    // Table columns for admin feedbacks (system & report)
     const feedbackColumns = [
          {
             title: 'Loại',
@@ -122,18 +139,51 @@ const AdminReports = () => {
             render: (_, record) => getSenderName(record.userId),
             width: 160,
         },
+    ];
+
+    // Table columns for coach feedbacks
+    const coachFeedbackColumns = [
         {
-            title: 'Thao tác',
-            key: 'action',
-            width: 90,
-             render: (_, record) => (
-                <Space>
-                    <Button icon={<EyeOutlined />} onClick={() => handleViewFeedback(record)} />
-                    {record.status === 'active' && (
-                        <Button icon={<CheckCircleOutlined />} onClick={() => handleMarkAsResolved(record.id)} style={{ color: '#52c41a' }}>Đã xử lý</Button>
-                    )}
-                </Space>
-            ),
+            title: 'Số sao',
+            dataIndex: 'rating',
+            key: 'rating',
+            render: (rating) => rating ? Array.from({ length: rating }, (_, i) => <span key={i} style={{ color: '#FFD700', fontSize: '1.1em' }}>★</span>) : '-',
+            width: 100,
+        },
+        {
+            title: 'Tiêu đề',
+            dataIndex: 'title',
+            key: 'title',
+            width: 180,
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'comment',
+            key: 'comment',
+            width: 260,
+            ellipsis: true,
+        },
+        {
+            title: 'Trạng thái',
+            dataIndex: 'status',
+            key: 'status',
+            render: (status) => {
+                let color = status === 'active' ? 'success' : 'default';
+                return <Tag color={color}>{status?.toUpperCase()}</Tag>;
+            },
+            width: 120,
+        },
+        {
+            title: 'Người gửi',
+            key: 'sender',
+            render: (_, record) => getSenderName(record.userId),
+            width: 160,
+        },
+        {
+            title: 'Coach',
+            key: 'receiver',
+            render: (_, record) => getCoachName(record.targetId),
+            width: 160,
         },
     ];
 
@@ -205,6 +255,31 @@ const AdminReports = () => {
                         </Spin>
                     </Card>
                  </TabPane>
+                 <TabPane
+                    tab={
+                        <span>
+                            <MessageOutlined style={{ color: '#faad14', fontSize: 26 }} />
+                            Phản hồi người dùng tới Coach
+                        </span>
+                    }
+                    key="coach-feedback"
+                >
+                    <Card bordered style={{ borderRadius: 24, boxShadow: '0 4px 24px #e6f9f7', marginBottom: 32, border: '1.5px solid #faad14', overflow: 'hidden' }}>
+                        <Spin spinning={loading} tip="Đang tải...">
+                            <Table
+                                dataSource={coachFeedbacks.filter(fb => fb.targetType === 'coach')}
+                                columns={coachFeedbackColumns}
+                                rowKey="id"
+                                pagination={{ pageSize: 10 }}
+                                bordered
+                                size="large"
+                                style={{ borderRadius: 18 }}
+                                rowClassName={() => 'custom-table-row'}
+                                title={() => <span style={{ color: '#faad14', fontWeight: 800, fontSize: 24, letterSpacing: 1 }}>Danh sách phản hồi tới Coach</span>}
+                            />
+                        </Spin>
+                    </Card>
+                </TabPane>
              </Tabs>
             {/* Modal for viewing feedback details */}
             <Modal
