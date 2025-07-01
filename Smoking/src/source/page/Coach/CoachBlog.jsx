@@ -291,6 +291,11 @@ const CoachBlog = () => {
     // Fetch all blog posts on mount
     useEffect(() => {
         fetchArticles();
+        // Polling mỗi 1 giây
+        const interval = setInterval(() => {
+            fetchArticles();
+        }, 1000);
+        return () => clearInterval(interval);
     }, []);
 
     const fetchArticles = async () => {

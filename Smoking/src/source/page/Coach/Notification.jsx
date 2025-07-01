@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, Avatar, Button } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
+import axiosClient from '../Axios/AxiosCLients';
 
 const { TabPane } = Tabs;
 
@@ -112,133 +113,65 @@ const LoadMoreButton = styled.button`
   }
 `;
 
-// Demo data mới
-const notifications = [
-    {
-        id: 1,
-        name: 'Hệ thống',
-        content: 'Chúc mừng bạn đã đạt thành tích "7 ngày không hút thuốc"! Tiếp tục cố gắng nhé!',
-        time: '2 giờ trước',
-        avatar: '',
-        unread: true,
-        section: 'today',
-        type: 'achievement',
-    },
-    {
-        id: 2,
-        name: 'Bác sĩ Nguyễn Văn A',
-        content: 'đã xác nhận lịch hẹn tư vấn của bạn vào 15:00 ngày 20/06/2024.',
-        time: '4 giờ trước',
-        avatar: '',
-        unread: true,
-        section: 'today',
-        type: 'appointment',
-    },
-    {
-        id: 3,
-        name: 'Blog SmokeFree',
-        content: 'vừa đăng bài viết mới: "5 mẹo vượt qua cơn thèm thuốc hiệu quả".',
-        time: '1 ngày trước',
-        avatar: '',
-        unread: false,
-        section: 'before',
-        type: 'blog',
-    },
-    // Thêm 3 thông báo hôm nay mới
-    {
-        id: 9,
-        name: 'Hệ thống',
-        content: 'Bạn vừa hoàn thành mục tiêu không hút thuốc trong 24 giờ! Hãy tiếp tục phát huy!',
-        time: '30 phút trước',
-        avatar: '',
-        unread: true,
-        section: 'today',
-        type: 'achievement',
-    },
-    {
-        id: 10,
-        name: 'Bác sĩ Trần Thị B',
-        content: 'đã xác nhận lại lịch hẹn tư vấn của bạn vào 17:00 hôm nay.',
-        time: '1 giờ trước',
-        avatar: '',
-        unread: true,
-        section: 'today',
-        type: 'appointment',
-    },
-    {
-        id: 11,
-        name: 'Blog SmokeFree',
-        content: 'vừa đăng bài viết mới: "Cách kiểm soát cảm xúc khi cai thuốc".',
-        time: '10 phút trước',
-        avatar: '',
-        unread: true,
-        section: 'today',
-        type: 'blog',
-    },
-    // Demo thêm nhiều thông báo cũ để test load more
-    {
-        id: 4,
-        name: 'Hệ thống',
-        content: 'Bạn đã đạt thành tích "30 ngày không hút thuốc"! Tuyệt vời!',
-        time: '3 ngày trước',
-        avatar: '',
-        unread: false,
-        section: 'before',
-        type: 'achievement',
-    },
-    {
-        id: 5,
-        name: 'Blog SmokeFree',
-        content: 'vừa đăng bài viết mới: "Làm sao vượt qua stress khi cai thuốc?".',
-        time: '5 ngày trước',
-        avatar: '',
-        unread: false,
-        section: 'before',
-        type: 'blog',
-    },
-    {
-        id: 6,
-        name: 'Hệ thống',
-        content: 'Bạn đã xác nhận lịch hẹn với chuyên gia vào 10:00 ngày 10/06/2024.',
-        time: '7 ngày trước',
-        avatar: '',
-        unread: false,
-        section: 'before',
-        type: 'appointment',
-    },
-    {
-        id: 7,
-        name: 'Blog SmokeFree',
-        content: 'vừa đăng bài viết mới: "Những lợi ích bất ngờ khi bỏ thuốc lá".',
-        time: '10 ngày trước',
-        avatar: '',
-        unread: false,
-        section: 'before',
-        type: 'blog',
-    },
-    {
-        id: 8,
-        name: 'Hệ thống',
-        content: 'Bạn đã đạt thành tích "100 ngày không hút thuốc"! Bạn là người truyền cảm hứng!',
-        time: '20 ngày trước',
-        avatar: '',
-        unread: false,
-        section: 'before',
-        type: 'achievement',
-    },
-];
+// Thêm hàm formatTimeAgo
+function formatTimeAgo(dateString) {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diff = Math.floor((now - date) / 1000); // giây
 
-const Notification = ({ visible, onClose }) => {
+    if (diff < 60) return `${diff} giây trước`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)} ngày trước`;
+
+    // Nếu quá 30 ngày thì hiện ngày/tháng/năm
+    return date.toLocaleDateString('vi-VN');
+}
+
+const Notification = ({ visible, onClose, userId, onUpdateUnreadCount }) => {
+    const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [beforeCount, setBeforeCount] = useState(1); // Số trang thông báo cũ đã load
     const PAGE_SIZE = 3;
+    // Nếu không truyền userId qua prop thì lấy từ localStorage
+    const realUserId = userId || localStorage.getItem('userId');
+
+    useEffect(() => {
+        if (!visible || !realUserId) return;
+        setLoading(true);
+        axiosClient.get(`/api/notifications/inbox/${realUserId}`)
+            .then(res => {
+                const notifications = Array.isArray(res.data)
+                    ? res.data.map(n => ({
+                        ...n.notification, // flatten các trường trong notification ra ngoài
+                        unread: n.read === false,
+                        readAt: n.readAt
+                    }))
+                    : [];
+                setNotifications(notifications);
+                setLoading(false);
+            })
+            .catch((err) => {
+                setLoading(false);
+            });
+    }, [visible, realUserId]);
+
+    // Bỏ filter theo section, chỉ hiển thị tất cả thông báo
+    const allNotifications = notifications;
+
+    const handleMarkRead = (notification) => {
+        if (!notification.unread) return;
+        const userId = notification.recipientId || localStorage.getItem('userId');
+        axiosClient.post('/api/notifications/mark-read', {
+            notificationId: notification.id,
+            userId: userId,
+        }).then(res => {
+            setNotifications((prev) => prev.map(n => n.id === notification.id ? { ...n, unread: false } : n));
+            if (onUpdateUnreadCount) onUpdateUnreadCount();
+        });
+    };
 
     if (!visible) return null;
-
-    // Luôn lấy tất cả thông báo (không filter theo tab)
-    const today = notifications.filter((n) => n.section === 'today');
-    const beforeAll = notifications.filter((n) => n.section === 'before');
-    const before = beforeAll.slice(0, beforeCount * PAGE_SIZE);
-    const hasMore = before.length < beforeAll.length;
 
     return (
         <PanelWrapper>
@@ -246,41 +179,25 @@ const Notification = ({ visible, onClose }) => {
                 <div style={{ color: '#2c7a75', fontSize: '1.5rem', fontWeight: 700, marginBottom: 8 }}>Thông báo</div>
             </PanelHeader>
             <PanelBody>
-                {today.length > 0 && <SectionTitle>Hôm nay</SectionTitle>}
-                {today.map((n) => (
-                    <NotificationItem key={n.id} unread={n.unread}>
-                        <Avatar size={44} icon={<UserOutlined />} src={n.avatar} />
-                        <div style={{ flex: 1 }}>
-                            <div>
-                                <Name>{n.name}</Name> <Content>{n.content}</Content>
-                            </div>
-                            <Time>{n.time}</Time>
-                        </div>
-                        {n.unread && <Dot />}
-                    </NotificationItem>
-                ))}
-                {before.length > 0 && <SectionTitle>Trước đó</SectionTitle>}
-                {before.map((n) => (
-                    <NotificationItem key={n.id} unread={n.unread}>
-                        <Avatar size={44} icon={<UserOutlined />} src={n.avatar} />
-                        <div style={{ flex: 1 }}>
-                            <div>
-                                <Name>{n.name}</Name> <Content>{n.content}</Content>
-                            </div>
-                            <Time>{n.time}</Time>
-                        </div>
-                        {n.unread && <Dot />}
-                    </NotificationItem>
-                ))}
-                {hasMore && (
-                    <div style={{ display: 'flex', justifyContent: 'center', margin: '18px 0 0 0' }}>
-                        <LoadMoreButton onClick={() => setBeforeCount(beforeCount + 1)}>
-                            Xem thông báo trước đó
-                        </LoadMoreButton>
-                    </div>
-                )}
-                {today.length === 0 && before.length === 0 && (
-                    <div style={{ color: '#b0b3b8', textAlign: 'center', marginTop: 40 }}>Không có thông báo nào.</div>
+                {loading && <div style={{ color: '#b0b3b8', textAlign: 'center', marginTop: 40 }}>Đang tải...</div>}
+                {!loading && (
+                    <>
+                        {allNotifications.length > 0 ? (
+                            allNotifications.map((n) => (
+                                <NotificationItem key={n.id} unread={n.unread} onClick={() => handleMarkRead(n)}>
+                                    <div style={{ flex: 1 }}>
+                                        <div>
+                                            <Name>{n.title || n.name}</Name> <Content>{n.content}</Content>
+                                        </div>
+                                        <Time>{formatTimeAgo(n.createdAt || n.time)}</Time>
+                                    </div>
+                                    {n.unread && <Dot />}
+                                </NotificationItem>
+                            ))
+                        ) : (
+                            <div style={{ color: '#b0b3b8', textAlign: 'center', marginTop: 40 }}>Không có thông báo nào.</div>
+                        )}
+                    </>
                 )}
             </PanelBody>
         </PanelWrapper>
