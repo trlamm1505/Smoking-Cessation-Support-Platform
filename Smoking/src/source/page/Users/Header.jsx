@@ -100,10 +100,15 @@ const Header = () => {
   React.useEffect(() => {
     if (!userId) return;
     axiosClient.get(`/api/notifications/unread-count/${userId}`)
-      .then(res => {
-        setUnreadCount(res.data.unreadCount);
-      });
-  }, [notiOpen, userId]);
+      .then(res => setUnreadCount(res.data.unreadCount));
+
+    const interval = setInterval(() => {
+      axiosClient.get(`/api/notifications/unread-count/${userId}`)
+        .then(res => setUnreadCount(res.data.unreadCount));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [userId]);
 
   const updateUnreadCount = () => {
     axiosClient.get(`/api/notifications/unread-count/${userId}`)

@@ -230,7 +230,16 @@ const Consultation = () => {
     };
 
     useEffect(() => {
+        if (!userId) return;
+        // Gọi ngay khi mount
         fetchUserConsultations(userId).then(res => setAppointments(res.data));
+
+        // Polling mỗi 3 giây
+        const interval = setInterval(() => {
+            fetchUserConsultations(userId).then(res => setAppointments(res.data));
+        }, 3000);
+
+        return () => clearInterval(interval);
     }, [userId]);
 
     // Fetch danh sách coach từ API khi load trang
@@ -288,9 +297,9 @@ const Consultation = () => {
                 notes: values.notes || ''
             })
                 .then(() => {
-            message.success('Đặt lịch tư vấn thành công!');
-            setIsModalVisible(false);
-            form.resetFields();
+                    message.success('Đặt lịch tư vấn thành công!');
+                    setIsModalVisible(false);
+                    form.resetFields();
                     fetchUserConsultations(userId).then(res => setAppointments(res.data));
                 })
                 .catch((err) => {
@@ -361,32 +370,33 @@ const Consultation = () => {
                         { title: 'Ngày', dataIndex: 'scheduledTime', key: 'scheduledTime', render: date => dayjs(date).format('DD/MM/YYYY') },
                         { title: 'Giờ', dataIndex: 'scheduledTime', key: 'time', render: date => dayjs(date).format('HH:mm') },
                         { title: 'Ghi chú', dataIndex: 'notes', key: 'notes' },
-                        { title: 'Trạng thái', dataIndex: 'status', key: 'status', render: status =>
-                            status === 'approved' || status === 'confirmed'
-                                ? <span style={{
-                                    background: '#e6fff3',
-                                    color: '#1bbf7a',
-                                    fontWeight: 700,
-                                    borderRadius: 12,
-                                    padding: '4px 16px',
-                                    fontSize: 15,
-                                    boxShadow: '0 1px 4px #1bbf7a22',
-                                    letterSpacing: 1
-                                  }}>Đã xác nhận</span>
-                                : <span style={{
-                                    background: '#fff7e6',
-                                    color: '#ff9800',
-                                    fontWeight: 700,
-                                    borderRadius: 12,
-                                    padding: '4px 16px',
-                                    fontSize: 15,
-                                    boxShadow: '0 1px 4px #ff980022',
-                                    letterSpacing: 1
-                                  }}>Chờ xác nhận</span>
+                        {
+                            title: 'Trạng thái', dataIndex: 'status', key: 'status', render: status =>
+                                status === 'approved' || status === 'confirmed'
+                                    ? <span style={{
+                                        background: '#e6fff3',
+                                        color: '#1bbf7a',
+                                        fontWeight: 700,
+                                        borderRadius: 12,
+                                        padding: '4px 16px',
+                                        fontSize: 15,
+                                        boxShadow: '0 1px 4px #1bbf7a22',
+                                        letterSpacing: 1
+                                    }}>Đã xác nhận</span>
+                                    : <span style={{
+                                        background: '#fff7e6',
+                                        color: '#ff9800',
+                                        fontWeight: 700,
+                                        borderRadius: 12,
+                                        padding: '4px 16px',
+                                        fontSize: 15,
+                                        boxShadow: '0 1px 4px #ff980022',
+                                        letterSpacing: 1
+                                    }}>Chờ xác nhận</span>
                         },
-                        { 
-                            title: 'Link Google Meet', 
-                            key: 'meetingLink', 
+                        {
+                            title: 'Link Google Meet',
+                            key: 'meetingLink',
                             render: (_, record) => {
                                 const link = getMeetingLink(record);
                                 const now = dayjs();
@@ -423,9 +433,9 @@ const Consultation = () => {
                             label={<span>Ngày tư vấn</span>}
                             rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
                         >
-                            <DatePicker 
-                                style={{ width: '100%' }} 
-                                disabledDate={current => current && current < dayjs().startOf('day')} 
+                            <DatePicker
+                                style={{ width: '100%' }}
+                                disabledDate={current => current && current < dayjs().startOf('day')}
                                 onChange={date => {
                                     setSelectedDate(date);
                                     form.setFieldsValue({ time: undefined }); // Reset time khi đổi ngày

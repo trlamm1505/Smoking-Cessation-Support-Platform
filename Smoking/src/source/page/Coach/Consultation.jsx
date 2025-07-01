@@ -183,16 +183,17 @@ const TimeConsultation = () => {
   useEffect(() => {
     const idToUse = coachId || userId;
     if (idToUse) {
-      console.log('Fetching consultations for ID:', idToUse, 'Type:', coachId ? 'coachId' : 'userId');
+      // Gọi ngay khi mount
       axiosClient.get(`/api/consultations/coach/${idToUse}`)
-        .then(res => {
-          console.log('API response:', res.data);
-          setConsultations(res.data);
-        })
-        .catch((err) => {
-          console.error('Error fetching consultations:', err);
-          setConsultations([]);
-        });
+        .then(res => setConsultations(res.data))
+        .catch((err) => setConsultations([]));
+      // Polling mỗi 3 giây
+      const interval = setInterval(() => {
+        axiosClient.get(`/api/consultations/coach/${idToUse}`)
+          .then(res => setConsultations(res.data))
+          .catch((err) => setConsultations([]));
+      }, 3000);
+      return () => clearInterval(interval);
     } else {
       console.log('No coachId or userId found in localStorage');
       console.log('Available localStorage items:', {
@@ -220,11 +221,11 @@ const TimeConsultation = () => {
 
   // Define time slots - adjust as needed
   const timeSlots = [
-      { key: 'Slot 1', time: '07:00 - 09:00' },
-      { key: 'Slot 2', time: '09:30 - 11:30' },
-      { key: 'Slot 3', time: '12:30 - 14:30' },
-      { key: 'Slot 4', time: '15:00 - 17:00' },
-      // Add more slots
+    { key: 'Slot 1', time: '07:00 - 09:00' },
+    { key: 'Slot 2', time: '09:30 - 11:30' },
+    { key: 'Slot 3', time: '12:30 - 14:30' },
+    { key: 'Slot 4', time: '15:00 - 17:00' },
+    // Add more slots
   ];
 
   const daysOfWeek = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
@@ -236,7 +237,7 @@ const TimeConsultation = () => {
 
   // Get dates for the current week
   const weekDates = Array.from({ length: 7 }).map((_, i) =>
-      dayjs(startOfWeekMonday).add(i, 'day').format('YYYY-MM-DD')
+    dayjs(startOfWeekMonday).add(i, 'day').format('YYYY-MM-DD')
   );
 
   console.log('Calculated weekDates:', weekDates);
@@ -266,15 +267,15 @@ const TimeConsultation = () => {
   });
 
   const handleYearChange = (year) => {
-      console.log('handleYearChange - New year:', year);
-      // Set the date to the first week of the selected year
-      setSelectedDate(dayjs().year(year).startOf('year').startOf('week').add(1, 'day')); // First day of the first week, adjusted to Monday
+    console.log('handleYearChange - New year:', year);
+    // Set the date to the first week of the selected year
+    setSelectedDate(dayjs().year(year).startOf('year').startOf('week').add(1, 'day')); // First day of the first week, adjusted to Monday
   };
 
   const handleWeekChange = (week) => {
-       console.log('handleWeekChange - New week:', week);
-      // Set the date to the first day of the selected week in the current year
-      setSelectedDate(dayjs().year(currentYear).week(week).startOf('week').add(1, 'day')); // Adjust to start Monday
+    console.log('handleWeekChange - New week:', week);
+    // Set the date to the first day of the selected week in the current year
+    setSelectedDate(dayjs().year(currentYear).week(week).startOf('week').add(1, 'day')); // Adjust to start Monday
   };
 
   // Chuyển đổi consultations thành object theo ngày/slot
@@ -330,53 +331,53 @@ const TimeConsultation = () => {
   const handleSaveFeedback = (values) => {
     // TODO: Implement API call to save feedback
     console.log('Saving feedback for', selectedConsultation.id, ':', values);
-     // Update consultation status/feedback in state/via API
+    // Update consultation status/feedback in state/via API
     message.success('Đã lưu đánh giá');
     setIsFeedbackModalVisible(false);
     setSelectedConsultation(null);
     feedbackForm.resetFields();
   };
 
-   // --- New functions for confirmation ---
-   const handleOpenConfirmModal = (consultation) => {
-       setConfirmConsultation(consultation);
-       confirmForm.setFieldsValue({ meetLink: '' }); // Clear field
-       setIsConfirmModalVisible(true);
-   };
+  // --- New functions for confirmation ---
+  const handleOpenConfirmModal = (consultation) => {
+    setConfirmConsultation(consultation);
+    confirmForm.setFieldsValue({ meetLink: '' }); // Clear field
+    setIsConfirmModalVisible(true);
+  };
 
-   const handleSaveConfirmation = (values) => {
-       if (!confirmConsultation) return;
+  const handleSaveConfirmation = (values) => {
+    if (!confirmConsultation) return;
 
-       // Use both possible id fields
-       const consultationId = confirmConsultation.consultationId || confirmConsultation.id;
-       const { meetLink } = values;
+    // Use both possible id fields
+    const consultationId = confirmConsultation.consultationId || confirmConsultation.id;
+    const { meetLink } = values;
 
-       console.log('Xác nhận:', { consultationId, meetLink, confirmConsultation });
+    console.log('Xác nhận:', { consultationId, meetLink, confirmConsultation });
 
-       axiosClient.put(`/api/consultations/${consultationId}/approve`, {}, { params: { meetingLink: meetLink } })
-         .then(() => {
-           message.success('Đã xác nhận và gửi link thành công!');
-           // Cập nhật lại danh sách appointments
-           const idToUse = coachId || userId;
-           if (idToUse) {
-             axiosClient.get(`/api/consultations/coach/${idToUse}`)
-               .then(res => setConsultations(res.data));
-           }
-           setIsConfirmModalVisible(false);
-           confirmForm.resetFields();
-         })
-         .catch((err) => {
-           console.error('Lỗi khi xác nhận:', err);
-           message.error('Xác nhận thất bại, vui lòng thử lại.');
-         });
-   };
+    axiosClient.put(`/api/consultations/${consultationId}/approve`, {}, { params: { meetingLink: meetLink } })
+      .then(() => {
+        message.success('Đã xác nhận và gửi link thành công!');
+        // Cập nhật lại danh sách appointments
+        const idToUse = coachId || userId;
+        if (idToUse) {
+          axiosClient.get(`/api/consultations/coach/${idToUse}`)
+            .then(res => setConsultations(res.data));
+        }
+        setIsConfirmModalVisible(false);
+        confirmForm.resetFields();
+      })
+      .catch((err) => {
+        console.error('Lỗi khi xác nhận:', err);
+        message.error('Xác nhận thất bại, vui lòng thử lại.');
+      });
+  };
 
-   const handleCancelConfirmModal = () => {
-       setIsConfirmModalVisible(false);
-       setConfirmConsultation(null);
-       setMeetLink('');
-       confirmForm.resetFields();
-   };
+  const handleCancelConfirmModal = () => {
+    setIsConfirmModalVisible(false);
+    setConfirmConsultation(null);
+    setMeetLink('');
+    confirmForm.resetFields();
+  };
 
 
   const renderConsultationStatus = (status) => {
@@ -386,7 +387,7 @@ const TimeConsultation = () => {
       completed: 'Đã hoàn thành',
       cancelled: 'Đã hủy',
     };
-     const statusColor = {
+    const statusColor = {
       pending: 'orange',
       confirmed: 'blue',
       completed: 'green',
@@ -395,22 +396,22 @@ const TimeConsultation = () => {
     return <Tag color={statusColor[status]}>{statusText[status]}</Tag>;
   };
 
-const handleApprove = (consultationId) => {
-  const link = meetLinks[consultationId];
-  if (!link) {
-    message.error('Vui lòng nhập link Meet!');
-    return;
-  }
-  axiosClient.put(`/api/consultations/${consultationId}/approve`, {}, { params: { meetingLink: link } })
-    .then(() => {
-      message.success('Xác nhận thành công!');
-      // Fetch lại danh sách
-      const idToUse = coachId || userId;
-      return axiosClient.get(`/api/consultations/coach/${idToUse}`);
-    })
-    .then(res => setConsultations(res.data))
-    .catch(() => message.error('Có lỗi xảy ra!'));
-};
+  const handleApprove = (consultationId) => {
+    const link = meetLinks[consultationId];
+    if (!link) {
+      message.error('Vui lòng nhập link Meet!');
+      return;
+    }
+    axiosClient.put(`/api/consultations/${consultationId}/approve`, {}, { params: { meetingLink: link } })
+      .then(() => {
+        message.success('Xác nhận thành công!');
+        // Fetch lại danh sách
+        const idToUse = coachId || userId;
+        return axiosClient.get(`/api/consultations/coach/${idToUse}`);
+      })
+      .then(res => setConsultations(res.data))
+      .catch(() => message.error('Có lỗi xảy ra!'));
+  };
 
   // Sau phần TimeTable và ngoài khung giờ, thêm bảng lịch sử các cuộc hẹn đã xác nhận
   // Lọc các cuộc hẹn đã xác nhận
@@ -427,32 +428,32 @@ const handleApprove = (consultationId) => {
 
       <TimeTableControls>
         <Space>
-            <Text strong>NĂM:</Text>
-             <Select
-                value={currentYear}
-                 onChange={handleYearChange}
-                options={yearOptions}
-                style={{ width: 120 }}
-             />
+          <Text strong>NĂM:</Text>
+          <Select
+            value={currentYear}
+            onChange={handleYearChange}
+            options={yearOptions}
+            style={{ width: 120 }}
+          />
         </Space>
-         <Space>
-            <Text strong>TUẦN:</Text>
-             <Select
-                value={currentWeek}
-                 onChange={handleWeekChange}
-                options={weekOptions}
-                style={{ width: 250 }}
-             />
-         </Space>
+        <Space>
+          <Text strong>TUẦN:</Text>
+          <Select
+            value={currentWeek}
+            onChange={handleWeekChange}
+            options={weekOptions}
+            style={{ width: 250 }}
+          />
+        </Space>
       </TimeTableControls>
 
       <TimeTable>
         <thead>
           <tr>
-          <th></th>
+            <th></th>
             {daysOfWeek.map((day, index) => (
               <th key={day}>
-                {day}<br/>{dayjs(startOfWeekMonday).add(index, 'day').format('DD/MM')}
+                {day}<br />{dayjs(startOfWeekMonday).add(index, 'day').format('DD/MM')}
               </th>
             ))}
           </tr>
@@ -462,40 +463,40 @@ const handleApprove = (consultationId) => {
             <tr key={slot.key}>
               <td><SlotLabel>{slot.key}</SlotLabel>{slot.time}</td>
               {weekDates.map(date => {
-              const consultationsInSlot = timetable[date] && timetable[date][slot.key] ? timetable[date][slot.key] : [];
+                const consultationsInSlot = timetable[date] && timetable[date][slot.key] ? timetable[date][slot.key] : [];
                 return (
                   <td key={date}>
                     {consultationsInSlot.length > 0 ? (
                       consultationsInSlot.map(consultation => (
-                         <ConsultationEntry key={consultation.id}>
-                             <Text strong>{consultation.memberName}</Text><br/>
-                              <Space size={4}>
-                                <ClockCircleOutlined style={{ fontSize: '12px' }} />
-                          <Text type="secondary" style={{ fontSize: '12px' }}>{dayjs(consultation.scheduledTime).format('HH:mm')}</Text>
-                              </Space><br/>
-                             <Space size={4} style={{ marginTop: '4px' }}>
-                                 <FileTextOutlined style={{ fontSize: '12px' }} />
-                                  <Text style={{ fontSize: '12px' }}>{consultation.notes}</Text>
-                             </Space><br/>
-                              <div style={{ marginTop: '4px' }}>
-                                {renderConsultationStatus(consultation.status)}
-                              </div>
-                               <Space size={4} style={{ marginTop: '8px' }}>
-                                  {consultation.status === 'pending' && (
-                                      <Button size="small" type="primary" icon={<CheckCircleOutlined />} onClick={() => handleOpenConfirmModal(consultation)}>
-                                         Xác nhận
-                                      </Button>
-                                  )}
-                                     {consultation.status === 'confirmed' && consultation.meetLink && (
-                                         <Button size="small" icon={<LinkOutlined />} href={consultation.meetLink} target="_blank">
-                                             Link Meet
-                                         </Button>
-                                     )}
-                               </Space>
-                         </ConsultationEntry>
+                        <ConsultationEntry key={consultation.id}>
+                          <Text strong>{consultation.memberName}</Text><br />
+                          <Space size={4}>
+                            <ClockCircleOutlined style={{ fontSize: '12px' }} />
+                            <Text type="secondary" style={{ fontSize: '12px' }}>{dayjs(consultation.scheduledTime).format('HH:mm')}</Text>
+                          </Space><br />
+                          <Space size={4} style={{ marginTop: '4px' }}>
+                            <FileTextOutlined style={{ fontSize: '12px' }} />
+                            <Text style={{ fontSize: '12px' }}>{consultation.notes}</Text>
+                          </Space><br />
+                          <div style={{ marginTop: '4px' }}>
+                            {renderConsultationStatus(consultation.status)}
+                          </div>
+                          <Space size={4} style={{ marginTop: '8px' }}>
+                            {consultation.status === 'pending' && (
+                              <Button size="small" type="primary" icon={<CheckCircleOutlined />} onClick={() => handleOpenConfirmModal(consultation)}>
+                                Xác nhận
+                              </Button>
+                            )}
+                            {consultation.status === 'confirmed' && consultation.meetLink && (
+                              <Button size="small" icon={<LinkOutlined />} href={consultation.meetLink} target="_blank">
+                                Link Meet
+                              </Button>
+                            )}
+                          </Space>
+                        </ConsultationEntry>
                       ))
                     ) : (
-                    ''
+                      ''
                     )}
                   </td>
                 );
@@ -581,68 +582,68 @@ const handleApprove = (consultationId) => {
         </div>
       )}
 
-       {/* Feedback Modal */}
-       <Modal
-           title="Gửi đánh giá"
-           open={isFeedbackModalVisible}
-           onCancel={() => setIsFeedbackModalVisible(false)}
-           footer={null}
-       >
-           <Form
-               form={feedbackForm}
-               layout="vertical"
-               onFinish={handleSaveFeedback}
-           >
-               <Form.Item
-                   name="feedback"
-                   label="Nội dung đánh giá"
-                   rules={[{ required: true, message: 'Vui lòng nhập nội dung đánh giá' }]}
-               >
-                   <Input.TextArea rows={4} placeholder="Nhập đánh giá của bạn về cuộc tư vấn..." />
-               </Form.Item>
-               <Form.Item>
-                   <Button type="primary" htmlType="submit">
-                       Lưu đánh giá
-                   </Button>
-               </Form.Item>
-           </Form>
-       </Modal>
-
-        {/* Confirm Modal */}
-        <StyledConfirmModal
-            title={"Xác nhận cuộc hẹn & Link Meet"}
-            open={isConfirmModalVisible}
-            onCancel={handleCancelConfirmModal}
-            footer={null}
+      {/* Feedback Modal */}
+      <Modal
+        title="Gửi đánh giá"
+        open={isFeedbackModalVisible}
+        onCancel={() => setIsFeedbackModalVisible(false)}
+        footer={null}
+      >
+        <Form
+          form={feedbackForm}
+          layout="vertical"
+          onFinish={handleSaveFeedback}
         >
-            <div style={{ marginBottom: 18, color: '#2c7a75', fontSize: 16, textAlign: 'center' }}>
-              Vui lòng nhập link Google Meet để xác nhận và gửi cho thành viên!
-            </div>
-            <Form
-                form={confirmForm}
-                layout="vertical"
-                onFinish={handleSaveConfirmation}
-            >
-                <Form.Item
-                    name="meetLink"
-                    label="Link Google Meet"
-                    rules={[
-                        { required: true, message: 'Vui lòng nhập link Google Meet' },
-                        { type: 'url', message: 'Vui lòng nhập đúng định dạng URL' }
-                    ]}
-                >
-                    <Input placeholder="Dán link Google Meet vào đây..." />
-                </Form.Item>
-                <Form.Item style={{ display: 'flex', justifyContent: 'flex-start', gap: 12, marginBottom: 0 }}>
-                    <Button onClick={handleCancelConfirmModal} style={{ background: '#f5f5f5', color: '#666', border: 'none', boxShadow: 'none', fontWeight: 500, borderRadius: 10, padding: '0 22px', height: 40 }}>
-                            Hủy
-                        </Button>
-                        <Button type="primary" htmlType="submit">
-                            Lưu và Xác nhận
-                        </Button>
-                </Form.Item>
-            </Form>
-        </StyledConfirmModal>
+          <Form.Item
+            name="feedback"
+            label="Nội dung đánh giá"
+            rules={[{ required: true, message: 'Vui lòng nhập nội dung đánh giá' }]}
+          >
+            <Input.TextArea rows={4} placeholder="Nhập đánh giá của bạn về cuộc tư vấn..." />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Lưu đánh giá
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Confirm Modal */}
+      <StyledConfirmModal
+        title={"Xác nhận cuộc hẹn & Link Meet"}
+        open={isConfirmModalVisible}
+        onCancel={handleCancelConfirmModal}
+        footer={null}
+      >
+        <div style={{ marginBottom: 18, color: '#2c7a75', fontSize: 16, textAlign: 'center' }}>
+          Vui lòng nhập link Google Meet để xác nhận và gửi cho thành viên!
+        </div>
+        <Form
+          form={confirmForm}
+          layout="vertical"
+          onFinish={handleSaveConfirmation}
+        >
+          <Form.Item
+            name="meetLink"
+            label="Link Google Meet"
+            rules={[
+              { required: true, message: 'Vui lòng nhập link Google Meet' },
+              { type: 'url', message: 'Vui lòng nhập đúng định dạng URL' }
+            ]}
+          >
+            <Input placeholder="Dán link Google Meet vào đây..." />
+          </Form.Item>
+          <Form.Item style={{ display: 'flex', justifyContent: 'flex-start', gap: 12, marginBottom: 0 }}>
+            <Button onClick={handleCancelConfirmModal} style={{ background: '#f5f5f5', color: '#666', border: 'none', boxShadow: 'none', fontWeight: 500, borderRadius: 10, padding: '0 22px', height: 40 }}>
+              Hủy
+            </Button>
+            <Button type="primary" htmlType="submit">
+              Lưu và Xác nhận
+            </Button>
+          </Form.Item>
+        </Form>
+      </StyledConfirmModal>
 
     </Container>
   );
