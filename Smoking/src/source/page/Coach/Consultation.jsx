@@ -8,6 +8,7 @@ import weekOfYear from 'dayjs/plugin/weekOfYear';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import axiosClient from '../Axios/AxiosCLients';
+import { useNavigate } from 'react-router-dom';
 
 dayjs.extend(weekday);
 dayjs.extend(weekOfYear);
@@ -180,6 +181,8 @@ const TimeConsultation = () => {
   const coachId = localStorage.getItem('coachId');
   const userId = localStorage.getItem('userId'); // Fallback to userId if coachId not available
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const idToUse = coachId || userId;
     if (idToUse) {
@@ -345,19 +348,12 @@ const TimeConsultation = () => {
     setIsConfirmModalVisible(true);
   };
 
-  const handleSaveConfirmation = (values) => {
+  const handleSaveConfirmation = () => {
     if (!confirmConsultation) return;
-
-    // Use both possible id fields
     const consultationId = confirmConsultation.consultationId || confirmConsultation.id;
-    const { meetLink } = values;
-
-    console.log('Xác nhận:', { consultationId, meetLink, confirmConsultation });
-
-    axiosClient.put(`/api/consultations/${consultationId}/approve`, {}, { params: { meetingLink: meetLink } })
+    axiosClient.put(`/api/consultations/${consultationId}/approve`)
       .then(() => {
-        message.success('Đã xác nhận và gửi link thành công!');
-        // Cập nhật lại danh sách appointments
+        message.success('Đã xác nhận thành công!');
         const idToUse = coachId || userId;
         if (idToUse) {
           axiosClient.get(`/api/consultations/coach/${idToUse}`)
@@ -562,12 +558,19 @@ const TimeConsultation = () => {
                 title: 'Link Google Meet',
                 key: 'meetingLink',
                 render: (_, record) => {
-                  const link = record.meetingLink || record.meetLink;
                   const now = dayjs();
                   const endTime = record.endTime ? dayjs(record.endTime) : null;
-                  if (link) {
-                    if (endTime && now.isBefore(endTime)) {
-                      return <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a>;
+                  const isActive = endTime && now.isBefore(endTime);
+                  if (record.status === 'approved' || record.status === 'confirmed') {
+                    if (isActive) {
+                      return (
+                        <Button type="primary" onClick={() => {
+                          const uid = localStorage.getItem('coachId');
+                          navigate(`/agora-room/${record.consultationId || record.id}?uid=${uid}`);
+                        }}>
+                          Tham gia
+                        </Button>
+                      );
                     } else {
                       return <span style={{ opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}>Tham gia</span>;
                     }
@@ -611,38 +614,20 @@ const TimeConsultation = () => {
 
       {/* Confirm Modal */}
       <StyledConfirmModal
-        title={"Xác nhận cuộc hẹn & Link Meet"}
+        title={"Xác nhận cuộc hẹn"}
         open={isConfirmModalVisible}
         onCancel={handleCancelConfirmModal}
         footer={null}
       >
         <div style={{ marginBottom: 18, color: '#2c7a75', fontSize: 16, textAlign: 'center' }}>
-          Vui lòng nhập link Google Meet để xác nhận và gửi cho thành viên!
+          Bạn có chắc chắn muốn xác nhận cuộc hẹn này? Khi xác nhận, thành viên sẽ có thể tham gia phòng tư vấn trực tuyến qua Agora.
         </div>
-        <Form
-          form={confirmForm}
-          layout="vertical"
-          onFinish={handleSaveConfirmation}
-        >
-          <Form.Item
-            name="meetLink"
-            label="Link Google Meet"
-            rules={[
-              { required: true, message: 'Vui lòng nhập link Google Meet' },
-              { type: 'url', message: 'Vui lòng nhập đúng định dạng URL' }
-            ]}
-          >
-            <Input placeholder="Dán link Google Meet vào đây..." />
-          </Form.Item>
-          <Form.Item style={{ display: 'flex', justifyContent: 'flex-start', gap: 12, marginBottom: 0 }}>
-            <Button onClick={handleCancelConfirmModal} style={{ background: '#f5f5f5', color: '#666', border: 'none', boxShadow: 'none', fontWeight: 500, borderRadius: 10, padding: '0 22px', height: 40 }}>
-              Hủy
-            </Button>
-            <Button type="primary" htmlType="submit">
-              Lưu và Xác nhận
-            </Button>
-          </Form.Item>
-        </Form>
+        <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 12, marginBottom: 0 }}>
+          <Button onClick={handleCancelConfirmModal} style={{ background: '#f5f5f5', color: '#666', border: 'none', boxShadow: 'none', fontWeight: 500, borderRadius: 10, padding: '0 22px', height: 40 }}>
+            Hủy
+          </Button>
+          <Button type="primary" onClick={() => handleSaveConfirmation()}>Xác nhận</Button>
+        </div>
       </StyledConfirmModal>
 
     </Container>
