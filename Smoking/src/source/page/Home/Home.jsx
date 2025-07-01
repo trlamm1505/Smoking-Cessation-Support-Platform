@@ -17,7 +17,7 @@ const Home = () => {
       <Section />
       <TeamSection />
       <FAQWithImage />
-      <UpgradePackages/>
+      <UpgradePackages />
       <FeedBack />
       <NewsSection />
       <Footer />

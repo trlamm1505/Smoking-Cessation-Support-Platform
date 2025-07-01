@@ -8,9 +8,8 @@ const Hero = () => {
   return (
     <section
       ref={ref}
-      className={`mt-35 relative overflow-hidden bg-[#B7DDDF] pt-6 pb-12 px-6 md:px-20 transition-all duration-700 ease-in-out ${
-        inView ? 'zoom-in' : 'opacity-0 scale-90'
-      }`}
+      className={`mt-35 relative overflow-hidden bg-[#B7DDDF] pt-6 pb-12 px-6 md:px-20 transition-all duration-700 ease-in-out ${inView ? 'zoom-in' : 'opacity-0 scale-90'
+        }`}
     >
       {/* Vòng tròn trang trí bên trái */}
       <img
@@ -59,10 +58,10 @@ const Hero = () => {
         </div>
 
         <img
-    src="/Images/right-circle.png"
-    alt=""
-    className="absolute w-[60px] h-[250px] right-1 translate-x-1 top-[35%] z-0 float-animation"
-  />
+          src="/Images/right-circle.png"
+          alt=""
+          className="absolute w-[60px] h-[250px] right-1 translate-x-1 top-[35%] z-0 float-animation"
+        />
       </div>
 
       {/* Ảnh chạy bộ phía dưới */}

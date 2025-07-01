@@ -343,6 +343,7 @@ const CoachBlog = () => {
                 ...values,
                 authorId: Number(authorId),
                 tags: values.tags || '',
+                content: values.excerpt,
             };
             await coachApi.createBlogPost(payload);
             toast.success('Tạo bài viết thành công!');
@@ -361,7 +362,7 @@ const CoachBlog = () => {
         setLoading(false);
     };
 
-   
+
 
     // Xử lý xóa bài viết
     const handleDeleteArticle = async (articleId) => {
@@ -401,6 +402,7 @@ const CoachBlog = () => {
                 ...values,
                 authorId: Number(authorId),
                 tags: values.tags || '',
+                content: values.excerpt,
             };
             await coachApi.updateBlogPost(editArticle.postId, payload);
             toast.success('Cập nhật bài viết thành công!');
@@ -458,10 +460,10 @@ const CoachBlog = () => {
 
                 <ArticleTitle>{article.title}</ArticleTitle>
 
-                
+
 
                 <AuthorInfo>
-                   
+
                     <div className="author-details">
                         <div className="author-name">{article.authorName || 'Coach'}</div>
                         <div className="author-title">Coach</div>
@@ -472,7 +474,7 @@ const CoachBlog = () => {
                     <Space>
                         <CalendarOutlined /> {article.publishDate ? new Date(article.publishDate).toLocaleDateString('vi-VN') : ''}
                     </Space>
-                   
+
                     <Text>{article.readTime || ''}</Text>
                 </ArticleMeta>
 
@@ -499,7 +501,7 @@ const CoachBlog = () => {
             }}>
                 <Button
                     type="primary"
-                    icon={<PlusOutlined />} 
+                    icon={<PlusOutlined />}
                     size="large"
                     style={{
                         background: '#ff7a45',
@@ -510,7 +512,7 @@ const CoachBlog = () => {
                     }}
                     onClick={handleOpenCreateModal}
                 >
-                     Thêm bài blog
+                    Thêm bài blog
                 </Button>
             </div>
 
@@ -529,21 +531,21 @@ const CoachBlog = () => {
             >
                 {selectedArticle && (
                     <ArticleModalContent>
-                         <div className="modal-title">{selectedArticle.title}</div>
+                        <div className="modal-title">{selectedArticle.title}</div>
 
-                         <div className="modal-meta-info">
-                             <div className="meta-item"><CalendarOutlined /> {selectedArticle.publishDate ? new Date(selectedArticle.publishDate).toLocaleDateString('vi-VN') : ''}</div>
-                             <div className="meta-item"><EyeOutlined /> {selectedArticle.views || 0}</div>
-                             <div className="meta-item"><Text>{selectedArticle.readTime || ''}</Text></div>
-                         </div>
+                        <div className="modal-meta-info">
+                            <div className="meta-item"><CalendarOutlined /> {selectedArticle.publishDate ? new Date(selectedArticle.publishDate).toLocaleDateString('vi-VN') : ''}</div>
+                            <div className="meta-item"><EyeOutlined /> {selectedArticle.views || 0}</div>
+                            <div className="meta-item"><Text>{selectedArticle.readTime || ''}</Text></div>
+                        </div>
 
-                         <div className="modal-author-info">
-                             
-                             <div className="author-details">
-                                 <div className="author-name">{selectedArticle.authorName || 'Coach'}</div>
-                                 <div className="author-title">Coach</div>
-                             </div>
-                         </div>
+                        <div className="modal-author-info">
+
+                            <div className="author-details">
+                                <div className="author-name">{selectedArticle.authorName || 'Coach'}</div>
+                                <div className="author-title">Coach</div>
+                            </div>
+                        </div>
 
                         <div className="full-content">{selectedArticle.excerpt}</div>
                     </ArticleModalContent>
@@ -560,45 +562,45 @@ const CoachBlog = () => {
                 styles={{ background: 'transparent', boxShadow: 'none', padding: 0 }}
             >
                 <BlogFormModalContent>
-                  <div className="form-title">Tạo bài viết mới</div>
-                  <Form
-                      form={form}
-                      layout="vertical"
-                      onFinish={handleCreateArticle}
-                      onFinishFailed={(err) => {toast.error('Vui lòng điền đầy đủ thông tin!')}}
-                  >
-                      <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}> 
-                          <Input placeholder="Nhập tiêu đề bài viết" />
-                      </Form.Item>
-                      <Form.Item name="slug" label="Slug" rules={[{ required: true, message: 'Vui lòng nhập slug!' }]}> 
-                          <Input placeholder="Ví dụ: cach-cai-thuoc-la-hieu-qua" />
-                      </Form.Item>
-                      <Form.Item name="excerpt" label="Nội dung" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}> 
-                          <Input.TextArea rows={6} placeholder="Nhập nội dung bài viết" />
-                      </Form.Item>
-                      <Form.Item name="category" label="Thể loại" rules={[{ required: true, message: 'Vui lòng chọn thể loại!' }]}> 
-                          <Select placeholder="Chọn thể loại"> 
-                              <Option value="Sức khỏe">Sức khỏe</Option> 
-                              <Option value="Động lực">Động lực</Option> 
-                          </Select> 
-                      </Form.Item>
-                      <Form.Item name="tags" label="Tags"> 
-                          <Input placeholder="Nhập tags, cách nhau bởi dấu phẩy" />
-                      </Form.Item>
-                      <Form.Item name="status" label="Trạng thái" initialValue="draft"> 
-                          <Select> 
-                              <Option value="draft">Nháp</Option> 
-                              <Option value="published">Công khai</Option> 
-                          </Select> 
-                      </Form.Item>
-                      <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết (URL)" rules={[{ required: true, message: 'Vui lòng nhập URL ảnh đại diện!' }, { type: 'url', message: 'URL không hợp lệ!' }]}> 
-                          <Input placeholder="Nhập URL ảnh đại diện" />
-                      </Form.Item>
-                      <Form.Item style={{ textAlign: 'center', marginTop: 24 }}>
-                          <Button type="primary" htmlType="submit" loading={loading} disabled={loading}>Tạo bài viết</Button>
-                          <Button style={{ marginLeft: 12 }} onClick={handleCloseCreateModal} disabled={loading}>Hủy</Button>
-                      </Form.Item>
-                  </Form>
+                    <div className="form-title">Tạo bài viết mới</div>
+                    <Form
+                        form={form}
+                        layout="vertical"
+                        onFinish={handleCreateArticle}
+                        onFinishFailed={(err) => { toast.error('Vui lòng điền đầy đủ thông tin!') }}
+                    >
+                        <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}>
+                            <Input placeholder="Nhập tiêu đề bài viết" />
+                        </Form.Item>
+                        <Form.Item name="slug" label="Slug" rules={[{ required: true, message: 'Vui lòng nhập slug!' }]}>
+                            <Input placeholder="Ví dụ: cach-cai-thuoc-la-hieu-qua" />
+                        </Form.Item>
+                        <Form.Item name="excerpt" label="Nội dung" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}>
+                            <Input.TextArea rows={6} placeholder="Nhập nội dung bài viết" />
+                        </Form.Item>
+                        <Form.Item name="category" label="Thể loại" rules={[{ required: true, message: 'Vui lòng chọn thể loại!' }]}>
+                            <Select placeholder="Chọn thể loại">
+                                <Option value="Sức khỏe">Sức khỏe</Option>
+                                <Option value="Động lực">Động lực</Option>
+                            </Select>
+                        </Form.Item>
+                        <Form.Item name="tags" label="Tags">
+                            <Input placeholder="Nhập tags, cách nhau bởi dấu phẩy" />
+                        </Form.Item>
+                        <Form.Item name="status" label="Trạng thái" initialValue="draft">
+                            <Select>
+                                <Option value="draft">Nháp</Option>
+                                <Option value="published">Công khai</Option>
+                            </Select>
+                        </Form.Item>
+                        <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết (URL)" rules={[{ required: true, message: 'Vui lòng nhập URL ảnh đại diện!' }, { type: 'url', message: 'URL không hợp lệ!' }]}>
+                            <Input placeholder="Nhập URL ảnh đại diện" />
+                        </Form.Item>
+                        <Form.Item style={{ textAlign: 'center', marginTop: 24 }}>
+                            <Button type="primary" htmlType="submit" loading={loading} disabled={loading}>Tạo bài viết</Button>
+                            <Button style={{ marginLeft: 12 }} onClick={handleCloseCreateModal} disabled={loading}>Hủy</Button>
+                        </Form.Item>
+                    </Form>
                 </BlogFormModalContent>
             </Modal>
 
@@ -617,31 +619,31 @@ const CoachBlog = () => {
                         layout="vertical"
                         onFinish={handleUpdateArticle}
                     >
-                        <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}> 
+                        <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}>
                             <Input placeholder="Nhập tiêu đề bài viết" />
                         </Form.Item>
-                        <Form.Item name="slug" label="Slug" rules={[{ required: true, message: 'Vui lòng nhập slug!' }]}> 
+                        <Form.Item name="slug" label="Slug" rules={[{ required: true, message: 'Vui lòng nhập slug!' }]}>
                             <Input placeholder="Ví dụ: cach-cai-thuoc-la-hieu-qua" />
                         </Form.Item>
-                        <Form.Item name="excerpt" label="Nội dung" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}> 
+                        <Form.Item name="excerpt" label="Nội dung" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}>
                             <Input.TextArea rows={6} placeholder="Nhập nội dung bài viết" />
                         </Form.Item>
-                        <Form.Item name="category" label="Thể loại" rules={[{ required: true, message: 'Vui lòng chọn thể loại!' }]}> 
-                            <Select placeholder="Chọn thể loại"> 
-                                <Option value="Sức khỏe">Sức khỏe</Option> 
-                                <Option value="Động lực">Động lực</Option> 
-                            </Select> 
+                        <Form.Item name="category" label="Thể loại" rules={[{ required: true, message: 'Vui lòng chọn thể loại!' }]}>
+                            <Select placeholder="Chọn thể loại">
+                                <Option value="Sức khỏe">Sức khỏe</Option>
+                                <Option value="Động lực">Động lực</Option>
+                            </Select>
                         </Form.Item>
-                        <Form.Item name="tags" label="Tags"> 
+                        <Form.Item name="tags" label="Tags">
                             <Input placeholder="Nhập tags, cách nhau bởi dấu phẩy" />
                         </Form.Item>
-                        <Form.Item name="status" label="Trạng thái" initialValue="draft"> 
-                            <Select> 
-                                <Option value="draft">Nháp</Option> 
-                                <Option value="published">Công khai</Option> 
-                            </Select> 
+                        <Form.Item name="status" label="Trạng thái" initialValue="draft">
+                            <Select>
+                                <Option value="draft">Nháp</Option>
+                                <Option value="published">Công khai</Option>
+                            </Select>
                         </Form.Item>
-                        <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết (URL)" rules={[{ required: true, message: 'Vui lòng nhập URL ảnh đại diện!' }, { type: 'url', message: 'URL không hợp lệ!' }]}> 
+                        <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết (URL)" rules={[{ required: true, message: 'Vui lòng nhập URL ảnh đại diện!' }, { type: 'url', message: 'URL không hợp lệ!' }]}>
                             <Input placeholder="Nhập URL ảnh đại diện" />
                         </Form.Item>
                         <Form.Item style={{ textAlign: 'center', marginTop: 24 }}>
