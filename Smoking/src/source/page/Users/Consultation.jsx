@@ -4,6 +4,7 @@ import { MessageOutlined, UserOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
 import dayjs from 'dayjs';
 import axiosClient from '../Axios/AxiosCLients';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -210,6 +211,7 @@ const Consultation = () => {
     const [coachAppointments, setCoachAppointments] = useState([]);
     const [selectedDate, setSelectedDate] = useState(null);
     const userId = localStorage.getItem('userId');
+    const navigate = useNavigate();
 
     // Helper function to get meeting link from either meetingLink or meetLink field
     const getMeetingLink = (record) => {
@@ -398,12 +400,19 @@ const Consultation = () => {
                             title: 'Link Google Meet',
                             key: 'meetingLink',
                             render: (_, record) => {
-                                const link = getMeetingLink(record);
                                 const now = dayjs();
                                 const endTime = record.endTime ? dayjs(record.endTime) : null;
-                                if (link) {
-                                    if (endTime && now.isBefore(endTime)) {
-                                        return <a href={link} target="_blank" rel="noopener noreferrer">Tham gia</a>;
+                                const isActive = endTime && now.isBefore(endTime);
+                                if (record.status === 'approved' || record.status === 'confirmed') {
+                                    if (isActive) {
+                                        return (
+                                            <Button type="primary" onClick={() => {
+                                                const uid = localStorage.getItem('userId');
+                                                navigate(`/agora-room/${record.consultationId || record.id}?uid=${uid}`);
+                                            }}>
+                                                Tham gia
+                                            </Button>
+                                        );
                                     } else {
                                         return <span style={{ opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}>Tham gia</span>;
                                     }

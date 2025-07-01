@@ -42,6 +42,7 @@ import GuestLayout from '../source/page/Guest/Layout'
 import LoginRequired from '../source/page/Home/LoginRequired'
 import UserCoachManagement from '../source/page/Admin/UserCoachManagement'
 import PackageManagement from '../source/page/Admin/PackageManagement'
+import AgoraRoom from '../source/page/AgoraRoom'
 
 export default function AppRouter() {
   return (
@@ -111,6 +112,9 @@ export default function AppRouter() {
         <Route path='reports' element={<AdminReports />} />
         <Route path='user-coach' element={<UserCoachManagement />} />
       </Route>
+
+      {/* Agora Room Route */}
+      <Route path="agora-room/:consultationId" element={<AgoraRoom />} />
 
       {/* Error Route */}
       <Route path='*' element={<Error />} />
