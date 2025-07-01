@@ -327,6 +327,11 @@ const Blog = () => {
       }
     };
     fetchBlogs();
+    // Polling mỗi 1 giây
+    const interval = setInterval(() => {
+      fetchBlogs();
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleReadMore = (article) => {
@@ -359,7 +364,7 @@ const Blog = () => {
           <Space>
             <CalendarOutlined /> {article.publishDate}
           </Space>
-          
+
         </ArticleMeta>
         <ReadMoreButton onClick={() => handleReadMore(article)}>
           Đọc Thêm
