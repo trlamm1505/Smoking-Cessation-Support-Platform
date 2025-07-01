@@ -635,11 +635,11 @@ const handleApprove = (consultationId) => {
                 </Form.Item>
                 <Form.Item style={{ display: 'flex', justifyContent: 'flex-start', gap: 12, marginBottom: 0 }}>
                     <Button onClick={handleCancelConfirmModal} style={{ background: '#f5f5f5', color: '#666', border: 'none', boxShadow: 'none', fontWeight: 500, borderRadius: 10, padding: '0 22px', height: 40 }}>
-                        Hủy
-                    </Button>
-                    <Button type="primary" htmlType="submit">
-                        Lưu và Xác nhận
-                    </Button>
+                            Hủy
+                        </Button>
+                        <Button type="primary" htmlType="submit">
+                            Lưu và Xác nhận
+                        </Button>
                 </Form.Item>
             </Form>
         </StyledConfirmModal>

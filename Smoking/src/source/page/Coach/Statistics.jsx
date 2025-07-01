@@ -92,39 +92,39 @@ const Statistics = () => {
         <Spin size="large" style={{ display: 'block', margin: '40px auto' }} />
       ) : (
         <>
-          <div style={{ marginBottom: 24 }}>
-            <Title level={3}>Tổng quan</Title>
-            <Row gutter={[16, 16]}>
-              {stats.map((stat, index) => (
-                <Col xs={24} sm={12} md={6} key={index}>
-                  <StyledCard>
-                    <Statistic
-                      title={stat.title}
-                      value={stat.value}
-                      prefix={stat.icon}
+      <div style={{ marginBottom: 24 }}>
+        <Title level={3}>Tổng quan</Title>
+        <Row gutter={[16, 16]}>
+          {stats.map((stat, index) => (
+            <Col xs={24} sm={12} md={6} key={index}>
+              <StyledCard>
+                <Statistic
+                  title={stat.title}
+                  value={stat.value}
+                  prefix={stat.icon}
                       valueStyle={{ color: '#3f8600' }}
-                    />
-                  </StyledCard>
-                </Col>
-              ))}
-            </Row>
-          </div>
+                />
+              </StyledCard>
+            </Col>
+          ))}
+        </Row>
+      </div>
 
-          <div>
+      <div>
             <Title level={3}>Biểu đồ số buổi tư vấn theo tháng</Title>
-            <StyledCard>
+        <StyledCard>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
-                  <Legend />
+                <Legend />
                   <Bar dataKey="totalConsultations" fill="#8884d8" name="Số buổi tư vấn" />
-                </BarChart>
-              </ResponsiveContainer>
-            </StyledCard>
-          </div>
+              </BarChart>
+            </ResponsiveContainer>
+        </StyledCard>
+      </div>
         </>
       )}
 

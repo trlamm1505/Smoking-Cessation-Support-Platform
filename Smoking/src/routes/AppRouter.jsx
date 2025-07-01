@@ -41,6 +41,7 @@ import GuestPremium from '../source/page/Guest/Premium'
 import GuestLayout from '../source/page/Guest/Layout'
 import LoginRequired from '../source/page/Home/LoginRequired'
 import UserCoachManagement from '../source/page/Admin/UserCoachManagement'
+import PackageManagement from '../source/page/Admin/PackageManagement'
 
 export default function AppRouter() {
   return (
@@ -105,6 +106,7 @@ export default function AppRouter() {
         <Route path='community' element={<CommunityManagement />} />
         <Route path='blog-manage' element={<BlogManagementAdmin />} />
         <Route path='revenue' element={<RevenueStatistics />} />
+        <Route path='package-manage' element={<PackageManagement />} />
         <Route path='blog' element={<AdminBlog />} />
         <Route path='reports' element={<AdminReports />} />
         <Route path='user-coach' element={<UserCoachManagement />} />
