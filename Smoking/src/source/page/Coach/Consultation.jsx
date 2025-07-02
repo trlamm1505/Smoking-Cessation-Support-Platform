@@ -485,7 +485,7 @@ const TimeConsultation = () => {
                             )}
                             {consultation.status === 'confirmed' && consultation.meetLink && (
                               <Button size="small" icon={<LinkOutlined />} href={consultation.meetLink} target="_blank">
-                                Link Meet
+                                Phòng tư vấn
                               </Button>
                             )}
                           </Space>
@@ -555,7 +555,7 @@ const TimeConsultation = () => {
                 ),
               },
               {
-                title: 'Link Google Meet',
+                title: 'Phòng tư vấn',
                 key: 'meetingLink',
                 render: (_, record) => {
                   const now = dayjs();
@@ -620,7 +620,7 @@ const TimeConsultation = () => {
         footer={null}
       >
         <div style={{ marginBottom: 18, color: '#2c7a75', fontSize: 16, textAlign: 'center' }}>
-          Bạn có chắc chắn muốn xác nhận cuộc hẹn này? Khi xác nhận, thành viên sẽ có thể tham gia phòng tư vấn trực tuyến qua Agora.
+          Bạn có chắc chắn muốn xác nhận cuộc hẹn này?
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 12, marginBottom: 0 }}>
           <Button onClick={handleCancelConfirmModal} style={{ background: '#f5f5f5', color: '#666', border: 'none', boxShadow: 'none', fontWeight: 500, borderRadius: 10, padding: '0 22px', height: 40 }}>

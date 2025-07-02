@@ -26,7 +26,6 @@ import ConsultationCoach from '../source/page/Coach/Consultation'
 import ReportPage from '../source/page/Coach/ReportPage'
 import AdminLayout from '../source/page/Admin/AdminLayout'
 import Dashboard from '../source/page/Admin/Dashboard'
-import CommunityManagement from '../source/page/Admin/CommunityManagement'
 import BlogManagementAdmin from '../source/page/Admin/BlogManagement'
 import RevenueStatistics from '../source/page/Admin/RevenueStatistics'
 import AdminBlog from '../source/page/Admin/AdminBlog'
@@ -43,6 +42,7 @@ import LoginRequired from '../source/page/Home/LoginRequired'
 import UserCoachManagement from '../source/page/Admin/UserCoachManagement'
 import PackageManagement from '../source/page/Admin/PackageManagement'
 import AgoraRoom from '../source/page/AgoraRoom'
+import AdminCommunity from '../source/page/Admin/AdminCommunity'
 
 export default function AppRouter() {
   return (
@@ -103,14 +103,13 @@ export default function AppRouter() {
       <Route path='admin' element={<AdminLayout />}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path='dashboard' element={<Dashboard />} />
-        <Route path='community-manage' element={<CommunityManagement />} />
-        <Route path='community' element={<CommunityManagement />} />
         <Route path='blog-manage' element={<BlogManagementAdmin />} />
         <Route path='revenue' element={<RevenueStatistics />} />
         <Route path='package-manage' element={<PackageManagement />} />
         <Route path='blog' element={<AdminBlog />} />
         <Route path='reports' element={<AdminReports />} />
         <Route path='user-coach' element={<UserCoachManagement />} />
+        <Route path='community-manage' element={<AdminCommunity />} />
       </Route>
 
       {/* Agora Room Route */}
