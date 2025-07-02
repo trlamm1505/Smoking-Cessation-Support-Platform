@@ -58,11 +58,6 @@ const AdminLayout = () => {
             label: 'Quản lý gói Premium',
         },
         {
-            key: 'community',
-            icon: <TeamOutlined />,
-            label: 'Cộng đồng',
-        },
-        {
             key: 'blog',
             icon: <ReadOutlined />,
             label: 'Quản lý Blog',

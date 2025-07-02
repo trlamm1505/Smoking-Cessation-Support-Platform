@@ -213,11 +213,6 @@ const Consultation = () => {
     const userId = localStorage.getItem('userId');
     const navigate = useNavigate();
 
-    // Helper function to get meeting link from either meetingLink or meetLink field
-    const getMeetingLink = (record) => {
-        return record.meetingLink || record.meetLink || null;
-    };
-
     const handleBooking = (coach) => {
         setSelectedCoach(coach);
         setIsModalVisible(true);
@@ -397,7 +392,7 @@ const Consultation = () => {
                                     }}>Chờ xác nhận</span>
                         },
                         {
-                            title: 'Link Google Meet',
+                            title: 'Phòng tư vấn',
                             key: 'meetingLink',
                             render: (_, record) => {
                                 const now = dayjs();

@@ -43,6 +43,30 @@ const userApi = {
     createFeedback: (data) => axiosClient.post('/api/feedback', data),
     updateFeedback: (id, data) => axiosClient.put(`/api/feedback/${id}`, data),
     deleteFeedback: (id) => axiosClient.delete(`/api/feedback/${id}`),
+
+    // Lấy bài viết cộng đồng (public)
+    getCommunityPosts: () => axiosClient.get('/api/community-posts/public'),
+
+    // Lấy huy hiệu đã đạt của user
+    getUserAchievements: (userId) => axiosClient.get(`/achievements/achieved/${userId}`),
+
+    // Đăng bài viết cộng đồng
+    createCommunityPost: (data) => axiosClient.post('/api/community-posts', data),
+
+    // Sửa bài viết cộng đồng
+    updateCommunityPost: (id, data) => axiosClient.put(`/api/community-posts/${id}`, data),
+
+    // Xóa bài viết cộng đồng
+    deleteCommunityPost: (id) => axiosClient.delete(`/api/community-posts/${id}`),
+
+    // COMMENT API
+    getCommentsByPostId: (postId) => axiosClient.get(`/api/post-comments/post/${postId}`),
+    createComment: (data) => axiosClient.post('/api/post-comments', data),
+    updateComment: (commentId, data) => axiosClient.put(`/api/post-comments/${commentId}`, data),
+    deleteComment: (commentId, userId) => axiosClient.delete(`/api/post-comments/${commentId}?userId=${userId}`),
+
+    // LIKE API
+    likeCommunityPost: (postId, userId) => axiosClient.post(`/api/community-posts/${postId}/like?userId=${userId}`),
 };
 
 export default userApi;
