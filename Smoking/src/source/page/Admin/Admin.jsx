@@ -15,6 +15,7 @@ import {
 import styled from 'styled-components';
 import UserCoachManagement from './UserCoachManagement';
 import coachApi from '../Axios/coachApi';
+import AdminCallManagement from './AdminCallManagement';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -282,6 +283,8 @@ const Admin = () => {
                 );
             case 'user-coach':
                 return <UserCoachManagement />;
+            case 'calls':
+                return <AdminCallManagement />;
             default:
                 return null;
         }
@@ -311,6 +314,9 @@ const Admin = () => {
                     </Menu.Item>
                     <Menu.Item key="user-coach" icon={<UserOutlined />}>
                         Quản lý người dùng & coach
+                    </Menu.Item>
+                    <Menu.Item key="calls" icon={<BarChartOutlined />}>
+                        Quản lý cuộc gọi
                     </Menu.Item>
                 </Menu>
             </Sider>

@@ -72,6 +72,11 @@ const AdminLayout = () => {
             icon: <UserOutlined />,
             label: 'Quản lý Người dùng & Coach',
         },
+        {
+            key: 'calls',
+            icon: <MessageOutlined />,
+            label: 'Quản lý cuộc gọi',
+        },
     ];
 
     return (
