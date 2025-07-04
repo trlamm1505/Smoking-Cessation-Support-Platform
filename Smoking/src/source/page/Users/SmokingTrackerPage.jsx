@@ -424,7 +424,10 @@ const SmokingTrackerPage = () => {
       <AnimatedCard delay="0.75s" title="Lịch Sử Ghi Nhận" className="history-card">
         <Table
           columns={columns}
-          dataSource={filteredEntries}
+          dataSource={filteredEntries
+            .slice()
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+          }
           rowKey="id"
           pagination={{ pageSize: 10 }}
         />

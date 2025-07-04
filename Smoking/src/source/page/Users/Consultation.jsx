@@ -416,7 +416,10 @@ const Consultation = () => {
                             }
                         }
                     ]}
-                    dataSource={appointments.map((item, idx) => ({ ...item, key: item.consultationId || item.id || idx }))}
+                    dataSource={appointments
+                        .slice()
+                        .sort((a, b) => new Date(b.scheduledTime) - new Date(a.scheduledTime))
+                        .map((item, idx) => ({ ...item, key: item.consultationId || item.id || idx }))}
                     pagination={{ pageSize: 4 }}
                     style={{ borderRadius: 0 }}
                 />

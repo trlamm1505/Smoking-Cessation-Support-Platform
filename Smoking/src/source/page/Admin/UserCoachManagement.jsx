@@ -96,12 +96,12 @@ const UserCoachManagement = () => {
 
       // Xóa coach trước
       await coachApi.adminDelete(id);
-      
+
       // Xóa user tương ứng nếu có userId
       if (coach.userId) {
         await userApi.delete(coach.userId);
       }
-      
+
       toast.success('Đã xóa coach');
       // Cập nhật cả 2 danh sách
       fetchCoaches();
@@ -143,17 +143,18 @@ const UserCoachManagement = () => {
     { title: 'Tên', dataIndex: 'fullName', key: 'fullName' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Vai trò', dataIndex: 'role', key: 'role' },
-    { title: 'Ngày kết thúc gói', dataIndex: 'endDate', key: 'endDate',
+    {
+      title: 'Ngày kết thúc gói', dataIndex: 'endDate', key: 'endDate',
       render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : '-',
     },
     {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
-        <Popconfirm 
-          title="Xóa người dùng này?" 
-          onConfirm={() => handleDeleteUser(record.userId)} 
-          okText="Xóa" 
+        <Popconfirm
+          title="Xóa người dùng này?"
+          onConfirm={() => handleDeleteUser(record.userId)}
+          okText="Xóa"
           cancelText="Hủy"
         >
           <Button icon={<DeleteOutlined />} danger size="small">Xóa</Button>
@@ -174,11 +175,11 @@ const UserCoachManagement = () => {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
-        <Popconfirm 
-          title="Xóa coach này?" 
+        <Popconfirm
+          title="Xóa coach này?"
           description=""
-          onConfirm={() => handleDeleteCoach(record.coachId)} 
-          okText="Xóa" 
+          onConfirm={() => handleDeleteCoach(record.coachId)}
+          okText="Xóa"
           cancelText="Hủy"
         >
           <Button icon={<DeleteOutlined />} danger size="small">Xóa</Button>
@@ -214,7 +215,13 @@ const UserCoachManagement = () => {
         <TabPane tab={<span><UserOutlined style={{ color: '#4fd1c5', fontSize: 26 }} /> Người dùng</span>} key="users">
           <Card bordered style={{ borderRadius: 24, boxShadow: '0 4px 24px #e6f9f7', marginBottom: 32, border: '1.5px solid #4fd1c5', overflow: 'hidden' }}>
             <Table
-              dataSource={users}
+              dataSource={users
+                .slice()
+                .sort((a, b) => {
+                  if (a.createdAt && b.createdAt) return new Date(b.createdAt) - new Date(a.createdAt);
+                  return (b.userId || 0) - (a.userId || 0);
+                })
+              }
               columns={userColumns}
               rowKey="userId"
               loading={loadingUsers}
@@ -252,7 +259,13 @@ const UserCoachManagement = () => {
               </Button>
             </div>
             <Table
-              dataSource={coaches}
+              dataSource={coaches
+                .slice()
+                .sort((a, b) => {
+                  if (a.createdAt && b.createdAt) return new Date(b.createdAt) - new Date(a.createdAt);
+                  return (b.coachId || 0) - (a.coachId || 0);
+                })
+              }
               columns={coachColumns}
               rowKey="coachId"
               loading={loadingCoaches}
@@ -298,54 +311,54 @@ const UserCoachManagement = () => {
           >
             <Row gutter={32}>
               <Col xs={24} sm={24} md={12} style={{ borderRight: '1.5px solid #e6f9f7', paddingRight: 24 }}>
-                <Form.Item name="email" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Email <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Nhập email!' }]} style={{ marginBottom: 20 }}> 
+                <Form.Item name="email" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Email <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Nhập email!' }]} style={{ marginBottom: 20 }}>
                   <Input placeholder="Nhập email" prefix={<UserOutlined />} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="password" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Mật khẩu <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Nhập mật khẩu!' }]} style={{ marginBottom: 20 }}> 
+                <Form.Item name="password" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Mật khẩu <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Nhập mật khẩu!' }]} style={{ marginBottom: 20 }}>
                   <Input.Password placeholder="Nhập mật khẩu" prefix={<LockOutlined />} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="fullName" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Họ tên <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Nhập họ tên!' }]} style={{ marginBottom: 20 }}> 
+                <Form.Item name="fullName" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Họ tên <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Nhập họ tên!' }]} style={{ marginBottom: 20 }}>
                   <Input placeholder="Nhập họ tên" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="specialization" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Chuyên môn</span>} style={{ marginBottom: 20 }}> 
+                <Form.Item name="specialization" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Chuyên môn</span>} style={{ marginBottom: 20 }}>
                   <Input placeholder="Nhập chuyên môn" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="degree" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Bằng cấp</span>} style={{ marginBottom: 20 }}> 
+                <Form.Item name="degree" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Bằng cấp</span>} style={{ marginBottom: 20 }}>
                   <Input placeholder="Nhập bằng cấp" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="phoneNumber" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Số điện thoại</span>} style={{ marginBottom: 20 }}> 
+                <Form.Item name="phoneNumber" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Số điện thoại</span>} style={{ marginBottom: 20 }}>
                   <Input placeholder="Nhập số điện thoại" prefix={<PhoneOutlined />} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="gender" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Giới tính <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Chọn giới tính!' }]} style={{ marginBottom: 20 }}> 
+                <Form.Item name="gender" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Giới tính <span style={{ color: 'red' }}>*</span></span>} rules={[{ required: true, message: 'Chọn giới tính!' }]} style={{ marginBottom: 20 }}>
                   <Select placeholder="Chọn giới tính" allowClear style={{ borderRadius: 16, fontSize: 16 }}>
-                    <Option value="Nam">Nam</Option> 
-                    <Option value="Nữ">Nữ</Option> 
-                  </Select> 
+                    <Option value="Nam">Nam</Option>
+                    <Option value="Nữ">Nữ</Option>
+                  </Select>
                 </Form.Item>
-                <Form.Item name="address" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Địa chỉ</span>} style={{ marginBottom: 20 }}> 
+                <Form.Item name="address" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Địa chỉ</span>} style={{ marginBottom: 20 }}>
                   <Input placeholder="Nhập địa chỉ" prefix={<HomeOutlined />} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={24} md={12} style={{ paddingLeft: 32, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                <Form.Item name="experience" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Kinh nghiệm</span>} style={{ marginBottom: 20 }}> 
+                <Form.Item name="experience" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Kinh nghiệm</span>} style={{ marginBottom: 20 }}>
                   <Input placeholder="Nhập kinh nghiệm" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="rating" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Đánh giá</span>} style={{ marginBottom: 20 }}> 
+                <Form.Item name="rating" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Đánh giá</span>} style={{ marginBottom: 20 }}>
                   <Input type="number" placeholder="Nhập đánh giá (0-5)" min={0} max={5} style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="bio" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Giới thiệu</span>} style={{ marginBottom: 20 }}> 
+                <Form.Item name="bio" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Giới thiệu</span>} style={{ marginBottom: 20 }}>
                   <Input.TextArea rows={2} placeholder="Giới thiệu ngắn về coach" style={{ borderRadius: 16, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item name="availability" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Thời gian làm việc</span>} style={{ marginBottom: 20 }}> 
+                <Form.Item name="availability" label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Thời gian làm việc</span>} style={{ marginBottom: 20 }}>
                   <Input placeholder="Nhập thời gian làm việc" style={{ borderRadius: 16, height: 44, fontSize: 16 }} />
                 </Form.Item>
-                <Form.Item 
-                  name="profilePictureUrl" 
-                  label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Ảnh đại diện (URL) <span style={{ color: 'red' }}>*</span></span>} 
-                  rules={[ 
+                <Form.Item
+                  name="profilePictureUrl"
+                  label={<span style={{ color: '#38b2ac', fontWeight: 700, fontSize: 17 }}>Ảnh đại diện (URL) <span style={{ color: 'red' }}>*</span></span>}
+                  rules={[
                     { required: true, message: 'Vui lòng nhập URL ảnh đại diện!' },
-                    { 
-                      pattern: /^(https?:\/\/).+/i, 
+                    {
+                      pattern: /^(https?:\/\/).+/i,
                       message: 'URL phải bắt đầu bằng http:// hoặc https://',
                     },
                   ]}
