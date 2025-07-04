@@ -108,7 +108,7 @@ const Members = () => {
 
         const response = await coachApi.getCoachConsultations(coachId);
         const consultations = response.data || [];
-        
+
         // Transform consultation data to match the table structure
         // Lọc trùng thành viên theo email, chỉ lấy lịch tư vấn gần nhất
         const memberMap = new Map();
@@ -219,7 +219,7 @@ const Members = () => {
       key: 'lastConsultation',
       render: (date) => <Text>{date}</Text>,
     },
-     {
+    {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
@@ -277,7 +277,10 @@ const Members = () => {
         <>
           <Table
             columns={columns}
-            dataSource={filteredMembers}
+            dataSource={filteredMembers
+              .slice()
+              .sort((a, b) => new Date(b.lastConsultation) - new Date(a.lastConsultation))
+            }
             rowKey="id"
             pagination={{
               pageSize: 10,
@@ -300,7 +303,7 @@ const Members = () => {
           <Button key="close" onClick={() => setIsModalVisible(false)}>
             Đóng
           </Button>,
-           <Button key="schedule" type="primary" onClick={() => handleScheduleConsultation(selectedMember)} disabled>
+          <Button key="schedule" type="primary" onClick={() => handleScheduleConsultation(selectedMember)} disabled>
             Đặt lịch tư vấn
           </Button>,
         ]}
@@ -311,45 +314,45 @@ const Members = () => {
         {selectedMember && (
           <MemberDetailContainer>
             <Title level={4}>Thông tin cơ bản</Title>
-             <Row gutter={[16, 16]}>
-                <Col span={12}><Text strong>Ngày bắt đầu cai thuốc:</Text> {selectedMember.details.startDate}</Col>
-                <Col span={12}><Text strong>Ngày mục tiêu:</Text> {selectedMember.details.targetDate}</Col>
-                <Col span={12}><Text strong>Số điếu/ngày (ban đầu):</Text> {selectedMember.details.cigarettesPerDay}</Col>
-                <Col span={12}><Text strong>Lý do cai thuốc:</Text> {selectedMember.details.quitReason}</Col>
-             </Row>
+            <Row gutter={[16, 16]}>
+              <Col span={12}><Text strong>Ngày bắt đầu cai thuốc:</Text> {selectedMember.details.startDate}</Col>
+              <Col span={12}><Text strong>Ngày mục tiêu:</Text> {selectedMember.details.targetDate}</Col>
+              <Col span={12}><Text strong>Số điếu/ngày (ban đầu):</Text> {selectedMember.details.cigarettesPerDay}</Col>
+              <Col span={12}><Text strong>Lý do cai thuốc:</Text> {selectedMember.details.quitReason}</Col>
+            </Row>
 
-             <Title level={4} style={{ marginTop: 20 }}>Thống kê và Tiến độ</Title>
-             <MemberStatsGrid gutter={[16, 16]}>
-                <Col xs={24} sm={12}>
-                    <StyledCard size="small" title="Tiến độ cai thuốc">
-                         <AntProgress percent={selectedMember.progress} showInfo={true} strokeColor={{ from: '#108ee9', to: '#87d068' }} />
-                         <Text>{selectedMember.progress}% hoàn thành</Text>
-                    </StyledCard>
-                </Col>
-                 <Col xs={24} sm={12}>
-                    <StyledCard size="small" title="Thành tích">
-                        <List
-                           size="small"
-                           dataSource={selectedMember.details.achievements}
-                           renderItem={(item, index) => <List.Item key={index}><TrophyOutlined style={{ color: '#faad14' }} /> {item}</List.Item>}
-                        />
-                    </StyledCard>
-                </Col>
-             </MemberStatsGrid>
+            <Title level={4} style={{ marginTop: 20 }}>Thống kê và Tiến độ</Title>
+            <MemberStatsGrid gutter={[16, 16]}>
+              <Col xs={24} sm={12}>
+                <StyledCard size="small" title="Tiến độ cai thuốc">
+                  <AntProgress percent={selectedMember.progress} showInfo={true} strokeColor={{ from: '#108ee9', to: '#87d068' }} />
+                  <Text>{selectedMember.progress}% hoàn thành</Text>
+                </StyledCard>
+              </Col>
+              <Col xs={24} sm={12}>
+                <StyledCard size="small" title="Thành tích">
+                  <List
+                    size="small"
+                    dataSource={selectedMember.details.achievements}
+                    renderItem={(item, index) => <List.Item key={index}><TrophyOutlined style={{ color: '#faad14' }} /> {item}</List.Item>}
+                  />
+                </StyledCard>
+              </Col>
+            </MemberStatsGrid>
 
-             <Title level={4} style={{ marginTop: 20 }}>Nhật ký hàng ngày</Title>
-              {selectedMember.details.journal && selectedMember.details.journal.length > 0 ? (
-                 <List
-                   dataSource={selectedMember.details.journal}
-                   renderItem={(item, index) => (
-                     <JournalEntry key={index} title={dayjs(item.date).format('DD/MM/YYYY')}>
-                       <Text>{item.entry}</Text>
-                     </JournalEntry>
-                   )}
-                 />
-               ) : (
-                 <Text type="secondary">Chưa có mục nhật ký nào.</Text>
-               )}
+            <Title level={4} style={{ marginTop: 20 }}>Nhật ký hàng ngày</Title>
+            {selectedMember.details.journal && selectedMember.details.journal.length > 0 ? (
+              <List
+                dataSource={selectedMember.details.journal}
+                renderItem={(item, index) => (
+                  <JournalEntry key={index} title={dayjs(item.date).format('DD/MM/YYYY')}>
+                    <Text>{item.entry}</Text>
+                  </JournalEntry>
+                )}
+              />
+            ) : (
+              <Text type="secondary">Chưa có mục nhật ký nào.</Text>
+            )}
 
 
           </MemberDetailContainer>

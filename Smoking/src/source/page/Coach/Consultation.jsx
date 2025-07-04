@@ -512,7 +512,10 @@ const TimeConsultation = () => {
             </div>
           </GuestHeader>
           <Table
-            dataSource={confirmedAppointments}
+            dataSource={confirmedAppointments
+              .slice()
+              .sort((a, b) => new Date(b.scheduledTime) - new Date(a.scheduledTime))
+            }
             rowKey={record => record.consultationId || record.id}
             columns={[
               {

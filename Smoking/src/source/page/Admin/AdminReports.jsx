@@ -61,7 +61,7 @@ const AdminReports = () => {
         setSelectedFeedback(null);
     };
 
-     const handleMarkAsResolved = (id) => {
+    const handleMarkAsResolved = (id) => {
         // Implementation needed
     };
 
@@ -93,11 +93,11 @@ const AdminReports = () => {
 
     // Table columns for admin feedbacks (system & report)
     const feedbackColumns = [
-         {
+        {
             title: 'Loại',
             dataIndex: 'targetType',
             key: 'targetType',
-             render: (type) => {
+            render: (type) => {
                 let color = type === 'system' ? 'geekblue' : 'orange';
                 return <Tag color={color}>{type.toUpperCase()}</Tag>;
             },
@@ -127,13 +127,13 @@ const AdminReports = () => {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
-             render: (status) => {
+            render: (status) => {
                 let color = status === 'active' ? 'success' : 'default';
                 return <Tag color={color}>{status?.toUpperCase()}</Tag>;
             },
             width: 120,
         },
-         {
+        {
             title: 'Người gửi',
             key: 'sender',
             render: (_, record) => getSenderName(record.userId),
@@ -211,7 +211,7 @@ const AdminReports = () => {
                 }}>Quản lý Phản hồi hệ thống & Báo cáo</h1>
             </Card>
             <Tabs activeKey={activeTab} onChange={setActiveTab} tabBarStyle={{ fontSize: 22, fontWeight: 700, color: '#38b2ac' }} style={{ maxWidth: 1100, margin: '0 auto' }}>
-                 <TabPane 
+                <TabPane
                     tab={
                         <span>
                             <InboxOutlined style={{ color: '#4fd1c5', fontSize: 26 }} />
@@ -241,10 +241,13 @@ const AdminReports = () => {
                             </Button>
                         </div>
                         <Spin spinning={loading} tip="Đang tải...">
-                    <Table
-                                dataSource={feedbacks}
+                            <Table
+                                dataSource={feedbacks
+                                    .slice()
+                                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                }
                                 columns={feedbackColumns}
-                        rowKey="id"
+                                rowKey="id"
                                 pagination={{ pageSize: 10 }}
                                 bordered
                                 size="large"
@@ -254,8 +257,8 @@ const AdminReports = () => {
                             />
                         </Spin>
                     </Card>
-                 </TabPane>
-                 <TabPane
+                </TabPane>
+                <TabPane
                     tab={
                         <span>
                             <MessageOutlined style={{ color: '#faad14', fontSize: 26 }} />
@@ -267,7 +270,11 @@ const AdminReports = () => {
                     <Card bordered style={{ borderRadius: 24, boxShadow: '0 4px 24px #e6f9f7', marginBottom: 32, border: '1.5px solid #faad14', overflow: 'hidden' }}>
                         <Spin spinning={loading} tip="Đang tải...">
                             <Table
-                                dataSource={coachFeedbacks.filter(fb => fb.targetType === 'coach')}
+                                dataSource={coachFeedbacks
+                                    .filter(fb => fb.targetType === 'coach')
+                                    .slice()
+                                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                }
                                 columns={coachFeedbackColumns}
                                 rowKey="id"
                                 pagination={{ pageSize: 10 }}
@@ -280,7 +287,7 @@ const AdminReports = () => {
                         </Spin>
                     </Card>
                 </TabPane>
-             </Tabs>
+            </Tabs>
             {/* Modal for viewing feedback details */}
             <Modal
                 title="Chi tiết phản hồi / báo cáo"
@@ -301,7 +308,7 @@ const AdminReports = () => {
                 )}
             </Modal>
             {/* Modal for sending a report */}
-             <Modal
+            <Modal
                 title="Gửi Báo cáo / Thông báo"
                 open={isSendModalVisible}
                 onOk={handleSendReport}
