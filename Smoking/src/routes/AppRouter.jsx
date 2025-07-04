@@ -43,6 +43,7 @@ import UserCoachManagement from '../source/page/Admin/UserCoachManagement'
 import PackageManagement from '../source/page/Admin/PackageManagement'
 import AgoraRoom from '../source/page/AgoraRoom'
 import AdminCommunity from '../source/page/Admin/AdminCommunity'
+import AdminCallManagement from '../source/page/Admin/AdminCallManagement'
 
 export default function AppRouter() {
   return (
@@ -110,6 +111,7 @@ export default function AppRouter() {
         <Route path='reports' element={<AdminReports />} />
         <Route path='user-coach' element={<UserCoachManagement />} />
         <Route path='community-manage' element={<AdminCommunity />} />
+        <Route path='calls' element={<AdminCallManagement />} />
       </Route>
 
       {/* Agora Room Route */}

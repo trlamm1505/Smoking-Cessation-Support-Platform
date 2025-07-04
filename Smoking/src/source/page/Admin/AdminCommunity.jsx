@@ -425,7 +425,7 @@ const AdminCommunity = () => {
                 <BigTitle>Quản lý bài viết cộng đồng</BigTitle>
                 <StyledTable
                     columns={columns}
-                    dataSource={posts}
+                        dataSource={posts}
                     rowKey="id"
                     loading={loading}
                     pagination={{ pageSize: 8 }}
@@ -448,8 +448,8 @@ const AdminCommunity = () => {
                             <div><b>Trạng thái:</b> <Tag color={selectedPost.status === 'PUBLISHED' ? 'blue' : selectedPost.status === 'REJECTED' ? 'red' : 'orange'}>{selectedPost.status}</Tag></div>
                             <div style={{ margin: '12px 0' }}><b>Badge:</b> {selectedPost.badges && selectedPost.badges.length > 0 ? selectedPost.badges.map(b => <Tag key={b.id}>{b.name}</Tag>) : 'Không có'}</div>
                             <Paragraph><b>Nội dung:</b><br />{selectedPost.content}</Paragraph>
-                        </div>
-                    )}
+                                    </div>
+                                )}
                 </Modal>
                 {/* Modal xác nhận duyệt/từ chối */}
                 <Modal
@@ -462,7 +462,7 @@ const AdminCommunity = () => {
                     }}
                     okText={confirmModal.type === 'approve' ? 'Duyệt' : 'Từ chối'}
                     okButtonProps={confirmModal.type === 'approve' ? { type: 'primary', style: { borderRadius: 10, fontWeight: 700 } } : { danger: true, style: { borderRadius: 10, fontWeight: 700 } }}
-                    cancelText="Hủy"
+                cancelText="Hủy"
                     title={<span style={{ color: '#2c7a75', fontWeight: 700 }}>{confirmModal.type === 'approve' ? 'Xác nhận duyệt bài viết' : 'Xác nhận từ chối bài viết'}</span>}
                     style={{ borderRadius: 18 }}
                     bodyStyle={{ fontSize: 17, color: '#2c3e50', borderRadius: 18 }}
