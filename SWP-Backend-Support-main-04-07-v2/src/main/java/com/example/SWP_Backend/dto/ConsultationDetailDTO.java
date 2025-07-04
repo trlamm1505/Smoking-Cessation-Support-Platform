@@ -25,4 +25,10 @@ public class ConsultationDetailDTO {
     private String status;
     private String notes;
     private String meetingLink;
+
+    private String feedback;
+    private Integer feedbackRating;
+
+// Getter/Setter...
+
 }

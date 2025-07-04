@@ -1,9 +1,6 @@
 package com.example.SWP_Backend.service;
 
-import com.example.SWP_Backend.dto.ConsultationDetailDTO;
-import com.example.SWP_Backend.dto.ConsultationRequest;
-import com.example.SWP_Backend.dto.ConsultationWithUserDTO;
-import com.example.SWP_Backend.dto.NotificationRequestDTO;
+import com.example.SWP_Backend.dto.*;
 import com.example.SWP_Backend.entity.Coach;
 import com.example.SWP_Backend.entity.Consultation;
 import com.example.SWP_Backend.entity.User;
@@ -316,5 +313,68 @@ public class ConsultationService {
         }
         return saved;
     }
+
+    public Consultation saveFeedback(Long id, FeedbackRequest feedbackRequest) {
+        Consultation c = consultationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Consultation not found with ID: " + id));
+
+        // Kiểm tra đã hoàn thành tư vấn mới cho feedback
+        if (!"completed".equalsIgnoreCase(c.getStatus()) && !"approved".equalsIgnoreCase(c.getStatus())) {
+            throw new RuntimeException("Chỉ đánh giá khi tư vấn đã hoàn tất.");
+        }
+
+        c.setFeedback(feedbackRequest.getFeedback());
+        c.setFeedbackRating(feedbackRequest.getRating());
+        c.setStatus("completed"); // Set lại trạng thái nếu muốn
+
+        return consultationRepository.save(c);
+    }
+
+    public Consultation endConsultation(Long consultationId) {
+        Consultation c = consultationRepository.findById(consultationId)
+                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+
+        c.setEndTime(LocalDateTime.now());
+        c.setStatus("completed");
+
+        return consultationRepository.save(c);
+    }
+
+
+    public Consultation finishConsultation(Long id, EndConsultationRequest req) {
+        Consultation c = consultationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+
+        // Chỉ cho phép kết thúc khi đang ở trạng thái approved
+        if (!"approved".equalsIgnoreCase(c.getStatus())) {
+            throw new RuntimeException("Chỉ có thể kết thúc khi trạng thái là 'approved'");
+        }
+
+        c.setEndTime(LocalDateTime.now());
+        c.setStatus("completed");
+
+        if (req.getFeedback() != null) c.setFeedback(req.getFeedback());
+        if (req.getFeedbackRating() != null) c.setFeedbackRating(req.getFeedbackRating());
+
+        return consultationRepository.save(c);
+    }
+
+    public ConsultationSummaryDTO getConsultationSummary(Long consultationId) {
+        Consultation c = consultationRepository.findById(consultationId)
+                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+
+        User user = userRepository.findById(c.getUserId()).orElse(null);
+        Coach coach = coachRepository.findById(c.getCoachId()).orElse(null);
+
+        ConsultationSummaryDTO dto = new ConsultationSummaryDTO();
+        dto.setUserFullName(user != null ? user.getFullName() : null);
+        dto.setCoachName(coach != null ? coach.getFullName() : null);
+        dto.setScheduledTime(c.getScheduledTime());
+        dto.setEndTime(c.getEndTime());
+        dto.setFeedback(c.getFeedback());
+        dto.setFeedbackRating(c.getFeedbackRating());
+        return dto;
+    }
+
 
 }

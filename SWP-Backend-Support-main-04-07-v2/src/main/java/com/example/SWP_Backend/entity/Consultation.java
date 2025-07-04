@@ -35,6 +35,14 @@ public class Consultation {
 
     private String meetingLink;
 
+    @Nationalized
+    private String feedback;
+    private Integer feedbackRating;
+    private LocalDateTime endTime; // Giờ kết thúc thực tế
+
+
+
+
     public Long getConsultationId() {
         return consultationId;
     }
@@ -89,6 +97,30 @@ public class Consultation {
 
     public void setMeetingLink(String meetingLink) {
         this.meetingLink = meetingLink;
+    }
+
+    public String getFeedback() {
+        return feedback;
+    }
+
+    public void setFeedback(String feedback) {
+        this.feedback = feedback;
+    }
+
+    public Integer getFeedbackRating() {
+        return feedbackRating;
+    }
+
+    public void setFeedbackRating(Integer feedbackRating) {
+        this.feedbackRating = feedbackRating;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 }
 
