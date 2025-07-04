@@ -341,14 +341,18 @@ const UserReviews = () => {
             {activeReviewType === 'coach' && (
                 <>
                     <Button type="primary" style={{ marginBottom: 16 }} onClick={showModal} icon={<PlusOutlined />}>Gửi feedback mới</Button>
-            <AnimatedCard
+                    <AnimatedCard
                         title={<span><UserOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử feedback Huấn luyện viên</span>}
                         style={{ borderRadius: 12 }}
-                delay="0.5s"
-            >
+                        delay="0.5s"
+                    >
                         <Table
                             columns={coachColumns}
-                            dataSource={coachReviews.filter(fb => fb.targetType === 'coach')}
+                            dataSource={coachReviews
+                                .filter(fb => fb.targetType === 'coach')
+                                .slice()
+                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                            }
                             rowKey="id"
                             loading={loading}
                             locale={{ emptyText: 'Chưa có feedback nào' }}
@@ -409,26 +413,30 @@ const UserReviews = () => {
                             </Form.Item>
                         </Form>
                     </Modal>
-                        </>
-                    )}
+                </>
+            )}
 
             {activeReviewType === 'system' && (
                 <>
                     <Button type="primary" style={{ marginBottom: 16 }} onClick={showSystemModal} icon={<PlusOutlined />}>Gửi feedback hệ thống</Button>
-            <AnimatedCard
+                    <AnimatedCard
                         title={<span><AppstoreOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử feedback hệ thống</span>}
-                style={{ borderRadius: 12 }}
-                delay="0.5s"
-            >
-                <Table
+                        style={{ borderRadius: 12 }}
+                        delay="0.5s"
+                    >
+                        <Table
                             columns={systemColumns}
-                            dataSource={systemReviews.filter(fb => fb.targetType === 'system' && fb.userId === userId)}
-                    rowKey="id"
+                            dataSource={systemReviews
+                                .filter(fb => fb.targetType === 'system' && fb.userId === userId)
+                                .slice()
+                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                            }
+                            rowKey="id"
                             loading={loading}
                             locale={{ emptyText: 'Chưa có feedback nào' }}
-                    pagination={{ pageSize: 5 }}
-                />
-            </AnimatedCard>
+                            pagination={{ pageSize: 5 }}
+                        />
+                    </AnimatedCard>
                     <Modal
                         title={editingSystemReview ? 'Sửa feedback hệ thống' : 'Gửi feedback hệ thống'}
                         open={isSystemModalVisible}
