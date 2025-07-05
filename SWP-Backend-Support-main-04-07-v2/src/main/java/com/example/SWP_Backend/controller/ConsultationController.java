@@ -1,7 +1,6 @@
 package com.example.SWP_Backend.controller;
 
-import com.example.SWP_Backend.dto.ConsultationRequest;
-import com.example.SWP_Backend.dto.ConsultationWithUserDTO;
+import com.example.SWP_Backend.dto.*;
 import com.example.SWP_Backend.entity.Consultation;
 import com.example.SWP_Backend.repository.ConsultationRepository;
 import com.example.SWP_Backend.service.ConsultationService;
@@ -149,6 +148,69 @@ public class ConsultationController {
                 "token", token,
                 "uid", uid
         ));
+    }
+
+
+    // ConsultationController.java
+//
+//    @PostMapping("/{id}/feedback")
+//    public ResponseEntity<?> submitFeedback(
+//            @PathVariable Long id,
+//            @RequestBody FeedbackRequest feedbackRequest
+//    ) {
+//        try {
+//            Consultation updated = consultationService.saveFeedback(id, feedbackRequest);
+//            return ResponseEntity.ok(Map.of(
+//                    "success", true,
+//                    "message", "Phản hồi của bạn đã được lưu.",
+//                    "data", updated
+//            ));
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.badRequest().body(Map.of(
+//                    "success", false,
+//                    "message", e.getMessage()
+//            ));
+//        }
+//    }
+//
+//
+//    @PostMapping("/{id}/end")
+//    public ResponseEntity<?> endConsultation(@PathVariable Long id) {
+//        Consultation updated = consultationService.endConsultation(id);
+//        return ResponseEntity.ok(Map.of(
+//                "success", true,
+//                "message", "Đã lưu giờ kết thúc.",
+//                "data", updated
+//        ));
+//    }
+
+
+// ...
+
+    @GetMapping("/{id}/summary")
+    public ResponseEntity<?> getConsultationSummary(@PathVariable Long id) {
+        ConsultationSummaryDTO dto = consultationService.getConsultationSummary(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/{id}/finish")
+    public ResponseEntity<?> finishConsultation(
+            @PathVariable Long id,
+            @RequestBody EndConsultationRequest request
+    ) {
+        try {
+            Consultation updated = consultationService.finishConsultation(id, request);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Đã kết thúc tư vấn và lưu phản hồi.",
+                    "data", updated
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
     }
 
 

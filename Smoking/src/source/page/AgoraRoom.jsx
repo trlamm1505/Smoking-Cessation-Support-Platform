@@ -193,6 +193,7 @@ const styles = {
   },
 };
 
+// Helpers
 const getRole = () => {
   const role = localStorage.getItem('userRole');
   if (role === 'coach') return 'coach';
@@ -217,7 +218,9 @@ const getTitle = () => {
 
 const AgoraRoom = () => {
   const { consultationId } = useParams();
-  const uid = localStorage.getItem('userId');
+
+  const uid = localStorage.getItem('userId'); // LẤY uid TỪ LOCALSTORAGE, KHÔNG lấy từ query string!
+
   const [tokenData, setTokenData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [btnHover, setBtnHover] = useState(false);
@@ -237,11 +240,13 @@ const AgoraRoom = () => {
   const localTracks = useRef({});
 
   const navigate = useNavigate();
+
   const role = getRole();
 
   useEffect(() => {
     if (!uid) {
       console.error('Không xác định userId! Vui lòng đăng nhập lại.');
+
       navigate(-1);
       return;
     }
@@ -250,7 +255,14 @@ const AgoraRoom = () => {
         setTokenData(res.data);
         setLoading(false);
         callStartTime.current = Date.now();
-        console.log('[Agora FE] Nhận token:', res.data);
+
+        // LOG
+        console.log('[Agora FE] Nhận token:', {
+          channelName: res.data.channelName,
+          token: res.data.token,
+          uid: res.data.uid
+        });
+
       })
       .catch(() => {
         console.error('Không lấy được token phòng!');
@@ -258,11 +270,18 @@ const AgoraRoom = () => {
       });
   }, [consultationId, uid, navigate]);
 
+  // Join phòng Agora
   useEffect(() => {
     if (!tokenData) return;
     const join = async () => {
       clientRef.current = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       try {
+
+        // LOG
+        console.log('[Agora FE] Join phòng:', {
+          appId, channelName: tokenData.channelName, token: tokenData.token, uid: Number(uid)
+        });
+
         await clientRef.current.join(appId, tokenData.channelName, tokenData.token, Number(uid));
         localTracks.current.audio = await AgoraRTC.createMicrophoneAudioTrack();
         localTracks.current.video = await AgoraRTC.createCameraVideoTrack();
@@ -279,14 +298,18 @@ const AgoraRoom = () => {
             user.audioTrack.play();
           }
         });
-        clientRef.current.on('user-unpublished', () => {
+
+        clientRef.current.on('user-unpublished', (user, mediaType) => {
+
           setRemoteJoined(false);
         });
         clientRef.current.on('user-left', () => {
           setRemoteJoined(false);
         });
       } catch (err) {
+
         console.error('Không thể tham gia phòng! Có thể bạn đang bị trùng UID.', err);
+
       }
     };
     join();
@@ -297,6 +320,9 @@ const AgoraRoom = () => {
       if (clientRef.current) clientRef.current.leave();
     };
   }, [tokenData, uid]);
+
+
+  // Toggle mic/cam
 
   const handleToggleMic = () => {
     if (localTracks.current.audio) {
@@ -321,10 +347,14 @@ const AgoraRoom = () => {
     }
   };
 
+
+  // Kết thúc cuộc gọi
+
   const handleEndCall = () => {
     const end = Date.now();
     const duration = Math.floor((end - (callStartTime.current || end)) / 1000);
     setCallDuration(duration);
+
     if (localTracks.current.audio) localTracks.current.audio.close();
     if (localTracks.current.video) localTracks.current.video.close();
     if (clientRef.current) clientRef.current.leave();
@@ -358,6 +388,7 @@ const AgoraRoom = () => {
       setSubmitting(false);
     }
   };
+
 
   const formatDuration = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -426,12 +457,15 @@ const AgoraRoom = () => {
           Kết thúc cuộc gọi
         </button>
       </div>
+
       {/* Feedback Modal for member */}
       {showModal && role === 'member' && (
+
         <div style={styles.modalOverlay}>
           <div style={styles.modalBox}>
             <div style={styles.modalTitle}>Đánh giá cuộc gọi</div>
             <div style={styles.modalText}>Thời lượng cuộc gọi: <b>{formatDuration(callDuration)}</b></div>
+
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontWeight: 600, color: '#2c7a75', fontSize: 16 }}>Nội dung đánh giá:</label>
               <textarea
@@ -471,6 +505,7 @@ const AgoraRoom = () => {
             >
               {submitting ? 'Đang gửi...' : 'Gửi đánh giá & Kết thúc'}
             </button>
+
           </div>
         </div>
       )}
@@ -478,4 +513,6 @@ const AgoraRoom = () => {
   );
 };
 
+
 export default AgoraRoom;
+
