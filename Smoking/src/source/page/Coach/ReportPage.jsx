@@ -93,6 +93,9 @@ const ReportPage = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editForm] = Form.useForm();
 
+  // Get current coach ID
+  const currentCoachId = Number(localStorage.getItem('coachId') || localStorage.getItem('userId'));
+
   // Lấy feedback thực tế và tên user
   useEffect(() => {
     userApi.getAll().then(res => {
@@ -301,10 +304,16 @@ const ReportPage = () => {
   ];
 
   const userCoachFeedbackColumns = [
+    { title: 'Người gửi', dataIndex: 'userFullName', key: 'userFullName', render: (name) => <span style={{fontWeight: 600, color: '#2c7a75'}}>{name || 'Người dùng'}</span> },
     { title: 'Số sao', dataIndex: 'rating', key: 'rating', align: 'center', render: (rating) => <span style={{color:'#FFD700', fontSize:18}}>{'★'.repeat(rating)}</span> },
     { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
     { title: 'Nội dung', dataIndex: 'comment', key: 'comment', render: (text) => <span style={{color:'#333', fontSize:'15px'}}>{text}</span> },
   ];
+
+  // Filter feedback meant for current coach only
+  const feedbacksForCurrentCoach = feedbacks.filter(fb => 
+    fb.targetType === 'coach' && fb.targetId === currentCoachId
+  );
 
   return (
     <Container>
@@ -370,7 +379,7 @@ const ReportPage = () => {
       <Title level={4} style={{ color: '#2c7a75', margin: '32px 0 12px 0' }}>Feedback từ người dùng</Title>
       <Table
         columns={userCoachFeedbackColumns}
-        dataSource={systemFeedbacks.filter(fb => fb.targetType === 'coach')}
+        dataSource={feedbacksForCurrentCoach}
         rowKey={record => record.feedbackId || record.id}
         pagination={false}
         bordered

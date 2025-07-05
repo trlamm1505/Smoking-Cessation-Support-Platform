@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosClient from '../Axios/AxiosCLients';
 
 const styles = {
@@ -10,143 +10,152 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
   },
-  card: {
-    background: '#fff',
-    borderRadius: 18,
-    boxShadow: '0 6px 32px rgba(95,184,179,0.13)',
-    padding: '32px 40px',
-    minWidth: 350,
-    maxWidth: 480,
-    marginTop: 32,
-    textAlign: 'center',
-  },
   title: {
     fontSize: 28,
     fontWeight: 800,
     color: '#2c7a75',
-    marginBottom: 18,
+    marginBottom: 32,
     letterSpacing: 1.2,
   },
-  label: {
-    color: '#2c7a75',
-    fontWeight: 600,
-    fontSize: 17,
-    marginRight: 8,
+  tableContainer: {
+    background: '#fff',
+    borderRadius: 18,
+    boxShadow: '0 6px 32px rgba(95,184,179,0.13)',
+    padding: '32px 40px',
+    width: '100%',
+    maxWidth: 1200,
+    overflowX: 'auto',
   },
-  value: {
-    color: '#222',
-    fontWeight: 500,
-    fontSize: 17,
-  },
-  feedback: {
-    background: '#f6fcfb',
-    borderRadius: 10,
-    padding: '12px 18px',
-    margin: '12px 0',
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
     fontSize: 16,
-    color: '#444',
-    minHeight: 40,
-    textAlign: 'left',
   },
-  stars: {
-    fontSize: 28,
-    color: '#FFD700',
-    marginBottom: 8,
-  },
-  input: {
-    padding: '8px 16px',
-    borderRadius: 8,
-    border: '1.5px solid #e3f6f5',
-    fontSize: 16,
-    marginRight: 8,
-    width: 120,
-  },
-  btn: {
+  th: {
     background: 'linear-gradient(90deg, #5FB8B3 0%, #2c7a75 100%)',
     color: '#fff',
-    border: 'none',
-    borderRadius: 10,
+    padding: '16px 12px',
+    textAlign: 'left',
     fontWeight: 700,
-    fontSize: 17,
-    padding: '10px 32px',
-    boxShadow: '0 2px 8px #5FB8B344',
-    cursor: 'pointer',
-    marginTop: 8,
+    fontSize: 16,
+    borderBottom: '2px solid #2c7a75',
+  },
+  td: {
+    padding: '16px 12px',
+    borderBottom: '1px solid #e3f6f5',
+    color: '#444',
+    fontSize: 15,
+  },
+  tr: {
+    '&:hover': {
+      backgroundColor: '#f6fcfb',
+    },
+  },
+  stars: {
+    fontSize: 20,
+    color: '#FFD700',
+  },
+  loading: {
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#2c7a75',
+    fontWeight: 600,
+    marginTop: 32,
+  },
+  error: {
+    color: '#ff4d4f',
+    fontWeight: 600,
+    textAlign: 'center',
+    marginTop: 32,
   },
 };
 
 function formatDateTime(dt) {
   if (!dt) return '-';
   const d = new Date(dt);
-  return d.toLocaleString('vi-VN', { hour12: false });
+  return d.toLocaleString('vi-VN', { 
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour12: false 
+  });
 }
 
 const AdminCallManagement = () => {
-  const [consultationId, setConsultationId] = useState('');
-  const [summary, setSummary] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [consultations, setConsultations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const handleFetch = async () => {
+  useEffect(() => {
+    fetchConsultations();
+  }, []);
+
+  const fetchConsultations = async () => {
     setLoading(true);
     setError('');
-    setSummary(null);
     try {
-      const res = await axiosClient.get(`/api/consultations/${consultationId}/summary`);
-      setSummary(res.data);
+      const res = await axiosClient.get('/api/consultations/all');
+      setConsultations(res.data);
     } catch (err) {
-      setError('Không tìm thấy cuộc gọi hoặc lỗi server!');
+      setError('Không thể tải danh sách cuộc gọi tư vấn!');
     } finally {
       setLoading(false);
     }
   };
 
+  const renderStars = (rating) => {
+    if (!rating) return 'Chưa có';
+    return [...Array(rating)].map((_, i) => <span key={i} style={styles.stars}>★</span>);
+  };
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.loading}>Đang tải danh sách cuộc gọi tư vấn...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.error}>{error}</div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.container}>
-      <div style={styles.title}>Tra cứu thông tin cuộc gọi tư vấn</div>
-      <div style={{ marginBottom: 18 }}>
-        <input
-          type="number"
-          placeholder="Nhập consultationId..."
-          value={consultationId}
-          onChange={e => setConsultationId(e.target.value)}
-          style={styles.input}
-        />
-        <button style={styles.btn} onClick={handleFetch} disabled={!consultationId || loading}>
-          {loading ? 'Đang tra cứu...' : 'Xem chi tiết'}
-        </button>
+      <div style={styles.title}>Quản lý cuộc gọi tư vấn</div>
+      <div style={styles.tableContainer}>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Người dùng</th>
+              <th style={styles.th}>Coach</th>
+              <th style={styles.th}>Bắt đầu</th>
+              <th style={styles.th}>Kết thúc</th>
+              <th style={styles.th}>Đánh giá</th>
+              <th style={styles.th}>Feedback</th>
+            </tr>
+          </thead>
+          <tbody>
+            {consultations.map((consultation) => (
+              <tr key={consultation.consultationId} style={styles.tr}>
+                <td style={styles.td}>{consultation.userFullName || '-'}</td>
+                <td style={styles.td}>{consultation.coachName || '-'}</td>
+                <td style={styles.td}>{formatDateTime(consultation.scheduledTime)}</td>
+                <td style={styles.td}>{formatDateTime(consultation.endTime)}</td>
+                <td style={styles.td}>{renderStars(consultation.feedbackRating)}</td>
+                <td style={styles.td}>{consultation.feedback || 'Chưa có'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      {error && <div style={{ color: '#ff4d4f', fontWeight: 600, marginBottom: 12 }}>{error}</div>}
-      {summary && (
-        <div style={styles.card}>
-          <div style={{ fontWeight: 700, fontSize: 20, color: '#2c7a75', marginBottom: 12 }}>Chi tiết cuộc gọi</div>
-          <div style={{ marginBottom: 10 }}>
-            <span style={styles.label}>Người dùng:</span>
-            <span style={styles.value}>{summary.userFullName || '-'}</span>
-          </div>
-          <div style={{ marginBottom: 10 }}>
-            <span style={styles.label}>Coach:</span>
-            <span style={styles.value}>{summary.coachName || '-'}</span>
-          </div>
-          <div style={{ marginBottom: 10 }}>
-            <span style={styles.label}>Bắt đầu:</span>
-            <span style={styles.value}>{formatDateTime(summary.scheduledTime)}</span>
-          </div>
-          <div style={{ marginBottom: 10 }}>
-            <span style={styles.label}>Kết thúc:</span>
-            <span style={styles.value}>{formatDateTime(summary.endTime)}</span>
-          </div>
-          <div style={{ marginBottom: 10 }}>
-            <span style={styles.label}>Đánh giá:</span>
-            <span style={styles.stars}>
-              {summary.feedbackRating ? [...Array(summary.feedbackRating)].map((_, i) => <span key={i}>★</span>) : 'Chưa có'}
-            </span>
-          </div>
-          <div style={styles.feedback}>
-            <b>Feedback:</b> {summary.feedback || 'Chưa có'}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

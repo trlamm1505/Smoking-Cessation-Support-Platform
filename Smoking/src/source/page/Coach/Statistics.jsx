@@ -43,12 +43,18 @@ const StyledCard = styled(Card)`
 `;
 
 const Statistics = () => {
-  const coachId = 1; // TODO: lấy coachId động nếu cần
+  // Lấy coachId từ localStorage
+  const coachId = Number(localStorage.getItem('coachId') || localStorage.getItem('userId'));
   const [summary, setSummary] = useState(null);
   const [monthlyData, setMonthlyData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!coachId) {
+      message.error('Không tìm thấy thông tin coach');
+      return;
+    }
+    
     setLoading(true);
     Promise.all([
       coachApi.getConsultationSummary(coachId),
@@ -59,6 +65,7 @@ const Statistics = () => {
         setMonthlyData(monthlyRes.data);
       })
       .catch((err) => {
+        console.error('Lỗi khi tải dữ liệu thống kê:', err);
         message.error('Lỗi khi tải dữ liệu thống kê');
       })
       .finally(() => setLoading(false));
@@ -72,8 +79,9 @@ const Statistics = () => {
 
   const stats = summary ? [
     { icon: <UserOutlined style={{ color: '#1890ff' }} />, title: 'Tổng số thành viên', value: summary.totalMembers },
-    { icon: <CalendarOutlined style={{ color: '#52c41a' }} />, title: 'Buổi tư vấn đã hoàn thành', value: summary.totalSessions },
-    { icon: <LineChartOutlined style={{ color: '#eb2f96' }} />, title: 'Số ngày hoạt động', value: summary.activeDays },
+    { icon: <CalendarOutlined style={{ color: '#52c41a' }} />, title: 'Tổng số buổi tư vấn', value: summary.totalSessions },
+    { icon: <SmileOutlined style={{ color: '#faad14' }} />, title: 'Buổi tư vấn đã hoàn thành', value: summary.completedSessions },
+    { icon: <LineChartOutlined style={{ color: '#eb2f96' }} />, title: 'Tỷ lệ hoàn thành (%)', value: summary.completionRate },
   ] : [];
 
   return (
