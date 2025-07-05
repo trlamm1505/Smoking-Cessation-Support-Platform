@@ -220,6 +220,33 @@ public class ConsultationService {
         }).collect(Collectors.toList());
     }
 
+    public List<ConsultationFullDTO> getAllConsultations() {
+        List<Consultation> consultations = consultationRepository.findAll();
+
+        List<Long> userIds = consultations.stream().map(Consultation::getUserId).distinct().collect(Collectors.toList());
+        List<Long> coachIds = consultations.stream().map(Consultation::getCoachId).distinct().collect(Collectors.toList());
+        Map<Long, User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getUserId, u -> u));
+        Map<Long, Coach> coachMap = coachRepository.findAllById(coachIds).stream()
+                .collect(Collectors.toMap(Coach::getCoachId, c -> c));
+
+        return consultations.stream().map(c -> {
+            ConsultationFullDTO dto = new ConsultationFullDTO();
+            dto.setConsultationId(c.getConsultationId());
+            dto.setUserFullName(userMap.get(c.getUserId()) != null ? userMap.get(c.getUserId()).getFullName() : null);
+            dto.setCoachName(coachMap.get(c.getCoachId()) != null ? coachMap.get(c.getCoachId()).getFullName() : null);
+            dto.setScheduledTime(c.getScheduledTime());
+            dto.setEndTime(c.getEndTime());
+            dto.setFeedback(c.getFeedback());
+            dto.setFeedbackRating(c.getFeedbackRating());
+            dto.setStatus(c.getStatus());
+            dto.setNotes(c.getNotes());
+            dto.setMeetingLink(c.getMeetingLink());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+
     /**
      * Coach từ chối hoặc hủy lịch tư vấn.
      * Tự động gửi thông báo cho member.

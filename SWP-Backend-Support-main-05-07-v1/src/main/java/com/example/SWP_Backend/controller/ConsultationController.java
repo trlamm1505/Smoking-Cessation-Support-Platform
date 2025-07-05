@@ -213,6 +213,13 @@ public class ConsultationController {
         }
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllConsultations() {
+        List<ConsultationFullDTO> list = consultationService.getAllConsultations();
+        return ResponseEntity.ok(list);
+    }
+
+
 
 
 
