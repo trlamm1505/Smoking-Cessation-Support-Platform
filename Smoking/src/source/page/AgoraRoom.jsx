@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import AgoraRTC from 'agora-rtc-sdk-ng';
-import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axiosClient from '../page/Axios/AxiosCLients';
 
 const appId = '0b04ebb5e6e048878169a4ecd7d05fa3';
@@ -196,16 +196,15 @@ const styles = {
 const getRole = () => {
   const role = localStorage.getItem('userRole');
   if (role === 'coach') return 'coach';
+  if (role === 'member') return 'member';
   return 'user';
 };
 
 const getDisplayName = () => {
   const role = getRole();
   if (role === 'coach') {
-    // Coach đang gọi cho user
     return localStorage.getItem('userName') || 'Khách hàng';
   } else {
-    // User đang gọi cho coach
     return localStorage.getItem('coachName') || 'Huấn luyện viên';
   }
 };
@@ -218,8 +217,7 @@ const getTitle = () => {
 
 const AgoraRoom = () => {
   const { consultationId } = useParams();
-  const [searchParams] = useSearchParams();
-  const uid = searchParams.get('uid');
+  const uid = localStorage.getItem('userId');
   const [tokenData, setTokenData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [btnHover, setBtnHover] = useState(false);
@@ -229,31 +227,33 @@ const AgoraRoom = () => {
   const [remoteName, setRemoteName] = useState(getDisplayName());
   const [showModal, setShowModal] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  const [feedback, setFeedback] = useState('');
+  const [feedbackRating, setFeedbackRating] = useState(5);
+  const [submitting, setSubmitting] = useState(false);
   const callStartTime = useRef(null);
-  const videoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const pipVideoRef = useRef(null);
   const clientRef = useRef(null);
   const localTracks = useRef({});
 
   const navigate = useNavigate();
-
-  // Feedback state
-  const [feedback, setFeedback] = useState('');
-  const [rating, setRating] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
-  const [feedbackSent, setFeedbackSent] = useState(false);
+  const role = getRole();
 
   useEffect(() => {
+    if (!uid) {
+      console.error('Không xác định userId! Vui lòng đăng nhập lại.');
+      navigate(-1);
+      return;
+    }
     axiosClient.get(`/api/consultations/${consultationId}/agora-token?uid=${uid}`)
       .then(res => {
         setTokenData(res.data);
         setLoading(false);
         callStartTime.current = Date.now();
-        console.log('[Agora] Token data received:', res.data);
+        console.log('[Agora FE] Nhận token:', res.data);
       })
       .catch(() => {
-        alert('Không lấy được token phòng!');
+        console.error('Không lấy được token phòng!');
         navigate(-1);
       });
   }, [consultationId, uid, navigate]);
@@ -261,41 +261,33 @@ const AgoraRoom = () => {
   useEffect(() => {
     if (!tokenData) return;
     const join = async () => {
-      console.log('[Agora] Creating client...');
       clientRef.current = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
-      console.log('[Agora] Joining channel:', tokenData.channelName, 'with uid:', uid);
-      await clientRef.current.join(appId, tokenData.channelName, tokenData.token, Number(uid));
-      console.log('[Agora] Joined channel');
-      localTracks.current.audio = await AgoraRTC.createMicrophoneAudioTrack();
-      localTracks.current.video = await AgoraRTC.createCameraVideoTrack();
-      console.log('[Agora] Created local audio/video tracks');
-      await clientRef.current.publish([localTracks.current.audio, localTracks.current.video]);
-      console.log('[Agora] Published local tracks');
-      localTracks.current.video.play(pipVideoRef.current);
-      console.log('[Agora] Playing local video in PiP');
+      try {
+        await clientRef.current.join(appId, tokenData.channelName, tokenData.token, Number(uid));
+        localTracks.current.audio = await AgoraRTC.createMicrophoneAudioTrack();
+        localTracks.current.video = await AgoraRTC.createCameraVideoTrack();
+        await clientRef.current.publish([localTracks.current.audio, localTracks.current.video]);
+        localTracks.current.video.play(pipVideoRef.current);
 
-      clientRef.current.on('user-published', async (user, mediaType) => {
-        console.log('[Agora] user-published:', user.uid, 'mediaType:', mediaType);
-        await clientRef.current.subscribe(user, mediaType);
-        console.log('[Agora] Subscribed to user:', user.uid, 'mediaType:', mediaType);
-        setRemoteJoined(true);
-        if (mediaType === 'video') {
-          user.videoTrack.play(remoteVideoRef.current);
-          console.log('[Agora] Playing remote video for user:', user.uid);
-        }
-        if (mediaType === 'audio') {
-          user.audioTrack.play();
-          console.log('[Agora] Playing remote audio for user:', user.uid);
-        }
-      });
-      clientRef.current.on('user-unpublished', (user, mediaType) => {
-        console.log('[Agora] user-unpublished:', user.uid, 'mediaType:', mediaType);
-        setRemoteJoined(false);
-      });
-      clientRef.current.on('user-left', (user) => {
-        console.log('[Agora] user-left:', user.uid);
-        setRemoteJoined(false);
-      });
+        clientRef.current.on('user-published', async (user, mediaType) => {
+          await clientRef.current.subscribe(user, mediaType);
+          setRemoteJoined(true);
+          if (mediaType === 'video') {
+            user.videoTrack.play(remoteVideoRef.current);
+          }
+          if (mediaType === 'audio') {
+            user.audioTrack.play();
+          }
+        });
+        clientRef.current.on('user-unpublished', () => {
+          setRemoteJoined(false);
+        });
+        clientRef.current.on('user-left', () => {
+          setRemoteJoined(false);
+        });
+      } catch (err) {
+        console.error('Không thể tham gia phòng! Có thể bạn đang bị trùng UID.', err);
+      }
     };
     join();
 
@@ -303,11 +295,9 @@ const AgoraRoom = () => {
       if (localTracks.current.audio) localTracks.current.audio.close();
       if (localTracks.current.video) localTracks.current.video.close();
       if (clientRef.current) clientRef.current.leave();
-      console.log('[Agora] Cleaned up local tracks and left channel');
     };
   }, [tokenData, uid]);
 
-  // Toggle mic/cam handlers
   const handleToggleMic = () => {
     if (localTracks.current.audio) {
       if (micOn) {
@@ -331,45 +321,48 @@ const AgoraRoom = () => {
     }
   };
 
-  // Kết thúc cuộc gọi
-  const handleEndCall = async () => {
+  const handleEndCall = () => {
     const end = Date.now();
-    const duration = Math.floor((end - (callStartTime.current || end)) / 1000); // giây
+    const duration = Math.floor((end - (callStartTime.current || end)) / 1000);
     setCallDuration(duration);
-    // Đóng kết nối ngay (giữ lại modal)
     if (localTracks.current.audio) localTracks.current.audio.close();
     if (localTracks.current.video) localTracks.current.video.close();
     if (clientRef.current) clientRef.current.leave();
-    // Gọi API kết thúc cuộc gọi trước
-    try {
-      await axiosClient.post(`/api/consultations/${consultationId}/end`);
-      setShowModal(true); // Chỉ hiện feedback khi đã lưu end thành công
-    } catch (e) {
-      alert('Lưu trạng thái kết thúc cuộc gọi thất bại!');
+    if (role === 'member') {
+      setShowModal(true);
+    } else {
+      if (role === 'coach') {
+        navigate('/coach/consultation');
+      } else {
+        navigate('/users/consultation');
+      }
     }
   };
 
-  // Định dạng thời gian gọi
+  const handleSubmitFeedback = async () => {
+    setSubmitting(true);
+    try {
+      await axiosClient.post(`/api/consultations/${consultationId}/finish`, {
+        feedback,
+        feedbackRating,
+      });
+      setShowModal(false);
+      if (role === 'coach') {
+        navigate('/coach/consultation');
+      } else {
+        navigate('/users/consultation');
+      }
+    } catch (error) {
+      console.error('Lỗi gửi feedback:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const formatDuration = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m > 0 ? m + ' phút ' : ''}${s} giây`;
-  };
-
-  // Gửi feedback lên backend
-  const handleSubmitFeedback = async () => {
-    setSubmitting(true);
-    try {
-      await axiosClient.post(`/api/consultations/${consultationId}/feedback`, {
-        consultationId: Number(consultationId),
-        feedback,
-        rating,
-      });
-      setFeedbackSent(true);
-    } catch (e) {
-      alert('Gửi phản hồi thất bại!');
-    }
-    setSubmitting(false);
   };
 
   if (loading) return <div style={styles.loading}>Đang vào phòng tư vấn trực tuyến...</div>;
@@ -379,7 +372,6 @@ const AgoraRoom = () => {
       <div style={styles.card}>
         <div style={styles.title}>{getTitle()}</div>
         <div style={styles.remoteVideo}>
-          {/* Nếu có remote video thì show, không thì avatar + tên + trạng thái */}
           {remoteJoined ? (
             <div ref={remoteVideoRef} style={{ width: '100%', height: '100%', borderRadius: 18, overflow: 'hidden' }} />
           ) : (
@@ -391,7 +383,6 @@ const AgoraRoom = () => {
               <div style={styles.status}>Đang kết nối...</div>
             </div>
           )}
-          {/* Local video PiP luôn ở góc phải dưới */}
           <div style={styles.localVideoPiP}>
             <div ref={pipVideoRef} style={{ width: '100%', height: '100%', borderRadius: 16, overflow: 'hidden', background: '#000' }} />
           </div>
@@ -435,55 +426,51 @@ const AgoraRoom = () => {
           Kết thúc cuộc gọi
         </button>
       </div>
-      {/* Modal hiển thị thời lượng cuộc gọi và feedback */}
-      {showModal && (
+      {/* Feedback Modal for member */}
+      {showModal && role === 'member' && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalBox}>
-            <div style={styles.modalTitle}>Cuộc gọi đã kết thúc</div>
+            <div style={styles.modalTitle}>Đánh giá cuộc gọi</div>
             <div style={styles.modalText}>Thời lượng cuộc gọi: <b>{formatDuration(callDuration)}</b></div>
-            {/* Nếu đã gửi feedback thì chỉ cảm ơn */}
-            {feedbackSent ? (
-              <div>
-                <div style={{ fontSize: 18, color: '#2c7a75', margin: '16px 0' }}>Cảm ơn bạn đã phản hồi!</div>
-                <button style={styles.modalBtn} onClick={() => navigate(-1)}>Đóng</button>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontWeight: 600, color: '#2c7a75', fontSize: 16 }}>Nội dung đánh giá:</label>
+              <textarea
+                value={feedback}
+                onChange={e => setFeedback(e.target.value)}
+                rows={4}
+                style={{ width: '100%', borderRadius: 8, border: '1.5px solid #e3f6f5', padding: 10, fontSize: 16, marginTop: 6 }}
+                placeholder="Nhập nhận xét về cuộc gọi..."
+                disabled={submitting}
+              />
+            </div>
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ fontWeight: 600, color: '#2c7a75', fontSize: 16, display: 'block', marginBottom: 8 }}>Số sao đánh giá:</label>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>
+                {[1,2,3,4,5].map(star => (
+                  <span
+                    key={star}
+                    style={{
+                      cursor: 'pointer',
+                      color: star <= feedbackRating ? '#FFD700' : '#ccc',
+                      transition: 'color 0.2s',
+                      marginRight: 4
+                    }}
+                    onClick={() => setFeedbackRating(star)}
+                    role="button"
+                    aria-label={`Chọn ${star} sao`}
+                  >
+                    ★
+                  </span>
+                ))}
               </div>
-            ) : (
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 17, margin: '18px 0 8px' }}>Đánh giá cuộc gọi:</div>
-                <div style={{ display: 'flex', gap: 6, marginBottom: 12, justifyContent: 'center' }}>
-                  {[1,2,3,4,5].map(star => (
-                    <span
-                      key={star}
-                      style={{
-                        fontSize: 28,
-                        color: star <= rating ? '#FFD700' : '#ccc',
-                        cursor: 'pointer',
-                        transition: 'color 0.2s',
-                      }}
-                      onClick={() => setRating(star)}
-                    >★</span>
-                  ))}
-                </div>
-                <textarea
-                  value={feedback}
-                  onChange={e => setFeedback(e.target.value)}
-                  placeholder="Nhập phản hồi về cuộc gọi..."
-                  rows={4}
-                  style={{ width: '100%', borderRadius: 8, border: '1px solid #ddd', padding: 10, fontSize: 16, marginBottom: 12 }}
-                  disabled={submitting}
-                />
-                <button
-                  style={{ ...styles.modalBtn, opacity: submitting ? 0.7 : 1 }}
-                  onClick={handleSubmitFeedback}
-                  disabled={submitting || rating === 0}
-                >
-                  {submitting ? 'Đang gửi...' : 'Gửi phản hồi'}
-                </button>
-                <button style={{ ...styles.modalBtn, background: '#eee', color: '#2c7a75', marginLeft: 12 }} onClick={() => navigate(-1)}>
-                  Bỏ qua
-                </button>
-              </div>
-            )}
+            </div>
+            <button
+              style={styles.modalBtn}
+              onClick={handleSubmitFeedback}
+              disabled={submitting}
+            >
+              {submitting ? 'Đang gửi...' : 'Gửi đánh giá & Kết thúc'}
+            </button>
           </div>
         </div>
       )}
@@ -491,4 +478,4 @@ const AgoraRoom = () => {
   );
 };
 
-export default AgoraRoom;  
+export default AgoraRoom;

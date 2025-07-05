@@ -377,19 +377,16 @@ const TimeConsultation = () => {
 
 
   const renderConsultationStatus = (status) => {
-    const statusText = {
-      pending: 'Chờ xác nhận',
-      confirmed: 'Đã xác nhận',
-      completed: 'Đã hoàn thành',
-      cancelled: 'Đã hủy',
-    };
-    const statusColor = {
-      pending: 'orange',
-      confirmed: 'blue',
-      completed: 'green',
-      cancelled: 'red',
-    };
-    return <Tag color={statusColor[status]}>{statusText[status]}</Tag>;
+    if (status === 'completed') {
+      return <Tag color="green">Đã hoàn thành</Tag>;
+    }
+    if (status === 'approved' || status === 'confirmed') {
+      return <Tag color="blue">Đã xác nhận</Tag>;
+    }
+    if (status === 'cancelled') {
+      return <Tag color="red">Đã hủy</Tag>;
+    }
+    return <Tag color="orange">Chờ xác nhận</Tag>;
   };
 
   const handleApprove = (consultationId) => {
@@ -411,7 +408,9 @@ const TimeConsultation = () => {
 
   // Sau phần TimeTable và ngoài khung giờ, thêm bảng lịch sử các cuộc hẹn đã xác nhận
   // Lọc các cuộc hẹn đã xác nhận
-  const confirmedAppointments = consultations.filter(c => c.status === 'approved' || c.status === 'confirmed');
+  const confirmedAppointments = consultations.filter(
+    c => c.status === 'approved' || c.status === 'confirmed' || c.status === 'completed'
+  );
 
   return (
     <Container>
@@ -502,91 +501,133 @@ const TimeConsultation = () => {
         </tbody>
       </TimeTable>
 
-      {/* Bảng lịch sử các cuộc hẹn đã xác nhận */}
-      {confirmedAppointments.length > 0 && (
-        <div style={{ marginTop: '32px' }}>
-          <GuestHeader>
-            <div className="header-title">
-              <CheckCircleOutlined />
-              Lịch sử các cuộc hẹn đã xác nhận
-            </div>
-          </GuestHeader>
-          <Table
-            dataSource={confirmedAppointments
-              .slice()
-              .sort((a, b) => new Date(b.scheduledTime) - new Date(a.scheduledTime))
-            }
-            rowKey={record => record.consultationId || record.id}
-            columns={[
-              {
-                title: 'Ngày',
-                dataIndex: 'scheduledTime',
-                key: 'scheduledTime',
-                render: date => dayjs(date).format('DD/MM/YYYY'),
-              },
-              {
-                title: 'Giờ',
-                dataIndex: 'scheduledTime',
-                key: 'time',
-                render: date => dayjs(date).format('HH:mm'),
-              },
-              {
-                title: 'Thành viên',
-                dataIndex: 'fullName',
-                key: 'fullName',
-              },
-              {
-                title: 'Ghi chú',
-                dataIndex: 'notes',
-                key: 'notes',
-              },
-              {
-                title: 'Trạng thái',
-                dataIndex: 'status',
-                key: 'status',
-                render: status => (
+      {/* Bảng lịch sử các cuộc hẹn đã xác nhận/hoàn thành */}
+      <div style={{ marginTop: '32px' }}>
+        <GuestHeader>
+          <div className="header-title">
+            <CheckCircleOutlined />
+            Lịch sử các cuộc hẹn đã xác nhận/hoàn thành
+          </div>
+        </GuestHeader>
+        <Table
+          dataSource={confirmedAppointments
+            .slice()
+            .sort((a, b) => new Date(b.scheduledTime) - new Date(a.scheduledTime))
+          }
+          rowKey={record => record.consultationId || record.id}
+          columns={[
+            {
+              title: 'Ngày',
+              dataIndex: 'scheduledTime',
+              key: 'scheduledTime',
+              render: date => dayjs(date).format('DD/MM/YYYY'),
+            },
+            {
+              title: 'Giờ',
+              dataIndex: 'scheduledTime',
+              key: 'time',
+              render: date => dayjs(date).format('HH:mm'),
+            },
+            {
+              title: 'Thành viên',
+              dataIndex: 'fullName',
+              key: 'fullName',
+            },
+            {
+              title: 'Ghi chú',
+              dataIndex: 'notes',
+              key: 'notes',
+            },
+            {
+              title: 'Trạng thái',
+              dataIndex: 'status',
+              key: 'status',
+              render: status => {
+                if (status === 'completed') {
+                  return (
+                    <span style={{
+                      background: '#e6fff3',
+                      color: '#1bbf7a',
+                      fontWeight: 700,
+                      borderRadius: 12,
+                      padding: '4px 16px',
+                      fontSize: 15,
+                      boxShadow: '0 1px 4px #1bbf7a22',
+                      letterSpacing: 1
+                    }}>Đã hoàn thành</span>
+                  );
+                }
+                if (status === 'approved' || status === 'confirmed') {
+                  return (
+                    <span style={{
+                      background: '#e6fff3',
+                      color: '#1bbf7a',
+                      fontWeight: 700,
+                      borderRadius: 12,
+                      padding: '4px 16px',
+                      fontSize: 15,
+                      boxShadow: '0 1px 4px #1bbf7a22',
+                      letterSpacing: 1
+                    }}>Đã xác nhận</span>
+                  );
+                }
+                if (status === 'cancelled') {
+                  return (
+                    <span style={{
+                      background: '#ffe6e6',
+                      color: '#ff4d4f',
+                      fontWeight: 700,
+                      borderRadius: 12,
+                      padding: '4px 16px',
+                      fontSize: 15,
+                      boxShadow: '0 1px 4px #ff4d4f22',
+                      letterSpacing: 1
+                    }}>Đã hủy</span>
+                  );
+                }
+                return (
                   <span style={{
-                    background: '#e6fff3',
-                    color: '#1bbf7a',
+                    background: '#fff7e6',
+                    color: '#ff9800',
                     fontWeight: 700,
                     borderRadius: 12,
                     padding: '4px 16px',
                     fontSize: 15,
-                    boxShadow: '0 1px 4px #1bbf7a22',
+                    boxShadow: '0 1px 4px #ff980022',
                     letterSpacing: 1
-                  }}>Đã xác nhận</span>
-                ),
-              },
-              {
-                title: 'Phòng tư vấn',
-                key: 'meetingLink',
-                render: (_, record) => {
-                  const now = dayjs();
-                  const endTime = record.endTime ? dayjs(record.endTime) : null;
-                  const isActive = endTime && now.isBefore(endTime);
-                  if (record.status === 'approved' || record.status === 'confirmed') {
-                    if (isActive) {
-                      return (
-                        <Button type="primary" onClick={() => {
-                          const uid = localStorage.getItem('coachId');
-                          navigate(`/agora-room/${record.consultationId || record.id}?uid=${uid}`);
-                        }}>
-                          Tham gia
-                        </Button>
-                      );
-                    } else {
-                      return <span style={{ opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}>Tham gia</span>;
-                    }
+                  }}>Chờ xác nhận</span>
+                );
+              }
+            },
+            {
+              title: 'Phòng tư vấn',
+              key: 'meetingLink',
+              render: (_, record) => {
+                const now = dayjs();
+                const endTime = record.endTime ? dayjs(record.endTime) : null;
+                const isActive = endTime && now.isBefore(endTime);
+                if (record.status === 'approved' || record.status === 'confirmed') {
+                  if (isActive) {
+                    return (
+                      <Button type="primary" onClick={() => {
+                        const uid = localStorage.getItem('coachId');
+                        navigate(`/agora-room/${record.consultationId || record.id}?uid=${uid}`);
+                      }}>
+                        Tham gia
+                      </Button>
+                    );
+                  } else {
+                    return <span style={{ opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}>Tham gia</span>;
                   }
-                  return '-';
-                },
+                }
+                return '-';
               },
-            ]}
-            pagination={{ pageSize: 4 }}
-            style={{ marginTop: '16px' }}
-          />
-        </div>
-      )}
+            },
+          ]}
+          pagination={{ pageSize: 4 }}
+          style={{ marginTop: '16px' }}
+        />
+      </div>
 
       {/* Feedback Modal */}
       <Modal
