@@ -288,6 +288,9 @@ const CoachBlog = () => {
     const [editArticle, setEditArticle] = useState(null);
     const [editForm] = Form.useForm();
 
+    // Get current coach ID
+    const currentCoachId = Number(localStorage.getItem('coachId') || localStorage.getItem('userId'));
+
     // Fetch all blog posts on mount
     useEffect(() => {
         fetchArticles();
@@ -303,8 +306,9 @@ const CoachBlog = () => {
         try {
             const res = await coachApi.getAllBlogPosts();
             const data = res.data || res;
+            // Hiển thị tất cả bài viết của tất cả coach
             setArticleList(data);
-            // Lấy danh sách category duy nhất từ các bài viết
+            // Lấy danh sách category duy nhất từ tất cả bài viết
             const cats = Array.from(new Set(data.map(a => a.category).filter(Boolean)));
             setCategories([
                 { key: 'all', label: 'Tất cả', color: '#4A90E2' },
@@ -367,8 +371,6 @@ const CoachBlog = () => {
         setLoading(false);
     };
 
-
-
     // Xử lý xóa bài viết
     const handleDeleteArticle = async (articleId) => {
         try {
@@ -418,11 +420,15 @@ const CoachBlog = () => {
         }
     };
 
-    const renderArticleCard = (article) => (
+    const renderArticleCard = (article) => {
+        // Kiểm tra xem bài viết có phải của coach hiện tại không
+        const isMyArticle = article.authorId === currentCoachId;
+        
+        return (
         <Col xs={24} md={8} style={{ marginBottom: 24 }} key={article.postId || article.id}>
             <ArticleCard
                 cover={<img alt={article.title} src={article.featuredImageURL || 'https://source.unsplash.com/random/800x400/?blog'} />}
-                actions={[
+                actions={isMyArticle ? [
                     <Button
                         size="small"
                         icon={<EditOutlined />}
@@ -457,7 +463,7 @@ const CoachBlog = () => {
                     >
                         Xoá
                     </Button>,
-                ]}
+                ] : []}
             >
                 <CategoryLabel color={categories.find(cat => cat.key === article.category)?.color}>
                     {categories.find(cat => cat.key === article.category)?.label || article.category}
@@ -465,10 +471,7 @@ const CoachBlog = () => {
 
                 <ArticleTitle>{article.title}</ArticleTitle>
 
-
-
                 <AuthorInfo>
-
                     <div className="author-details">
                         <div className="author-name">{article.authorName || 'Coach'}</div>
                         <div className="author-title">Coach</div>
@@ -488,7 +491,8 @@ const CoachBlog = () => {
                 </ReadMoreButton>
             </ArticleCard>
         </Col>
-    );
+        );
+    };
 
     return (
         <BlogContainer>
@@ -545,7 +549,6 @@ const CoachBlog = () => {
                         </div>
 
                         <div className="modal-author-info">
-
                             <div className="author-details">
                                 <div className="author-name">{selectedArticle.authorName || 'Coach'}</div>
                                 <div className="author-title">Coach</div>
