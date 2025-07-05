@@ -1,75 +1,152 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import axiosClient from '../Axios/AxiosCLients';
 
+const styles = {
+  container: {
+    padding: 32,
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #e6f7f6 0%, #f0f9f8 100%)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  card: {
+    background: '#fff',
+    borderRadius: 18,
+    boxShadow: '0 6px 32px rgba(95,184,179,0.13)',
+    padding: '32px 40px',
+    minWidth: 350,
+    maxWidth: 480,
+    marginTop: 32,
+    textAlign: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 800,
+    color: '#2c7a75',
+    marginBottom: 18,
+    letterSpacing: 1.2,
+  },
+  label: {
+    color: '#2c7a75',
+    fontWeight: 600,
+    fontSize: 17,
+    marginRight: 8,
+  },
+  value: {
+    color: '#222',
+    fontWeight: 500,
+    fontSize: 17,
+  },
+  feedback: {
+    background: '#f6fcfb',
+    borderRadius: 10,
+    padding: '12px 18px',
+    margin: '12px 0',
+    fontSize: 16,
+    color: '#444',
+    minHeight: 40,
+    textAlign: 'left',
+  },
+  stars: {
+    fontSize: 28,
+    color: '#FFD700',
+    marginBottom: 8,
+  },
+  input: {
+    padding: '8px 16px',
+    borderRadius: 8,
+    border: '1.5px solid #e3f6f5',
+    fontSize: 16,
+    marginRight: 8,
+    width: 120,
+  },
+  btn: {
+    background: 'linear-gradient(90deg, #5FB8B3 0%, #2c7a75 100%)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 10,
+    fontWeight: 700,
+    fontSize: 17,
+    padding: '10px 32px',
+    boxShadow: '0 2px 8px #5FB8B344',
+    cursor: 'pointer',
+    marginTop: 8,
+  },
+};
+
+function formatDateTime(dt) {
+  if (!dt) return '-';
+  const d = new Date(dt);
+  return d.toLocaleString('vi-VN', { hour12: false });
+}
+
 const AdminCallManagement = () => {
-  const [consultations, setConsultations] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [consultationId, setConsultationId] = useState('');
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Lấy danh sách consultationId (giả sử có API này)
-  useEffect(() => {
-    // Thay bằng API thực tế lấy danh sách cuộc gọi
-    axiosClient.get('/api/consultations')
-      .then(res => setConsultations(res.data))
-      .catch(() => setConsultations([]));
-  }, []);
-
-  // Lấy chi tiết summary khi chọn
-  const handleSelect = (id) => {
-    setSelected(id);
+  const handleFetch = async () => {
     setLoading(true);
-    axiosClient.get(`/api/consultations/${id}/summary`)
-      .then(res => setSummary(res.data))
-      .catch(() => setSummary(null))
-      .finally(() => setLoading(false));
+    setError('');
+    setSummary(null);
+    try {
+      const res = await axiosClient.get(`/api/consultations/${consultationId}/summary`);
+      setSummary(res.data);
+    } catch (err) {
+      setError('Không tìm thấy cuộc gọi hoặc lỗi server!');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={{ padding: 32 }}>
-      <h2 style={{ color: '#2c7a75', fontWeight: 800, marginBottom: 24 }}>Quản lý cuộc gọi tư vấn</h2>
-      <div style={{ display: 'flex', gap: 48 }}>
-        <div style={{ minWidth: 220 }}>
-          <h3 style={{ color: '#5FB8B3', fontWeight: 700 }}>Danh sách cuộc gọi</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {consultations.length === 0 && <li>Không có cuộc gọi nào</li>}
-            {consultations.map(c => (
-              <li key={c.id} style={{ marginBottom: 10 }}>
-                <button
-                  onClick={() => handleSelect(c.id)}
-                  style={{
-                    background: selected === c.id ? 'linear-gradient(90deg, #5FB8B3 0%, #2c7a75 100%)' : '#f5f5f5',
-                    color: selected === c.id ? '#fff' : '#2c7a75',
-                    border: 'none',
-                    borderRadius: 8,
-                    padding: '10px 18px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    width: '100%',
-                    boxShadow: selected === c.id ? '0 2px 8px #5FB8B344' : 'none',
-                  }}
-                >
-                  Cuộc gọi #{c.id}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div style={{ flex: 1 }}>
-          {loading && <div style={{ color: '#2c7a75', fontWeight: 600 }}>Đang tải chi tiết...</div>}
-          {summary && !loading && (
-            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #5FB8B344', padding: 32, minWidth: 320 }}>
-              <h3 style={{ color: '#2c7a75', fontWeight: 700, marginBottom: 18 }}>Chi tiết cuộc gọi</h3>
-              <p><b>Người dùng:</b> {summary.userFullName}</p>
-              <p><b>Coach:</b> {summary.coachName}</p>
-              <p><b>Bắt đầu:</b> {summary.scheduledTime}</p>
-              <p><b>Kết thúc:</b> {summary.endTime}</p>
-              <p><b>Đánh giá:</b> {summary.feedbackRating ? summary.feedbackRating + ' ★' : 'Chưa có'}</p>
-              <p><b>Feedback:</b> {summary.feedback || 'Chưa có'}</p>
-            </div>
-          )}
-        </div>
+    <div style={styles.container}>
+      <div style={styles.title}>Tra cứu thông tin cuộc gọi tư vấn</div>
+      <div style={{ marginBottom: 18 }}>
+        <input
+          type="number"
+          placeholder="Nhập consultationId..."
+          value={consultationId}
+          onChange={e => setConsultationId(e.target.value)}
+          style={styles.input}
+        />
+        <button style={styles.btn} onClick={handleFetch} disabled={!consultationId || loading}>
+          {loading ? 'Đang tra cứu...' : 'Xem chi tiết'}
+        </button>
       </div>
+      {error && <div style={{ color: '#ff4d4f', fontWeight: 600, marginBottom: 12 }}>{error}</div>}
+      {summary && (
+        <div style={styles.card}>
+          <div style={{ fontWeight: 700, fontSize: 20, color: '#2c7a75', marginBottom: 12 }}>Chi tiết cuộc gọi</div>
+          <div style={{ marginBottom: 10 }}>
+            <span style={styles.label}>Người dùng:</span>
+            <span style={styles.value}>{summary.userFullName || '-'}</span>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <span style={styles.label}>Coach:</span>
+            <span style={styles.value}>{summary.coachName || '-'}</span>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <span style={styles.label}>Bắt đầu:</span>
+            <span style={styles.value}>{formatDateTime(summary.scheduledTime)}</span>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <span style={styles.label}>Kết thúc:</span>
+            <span style={styles.value}>{formatDateTime(summary.endTime)}</span>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <span style={styles.label}>Đánh giá:</span>
+            <span style={styles.stars}>
+              {summary.feedbackRating ? [...Array(summary.feedbackRating)].map((_, i) => <span key={i}>★</span>) : 'Chưa có'}
+            </span>
+          </div>
+          <div style={styles.feedback}>
+            <b>Feedback:</b> {summary.feedback || 'Chưa có'}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
