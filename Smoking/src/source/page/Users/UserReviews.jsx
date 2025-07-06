@@ -349,7 +349,7 @@ const UserReviews = () => {
                         <Table
                             columns={coachColumns}
                             dataSource={coachReviews
-                                .filter(fb => fb.targetType === 'coach')
+                                .filter(fb => fb.targetType === 'coach' && fb.userId === userId)
                                 .slice()
                                 .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                             }
