@@ -219,7 +219,7 @@ public class PaymentController {
  */
 
 // API gọi tạo link thanh toán VnPay (thật)
-/*
+
 @PostMapping("/create-vnpay-payment/{userId}/{packageId}")
 public ResponseEntity<Map<String, String>> createVnPayPayment(
         @PathVariable Long userId,
@@ -317,6 +317,6 @@ public void vnPayCallback(HttpServletRequest request, HttpServletResponse respon
     );
     response.sendRedirect(redirectUrl);
 }
-*/
+
 
 }
