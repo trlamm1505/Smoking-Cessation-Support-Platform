@@ -855,27 +855,27 @@ const Profile = () => {
         try {
           const res = await userApi.get(userId); // gọi API lấy thông tin user
           const user = res.data;
-  
+
           // Gán thông tin chính
           setProfileData(user);
           setTempProfileData(user);
           setIntroText(user.intro || '');
           setTempIntroText(user.intro || '');
-  
+
           // Tạo lại danh sách thông tin cá nhân (gán trực tiếp từ object user)
           const merged = defaultPersonalInfo.map((item) => ({
             ...item,
             value: user[item.key] ?? '',  // dùng user[item.key] trực tiếp
           }));
-  
+
           setPersonalInfo(merged);
           setTempPersonalInfo(merged);
-  
+
         } catch (err) {
           console.error("Lỗi khi lấy dữ liệu user:", err);
         }
       };
-  
+
       fetchProfile();
     }
   }, [userId]);
@@ -883,8 +883,8 @@ const Profile = () => {
     try {
       // Gửi intro mới lên API
       await userApi.put(userId, { intro: tempIntroText });
-    setIntroText(tempIntroText);
-    setIsEditingIntro(false);
+      setIntroText(tempIntroText);
+      setIsEditingIntro(false);
     } catch (err) {
       // Handle error
     }
@@ -909,7 +909,7 @@ const Profile = () => {
         acc[item.key] = item.value || '';
         return acc;
       }, {});
-  
+
       // B2: Tạo object gửi lên backend (merge cả profile lẫn info)
       const updatedProfile = {
         userId: profileData.userId || userId,
@@ -923,20 +923,20 @@ const Profile = () => {
         occupation: personalInfoMap.occupation || '',
         address: personalInfoMap.address || '',
         hometown: personalInfoMap.hometown || '',
-       
+
       };
-  
+
       console.log('Dữ liệu gửi lên:', updatedProfile);
-      
+
       // B3: Gửi PUT request
       await userApi.updateProfile(updatedProfile);
-  
+
       // B4: Cập nhật lại dữ liệu trong state (hiển thị mới)
       setProfileData({ ...profileData, ...updatedProfile });
       setTempProfileData({ ...tempProfileData, ...updatedProfile });
       setPersonalInfo([...tempPersonalInfo]);
       setShowEditModal(false);
-  
+
       // B5: Thông báo thành công
       toast.success('Cập nhật thông tin thành công!');
     } catch (err) {
@@ -962,7 +962,7 @@ const Profile = () => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "avatarUploadClient"); // preset bạn đã tạo
-    formData.append("cloud_name", "dp4gsczko"); 
+    formData.append("cloud_name", "dp4gsczko");
 
     const res = await fetch("https://api.cloudinary.com/v1_1/dp4gsczko/image/upload", {
       method: "POST",
@@ -1016,7 +1016,7 @@ const Profile = () => {
     <Container>
       <ProfileHeader>
         <HeaderButtons>
-          
+
           <FileInput
             id="coverInput"
             type="file"
@@ -1077,10 +1077,10 @@ const Profile = () => {
           </AvatarContainer>
           <UserName>{profileData.fullName || ''}</UserName>
           {profileData.premiumTitle && (
-          <PremiumTag>
-            <CrownOutlined />
-            {profileData.premiumTitle}
-          </PremiumTag>
+            <PremiumTag>
+              <CrownOutlined />
+              {profileData.premiumTitle}
+            </PremiumTag>
           )}
         </ProfileContent>
       </ProfileHeader>
@@ -1189,6 +1189,18 @@ const Profile = () => {
                         onChange={(e) => handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), e.target.value)}
                         placeholder="Nhập tuổi"
                       />
+                    ) : info.key === 'phoneNumber' ? (
+                      <EditableInput
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={info.value}
+                        onChange={(e) => {
+                          const onlyNums = e.target.value.replace(/[^0-9]/g, '');
+                          handleInfoChange(tempPersonalInfo.findIndex(item => item.key === info.key), onlyNums);
+                        }}
+                        placeholder="Nhập số điện thoại"
+                      />
                     ) : info.key === 'smokingYears' ? (
                       <EditableInput
                         type="number"
@@ -1289,17 +1301,17 @@ const Profile = () => {
                 // Validate
                 if (!accountForm.oldPassword) {
                   setAccountError('Vui lòng nhập mật khẩu cũ.');
-                 
+
                   return;
                 }
                 if (!accountForm.newPassword) {
                   setAccountError('Vui lòng nhập mật khẩu mới.');
-                 
+
                   return;
                 }
                 if (accountForm.newPassword !== accountForm.confirmPassword) {
                   setAccountError('Mật khẩu mới và xác nhận không khớp.');
-                  
+
                   return;
                 }
                 setAccountError('');
@@ -1315,7 +1327,7 @@ const Profile = () => {
                   console.log('API response:', res.data);
                   if (res.data && res.data.success) {
                     toast.success(res.data.message || 'Đổi mật khẩu thành công!');
-                setShowAccountModal(false);
+                    setShowAccountModal(false);
                   } else {
                     setAccountError(res.data.message || 'Đổi mật khẩu thất bại!');
                     toast.error(res.data.message || 'Đổi mật khẩu thất bại!');
