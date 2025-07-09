@@ -242,6 +242,25 @@ const PageContainer = styled.div`
   }
 `;
 
+// Thêm component MoneyInput
+const MoneyInput = ({ value, onChange, ...props }) => {
+    const formatNumber = (val) => val.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const handleChange = (e) => {
+        const raw = e.target.value.replace(/[^0-9]/g, '');
+        onChange && onChange(raw ? Number(raw) : undefined);
+    };
+    return (
+        <Input
+            {...props}
+            value={value !== undefined && value !== null ? formatNumber(String(value)) : ''}
+            onChange={handleChange}
+            placeholder="Ví dụ: 20000"
+            addonAfter="VNĐ/ngày"
+            inputMode="numeric"
+        />
+    );
+};
+
 const Plan = () => {
     const [form] = Form.useForm();
     const [planData, setPlanData] = useState(null);
@@ -377,27 +396,36 @@ const Plan = () => {
                                     <Form.Item
                                         name="yearsSmoking"
                                         label={<span><span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>Số năm hút thuốc</span>}
-                                        rules={[{ required: true, message: 'Vui lòng nhập số năm hút thuốc!' }]}
+                                        rules={[
+                                            { required: true, message: 'Vui lòng nhập số năm hút thuốc!' },
+                                            { type: 'number', min: 1, message: 'Số năm hút thuốc phải là số lớn hơn 0!' }
+                                        ]}
                                     >
-                                        <InputNumber min={0} style={{ width: '100%' }} placeholder="Ví dụ: 5" addonAfter="năm" />
+                                        <InputNumber min={1} style={{ width: '100%' }} placeholder="Ví dụ: 5" addonAfter="năm" />
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>
                                     <Form.Item
                                         name="cigarettesPerDay"
                                         label={<span><span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>Số điếu mỗi ngày</span>}
-                                        rules={[{ required: true, message: 'Vui lòng nhập số điếu mỗi ngày!' }]}
+                                        rules={[
+                                            { required: true, message: 'Vui lòng nhập số điếu mỗi ngày!' },
+                                            { type: 'number', min: 1, message: 'Số điếu mỗi ngày phải là số lớn hơn 0!' }
+                                        ]}
                                     >
-                                        <InputNumber min={0} style={{ width: '100%' }} placeholder="Ví dụ: 20" addonAfter="điếu" />
+                                        <InputNumber min={1} style={{ width: '100%' }} placeholder="Ví dụ: 20" addonAfter="điếu" />
                                     </Form.Item>
                                 </Col>
                                 <Col span={8}>
                                     <Form.Item
                                         name="moneyPerDay"
                                         label={<span><span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>Số tiền mỗi ngày</span>}
-                                        rules={[{ required: true, message: 'Vui lòng nhập số tiền mỗi ngày!' }]}
+                                        rules={[
+                                            { required: true, message: 'Vui lòng nhập số tiền mỗi ngày!' },
+                                            { type: 'number', min: 1, message: 'Số tiền mỗi ngày phải là số lớn hơn 0!' }
+                                        ]}
                                     >
-                                        <InputNumber min={0} style={{ width: '100%' }} placeholder="Ví dụ: 20000" addonAfter="VNĐ/ngày" />
+                                        <MoneyInput />
                                     </Form.Item>
                                 </Col>
                             </Row>
