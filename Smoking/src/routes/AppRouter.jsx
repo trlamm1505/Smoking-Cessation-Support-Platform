@@ -36,7 +36,11 @@ import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
 
 
 
+
+ {/* TAO THÊM CÁI NÀY NÈ*/}
 import PaymentStatus from '../source/page/PaymentStatus';
+
+
 
 
 // Guest Components
@@ -123,6 +127,8 @@ export default function AppRouter() {
       <Route path="agora-room/:consultationId" element={<AgoraRoom />} />
 
       {/* Error Route */}
+      
+      {/* TAO THÊM CÁI NÀY NÈ*/}
       <Route path="/payment-status" element={<PaymentStatus />} />
 
       <Route path='*' element={<Error />} />

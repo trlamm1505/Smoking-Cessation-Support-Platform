@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag, message, Spin } from 'antd';
-import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, TeamOutlined, CheckCircleOutlined, HomeOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag, message } from 'antd';
+import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, TeamOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import axiosClient from '../Axios/AxiosCLients';
-import coachApi from '../Axios/coachApi';
 
 const { Title, Text } = Typography;
 
@@ -143,171 +142,35 @@ const TimelineCard = styled(StyledCard)`
     }
 `;
 
-const LeaderboardCard = styled(StyledCard)`
-  .leaderboard-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #f0f9f8;
-    .trophy-icon {
-      font-size: 24px;
-      color: #FFD700;
-      margin-right: 12px;
-      animation: bounce 2s infinite;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
-    }
-  }
-  .leaderboard-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-    padding: 16px;
-    background: #f8fffe;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
-    position: relative;
-    overflow: hidden;
-    &:hover {
-      background: white;
-      border-color: #5FB8B3;
-      transform: translateX(8px);
-      box-shadow: 0 4px 12px rgba(95, 184, 179, 0.15);
-    }
-    &:before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background: #5FB8B3;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    &:hover:before {
-      opacity: 1;
-    }
-    .rank {
-      font-size: 24px;
-      font-weight: bold;
-      width: 40px;
-      text-align: center;
-      position: relative;
-      &:after {
-        content: '';
-        position: absolute;
-        bottom: -4px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 20px;
-        height: 2px;
-        background: #5FB8B3;
-        border-radius: 2px;
-      }
-    }
-    .rank-1 { color: #FFD700; }
-    .rank-2 { color: #C0C0C0; }
-    .rank-3 { color: #CD7F32; }
-    .rank-other { color: #5FB8B3; }
-    .user-info {
-      flex: 1;
-      margin-left: 16px;
-    }
-    .user-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: #2c3e50;
-      margin-bottom: 8px;
-    }
-    .stats {
-      display: flex;
-      gap: 12px;
-      margin-top: 8px;
-      flex-wrap: nowrap;
-      align-items: center;
-    }
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      color: #666;
-      font-size: 13px;
-      padding: 4px 8px;
-      background: rgba(95, 184, 179, 0.1);
-      border-radius: 20px;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-      &:hover {
-        background: rgba(95, 184, 179, 0.2);
-        transform: translateY(-2px);
-      }
-      .anticon {
-        color: #5FB8B3;
-        font-size: 14px;
-      }
-    }
-  }
-`;
-
 const CoachHome = () => {
   const [coachData, setCoachData] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Thêm state cho thống kê tổng quan
-  const [summary, setSummary] = useState(null);
-  const [summaryLoading, setSummaryLoading] = useState(true);
-  // State cho leaderboard user
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
   useEffect(() => {
     const coachId = localStorage.getItem('coachId');
+    console.log('coachId in localStorage:', coachId);
     if (!coachId) {
       message.error('Không tìm thấy coachId!');
       setLoading(false);
-      setSummaryLoading(false);
       return;
     }
     axiosClient.get(`/api/coaches/${coachId}`)
       .then(res => {
+        console.log('Coach data response:', res.data);
         setCoachData(res.data);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Error fetching coach data:', err);
+        if (err?.response) {
+          console.error('API error response:', err.response.data);
+        }
         message.error('Không lấy được thông tin coach!');
         setLoading(false);
       });
-    // Gọi API lấy thống kê tổng quan
-    coachApi.getConsultationSummary(coachId)
-      .then(res => {
-        setSummary(res.data);
-        setSummaryLoading(false);
-      })
-      .catch(() => {
-        setSummaryLoading(false);
-      });
-    // Fetch user leaderboard (same as Users/Home.jsx)
-    const fetchLeaderboard = async () => {
-      setLoadingLeaderboard(true);
-      try {
-        const res = await axiosClient.get('http://localhost:8080/achievements/user-summary');
-        // Sắp xếp theo achievementCount giảm dần
-        const sorted = [...res.data].sort((a, b) => b.achievementCount - a.achievementCount);
-        setLeaderboard(sorted);
-      } catch (err) {
-        setLeaderboard([]);
-      } finally {
-        setLoadingLeaderboard(false);
-      }
-    };
-    fetchLeaderboard();
   }, []);
 
-  if (loading || summaryLoading) return <PageContainer><Title>Đang tải dữ liệu...</Title></PageContainer>;
+  if (loading) return <PageContainer><Title>Đang tải dữ liệu...</Title></PageContainer>;
   if (!coachData) return <PageContainer><Title>Không có dữ liệu coach</Title></PageContainer>;
 
   return (
@@ -315,59 +178,83 @@ const CoachHome = () => {
       <WelcomeTitle level={2}>
         Xin chào, {coachData.fullName || 'Coach'}!
       </WelcomeTitle>
+
       <Row gutter={[24, 24]}>
-        {/* Tổng số thành viên */}
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <StatisticCard>
             <TeamOutlined className="icon" />
             <Statistic
-              title="Tổng số thành viên"
-              value={summary?.totalMembers || 0}
+              title="Khách Hàng Đang Tư Vấn"
+              value={coachData.activeClients || 0}
               suffix="người"
             />
           </StatisticCard>
         </Col>
-        {/* Tổng số buổi tư vấn */}
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={12} lg={6}>
           <StatisticCard>
             <CalendarOutlined className="icon" />
             <Statistic
-              title="Tổng số buổi tư vấn"
-              value={summary?.totalSessions || 0}
+              title="Buổi Tư Vấn Đang Chờ"
+              value={coachData.pendingConsultations || 0}
               suffix="buổi"
             />
           </StatisticCard>
         </Col>
-        {/* Leaderboard user ở góc phải */}
+
+        <Col xs={24} lg={16}>
+          <Row gutter={[24, 24]}>
+            <Col xs={24}>
+              <TimelineCard title="Hoạt Động Gần Đây">
+                <Timeline>
+                  {(coachData.recentActivities || []).map((activity, index) => (
+                    <Timeline.Item
+                      key={index}
+                      color={activity.type === 'success' ? '#5FB8B3' : '#1890ff'}
+                    >
+                      <Text strong>{activity.date}</Text>
+                      <br />
+                      {activity.content}
+                    </Timeline.Item>
+                  ))}
+                </Timeline>
+              </TimelineCard>
+            </Col>
+          </Row>
+        </Col>
+
         <Col xs={24} lg={8}>
-          <LeaderboardCard>
-            <div className="leaderboard-header">
-              <TrophyOutlined className="trophy-icon" />
-              <span style={{ fontWeight: 600, fontSize: 18 }}>Bảng Xếp Hạng Khách Hàng</span>
-            </div>
-            {loadingLeaderboard ? (
-              <Spin />
-            ) : (
-              leaderboard.length === 0 ? (
-                <Text type="secondary">Chưa có dữ liệu xếp hạng.</Text>
-              ) : (
-                leaderboard.slice(0, 10).map((user, idx) => (
-                  <div className={`leaderboard-item`} key={user.userId}>
-                    <span className={`rank rank-${idx < 3 ? idx + 1 : 'other'}`}>{`#${idx + 1}`}</span>
-                    <img src={user.avatarUrl || user.avatarURL || user.avatar || ''} alt="avatar" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', marginLeft: 12, border: '2px solid #5FB8B3' }} />
-                    <div className="user-info">
-                      <div className="user-name">{user.fullName}</div>
-                      <div className="stats">
-                        <div className="stat-item"><ClockCircleOutlined /> {user.noSmokeDays} ngày</div>
-                        <div className="stat-item"><DollarOutlined /> {user.moneySaved?.toLocaleString()}đ</div>
-                        <div className="stat-item"><TrophyOutlined /> {user.achievementCount} thành tích</div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )
-            )}
-          </LeaderboardCard>
+          <StyledCard title="Thành Tích Đạt Được">
+            {(coachData.achievements || []).map((achievement, index) => (
+              <div key={index} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                marginBottom: '20px', 
+                padding: '20px',
+                background: '#f8fffe',
+                borderRadius: '16px',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                border: '1px solid transparent'
+              }}>
+                <TrophyOutlined style={{ 
+                  fontSize: '28px', 
+                  color: '#5FB8B3', 
+                  marginRight: '20px' 
+                }} />
+                <div>
+                  <Text strong>{achievement.title}</Text>
+                  <br />
+                  <Text type="secondary">{achievement.description}</Text>
+                  <br />
+                  <Tag color="#5FB8B3">
+                    <CalendarOutlined /> {achievement.date}
+                  </Tag>
+                </div>
+              </div>
+            ))}
+            <Button type="primary" block style={{ marginTop: 16, background: '#5FB8B3', borderColor: '#5FB8B3' }}>
+              Xem Tất Cả Thành Tích
+            </Button>
+          </StyledCard>
         </Col>
       </Row>
     </PageContainer>
