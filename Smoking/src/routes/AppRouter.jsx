@@ -128,8 +128,19 @@ export default function AppRouter() {
 
       {/* Error Route */}
       
+
+
+
+
+
+      
       {/* TAO THÊM CÁI NÀY NÈ*/}
       <Route path="/payment-status" element={<PaymentStatus />} />
+
+
+
+
+
 
       <Route path='*' element={<Error />} />
     </Routes>

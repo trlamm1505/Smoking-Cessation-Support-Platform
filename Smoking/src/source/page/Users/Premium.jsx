@@ -1,3 +1,31 @@
+
+
+
+
+
+
+
+
+
+
+                                      /* PHẦN NÀY LÀ PHẦN CẦN CHỈNH SỬA*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider } from 'antd';
 import { CheckOutlined, CrownOutlined, DollarOutlined, SafetyCertificateOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';

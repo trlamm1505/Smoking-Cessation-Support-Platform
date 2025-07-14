@@ -1,4 +1,20 @@
 // src/pages/PaymentStatus.jsx
+
+
+
+
+
+/* TAO THÊM CÁI NÀY NÈ*/
+
+
+
+
+
+
+
+
+
+
 import React from 'react';
 import { Result, Button } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
