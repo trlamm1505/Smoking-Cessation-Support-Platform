@@ -1,0 +1,51 @@
+@keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes floatX {
+    0%, 100% {
+      transform: translateX(0px);
+    }
+    50% {
+      transform: translateX(-20px); /* hoặc +20px tùy bạn muốn lắc trái trước hay phải trước */
+    }
+  }
+  
+  .float-x-animation {
+    animation: floatX 3s ease-in-out infinite;
+  }
+
+  @keyframes zoomIn {
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .zoom-in {
+    animation: zoomIn 1.2s ease-out forwards;
+  }
+  .group:hover .rounded-toggle-corners {
+    border-top-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-right-radius: 1.5rem !important;
+    border-bottom-left-radius: 1.5rem !important;
+    transition: border-radius 0.3s ease;
+  }
+  
+  
+  
+
+  
