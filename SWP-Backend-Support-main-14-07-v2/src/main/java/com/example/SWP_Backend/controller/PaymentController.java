@@ -7,6 +7,7 @@ import com.example.SWP_Backend.entity.User;
 import com.example.SWP_Backend.repository.MembershipPackageRepository;
 import com.example.SWP_Backend.repository.PaymentRepository;
 import com.example.SWP_Backend.repository.UserRepository;
+import com.example.SWP_Backend.service.PurchaseService;
 import com.example.SWP_Backend.service.VNPayService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,6 +37,10 @@ public class PaymentController {
 
     @Autowired
     private MembershipPackageRepository packageRepository;
+
+    @Autowired
+    private PurchaseService purchaseService;
+
 
     // ===================== TEST API: Lưu Payment thủ công không cần FE, không cần VnPay =====================
     /**
@@ -91,57 +96,6 @@ public class PaymentController {
     }
 
 
-
-    @PostMapping("/test-save-payment")
-    public ResponseEntity<PaymentDetailDTO> testSavePayment(@RequestBody Map<String, Long> body) {
-        Long userId = body.get("userId");
-        Long packageId = body.get("packageId");
-        if (userId == null || packageId == null)
-            return ResponseEntity.badRequest().build();
-
-        Optional<User> userOpt = userRepository.findById(userId);
-        Optional<MembershipPackage> packageOpt = packageRepository.findById(packageId);
-        if (userOpt.isEmpty() || packageOpt.isEmpty())
-            return ResponseEntity.badRequest().build();
-
-        User user = userOpt.get();
-        MembershipPackage membershipPackage = packageOpt.get();
-
-        // Tính ngày cho trường hợp mua mới hoặc gia hạn
-        LocalDate now = LocalDate.now();
-        LocalDate startDate;
-        // Nếu còn hạn, thì ngày bắt đầu là sau ngày hết hạn cũ (gia hạn nối tiếp)
-        if (user.getSubscriptionEndDate() != null && user.getSubscriptionEndDate().isAfter(now)) {
-            startDate = user.getSubscriptionEndDate().plusDays(1);
-        } else {
-            startDate = now;
-        }
-        LocalDate endDate = startDate.plusDays(membershipPackage.getDurationDays());
-        LocalDate renewalDate = endDate.plusDays(1);
-
-        Payment payment = new Payment();
-        payment.setUser(user);
-        payment.setPackageInfo(membershipPackage);
-        payment.setAmount(membershipPackage.getPrice());
-        payment.setPaymentMethod("MANUAL_TEST"); // Chỉ để phân biệt, khi xài thật chuyển thành VNPAY
-        payment.setTransactionID(UUID.randomUUID().toString());
-        payment.setStatus("completed");
-        payment.setStartDate(startDate);
-        payment.setEndDate(endDate);
-        payment.setRenewalDate(renewalDate);
-
-        // Lưu payment
-        paymentRepository.save(payment);
-
-        // Update User: chuyển thành member, cập nhật hạn, package mới
-        user.setRole("member");
-        user.setCurrentMembershipPackageId(Math.toIntExact(membershipPackage.getPackageID()));
-        user.setSubscriptionEndDate(endDate);
-        userRepository.save(user);
-
-        // Trả về chi tiết
-        return ResponseEntity.ok(toDto(payment));
-    }
     // ===================== END TEST API =====================
 
     // Map Payment entity -> DTO
@@ -182,25 +136,6 @@ public class PaymentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-//    // PUT update payment (admin chỉnh sửa status, amount, ngày)
-//    @PutMapping("/{id}")
-//    public ResponseEntity<PaymentDetailDTO> updatePayment(
-//            @PathVariable Long id,
-//            @RequestBody PaymentDetailDTO dto
-//    ) {
-//        return paymentRepository.findById(id)
-//                .map(payment -> {
-//                    // Chỉ cho sửa một số trường!
-//                    payment.setStatus(dto.getStatus());
-//                    payment.setAmount(dto.getAmount());
-//                    payment.setStartDate(dto.getStartDate());
-//                    payment.setEndDate(dto.getEndDate());
-//                    payment.setRenewalDate(dto.getRenewalDate());
-//                    paymentRepository.save(payment);
-//                    return ResponseEntity.ok(toDto(payment));
-//                })
-//                .orElse(ResponseEntity.notFound().build());
-//    }
 
     // DELETE payment (admin xóa)
     @DeleteMapping("/{id}")
@@ -244,11 +179,9 @@ public ResponseEntity<Map<String, String>> createVnPayPayment(
 public void vnPayCallback(HttpServletRequest request, HttpServletResponse response) throws Exception {
     String status = request.getParameter("vnp_ResponseCode"); // "00" là thành công
     String vnpOrderInfo = request.getParameter("vnp_OrderInfo"); // userId|packageId
-    String vnpTxnRef = request.getParameter("vnp_TxnRef");
-    String vnpAmount = request.getParameter("vnp_Amount");
     String transactionNo = request.getParameter("vnp_TransactionNo");
+    String vnpAmount = request.getParameter("vnp_Amount");
 
-    // --- Phân tách userId, packageId từ vnpOrderInfo ---
     Long userId = null, packageId = null;
     if (vnpOrderInfo != null && vnpOrderInfo.contains("|")) {
         String[] parts = vnpOrderInfo.split("\\|");
@@ -256,46 +189,22 @@ public void vnPayCallback(HttpServletRequest request, HttpServletResponse respon
         packageId = Long.parseLong(parts[1]);
     }
 
-    // --- Xử lý thanh toán thành công ---
+    // Chỉ xử lý nếu thanh toán thành công và đủ tham số
     if ("00".equals(status) && userId != null && packageId != null) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        Optional<MembershipPackage> packageOpt = packageRepository.findById(packageId);
-        if (userOpt.isPresent() && packageOpt.isPresent()) {
-            User user = userOpt.get();
-            MembershipPackage membershipPackage = packageOpt.get();
-
-            LocalDate now = LocalDate.now();
-            LocalDate startDate = (user.getSubscriptionEndDate() != null && user.getSubscriptionEndDate().isAfter(now))
-                    ? user.getSubscriptionEndDate().plusDays(1)
-                    : now;
-            LocalDate endDate = startDate.plusDays(membershipPackage.getDurationDays());
-            LocalDate renewalDate = endDate.plusDays(1);
-
-            Payment payment = new Payment();
-            payment.setUser(user);
-            payment.setPackageInfo(membershipPackage);
-            payment.setAmount(membershipPackage.getPrice());
-            payment.setPaymentMethod("VNPAY");
-            payment.setTransactionID(transactionNo); // hoặc vnpTxnRef
-            payment.setStatus("completed");
-            payment.setStartDate(startDate);
-            payment.setEndDate(endDate);
-            payment.setRenewalDate(renewalDate);
-            paymentRepository.save(payment);
-
-            // Cập nhật user (nếu cần)
-            if (!startDate.isAfter(now)) {
-                user.setRole("member");
-                user.setCurrentMembershipPackageId(Math.toIntExact(membershipPackage.getPackageID()));
-                user.setSubscriptionEndDate(endDate);
-                userRepository.save(user);
-            }
+        double amount = Double.parseDouble(vnpAmount) / 100.0; // VNPay trả về *100
+        try {
+            // Sử dụng service mới cho đầy đủ logic: tạo payment, cập nhật user, gửi notification...
+            purchaseService.handleVnPayPayment(userId, packageId, transactionNo, amount);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Nếu muốn, có thể log thêm, gửi noti lỗi...
         }
     }
 
-    // Redirect về FE để hiển thị kết quả
+    // Redirect về FE như cũ (dù thành công/thất bại)
     String redirectUrl = "http://localhost:5173/payment-status?vnp_ResponseCode=" + status;
     response.sendRedirect(redirectUrl);
 }
+
 
 }
