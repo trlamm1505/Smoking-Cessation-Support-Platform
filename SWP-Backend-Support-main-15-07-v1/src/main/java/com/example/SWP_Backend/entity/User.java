@@ -24,7 +24,7 @@ public class User {
     @Nationalized
     private String username;
 
-    @Column(name = "PasswordHash", nullable = false, length = 255)
+    @Column(name = "PasswordHash", nullable = true, length = 255)
     private String passwordHash;
 
     @Column(name = "Email", nullable = false, unique = true, length = 255)

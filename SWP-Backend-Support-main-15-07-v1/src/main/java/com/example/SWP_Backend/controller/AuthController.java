@@ -4,6 +4,7 @@ import com.example.SWP_Backend.dto.NotificationRequestDTO;
 import com.example.SWP_Backend.entity.User;
 import com.example.SWP_Backend.repository.TokenRepository;
 import com.example.SWP_Backend.repository.UserRepository;
+import com.example.SWP_Backend.service.GoogleAuthService;
 import com.example.SWP_Backend.service.NotificationService;
 import com.example.SWP_Backend.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,11 +41,111 @@ public class AuthController {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private GoogleAuthService googleAuthService;
+
+
     // ======== Đăng ký tài khoản sử dụng OTP xác minh ========
 
     /**
      * Gửi mã OTP tới email người dùng để bắt đầu quá trình đăng ký.
      */
+
+    @PostMapping("/google-login")
+    public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> body, HttpSession session) {
+        String idTokenString = body.get("idToken");
+        Map<String, Object> response = new HashMap<>();
+        if (idTokenString == null) {
+            response.put("success", false);
+            response.put("message", "Thiếu idToken từ Google");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Xác thực token Google
+        var payload = googleAuthService.verifyGoogleToken(idTokenString);
+        if (payload == null) {
+            response.put("success", false);
+            response.put("message", "idToken không hợp lệ!");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        String email = payload.getEmail();
+        String fullName = (String) payload.get("name");
+        String picture = (String) payload.get("picture");
+
+        User user = userService.getUserByEmail(email);
+        boolean isNew = false;
+        if (user == null) {
+            // User mới, tạo tài khoản luôn (đã xác thực)
+            user = new User();
+            user.setEmail(email);
+            user.setFullName(fullName != null ? fullName : email);
+            user.setUsername(email);
+            user.setProfilePictureUrl(picture);
+            user.setEnabled(true);
+            user.setRole("guest"); // Hoặc member tùy business logic
+            user = userRepository.save(user);
+            isNew = true;
+
+            // Gửi thông báo cho user mới & admin
+            NotificationRequestDTO userNoti = new NotificationRequestDTO();
+            userNoti.setTitle("Đăng ký thành công");
+            userNoti.setContent("Bạn đã đăng ký tài khoản Google thành công! Chào mừng bạn đến với nền tảng.");
+            userNoti.setSenderId(3L); // ID hệ thống/admin
+            userNoti.setRecipientId(user.getUserId());
+            userNoti.setType("register");
+            notificationService.sendNotification(userNoti);
+
+            NotificationRequestDTO adminNoti = new NotificationRequestDTO();
+            adminNoti.setTitle("Thành viên mới đăng ký (Google)");
+            adminNoti.setContent("Người dùng " + user.getFullName() + " (" + user.getEmail() + ") vừa đăng ký qua Google.");
+            adminNoti.setSenderId(3L);
+            adminNoti.setTargetRole("admin");
+            adminNoti.setType("register");
+            notificationService.sendNotification(adminNoti);
+        } else {
+            // Đã có user, cập nhật ảnh nếu có
+            if (picture != null && !picture.equals(user.getProfilePictureUrl())) {
+                user.setProfilePictureUrl(picture);
+                userRepository.save(user);
+            }
+        }
+
+        // Đồng bộ phân quyền như login truyền thống
+        LocalDate today = LocalDate.now();
+        String currentRole = user.getRole();
+        if ("admin".equalsIgnoreCase(currentRole) || "coach".equalsIgnoreCase(currentRole)) {
+            // KHÔNG can thiệp
+        } else if ("member".equalsIgnoreCase(currentRole)) {
+            if (user.getSubscriptionEndDate() == null || user.getSubscriptionEndDate().isBefore(today)) {
+                user.setRole("guest");
+                user.setCurrentMembershipPackageId(null);
+                userRepository.save(user);
+            }
+        } else if ("guest".equalsIgnoreCase(currentRole)) {
+            if (user.getSubscriptionEndDate() != null && user.getSubscriptionEndDate().isAfter(today.minusDays(1))) {
+                user.setRole("member");
+                userRepository.save(user);
+            }
+        }
+
+        // Lưu vào session
+        session.setAttribute("userId", user.getUserId());
+        session.setAttribute("role", user.getRole());
+
+        response.put("success", true);
+        response.put("message", isNew ? "Đăng ký/đăng nhập Google thành công!" : "Đăng nhập Google thành công!");
+        response.put("user", Map.of(
+                "id", user.getUserId(),
+                "fullName", user.getFullName(),
+                "email", user.getEmail(),
+                "role", user.getRole(),
+                "profilePictureUrl", user.getProfilePictureUrl() != null ? user.getProfilePictureUrl() : ""
+        ));
+        return ResponseEntity.ok(response);
+    }
+
+
     @PostMapping("/register-request")
     public ResponseEntity<Map<String, Object>> requestRegistration(@RequestBody RegisterRequest request) {
         Map<String, Object> response = new HashMap<>();

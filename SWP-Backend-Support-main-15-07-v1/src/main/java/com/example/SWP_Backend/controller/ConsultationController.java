@@ -141,6 +141,7 @@ public class ConsultationController {
         String channelName = consultation.getMeetingLink(); // Giờ là tên phòng agora
         int expireSeconds = 3600; // 1h
         String token = agoraService.generateRtcToken(channelName, uid, expireSeconds);
+        System.out.println("[DEBUG] API nhận uid = " + uid + " | consultationId=" + consultationId);
 
         return ResponseEntity.ok(Map.of(
                 "success", true,
