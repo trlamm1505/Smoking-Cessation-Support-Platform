@@ -6,6 +6,7 @@ public class SmokingInfoHistoryRequest {
     private int cigarettesPerDay;  // số điếu/ngày
     //private int moneyPerDay;       // số tiền/ngày (có thể dùng hoặc không)
     private int soNgay;            // số ngày lập kế hoạch
+   // private int goalPercent;
 
 
     public int getYears() {
@@ -31,4 +32,12 @@ public class SmokingInfoHistoryRequest {
     public void setSoNgay(int soNgay) {
         this.soNgay = soNgay;
     }
+
+//    public int getGoalPercent() {
+//        return goalPercent;
+//    }
+//
+//    public void setGoalPercent(int goalPercent) {
+//        this.goalPercent = goalPercent;
+//    }
 }

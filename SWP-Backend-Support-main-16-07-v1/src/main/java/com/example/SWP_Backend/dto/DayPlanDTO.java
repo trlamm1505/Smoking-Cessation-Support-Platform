@@ -10,6 +10,7 @@ public class DayPlanDTO {
     private String stageName;      // Tên giai đoạn (nếu FE không tự map)
     private String goal;           // Mục tiêu của ngày
     private List<String> activities; // Danh sách các hoạt động trong ngày
+    private Integer targetCigarettesPerDay;
 
 
     public DayPlanDTO() {}
@@ -82,4 +83,11 @@ public class DayPlanDTO {
 
 // Getter và Setter
 
+    public Integer getTargetCigarettesPerDay() {
+        return targetCigarettesPerDay;
+    }
+
+    public void setTargetCigarettesPerDay(Integer targetCigarettesPerDay) {
+        this.targetCigarettesPerDay = targetCigarettesPerDay;
+    }
 }
