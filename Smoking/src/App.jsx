@@ -16,12 +16,24 @@ import AppRouter from './routes/AppRouter'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+ // Google OAuth --ĐĂNG NHẬP BẰNG GOOGLE--
+//MINH TRIẾT ĐÃ TỰ THÊM PHẦN NÀY 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+ 
+
 function App() {
   return (
-    <>
-      <AppRouter/>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-    </>
+     // Google OAuth --ĐĂNG NHẬP BẰNG GOOGLE--
+//MINH TRIẾT ĐÃ TỰ THÊM PHẦN NÀY 
+    <GoogleOAuthProvider clientId="867588383187-lklobh1la8blv799o0fr5e8cj6jppj1k.apps.googleusercontent.com">
+      <AppRouter />
+      <ToastContainer 
+        position="top-right" autoClose={3000} hideProgressBar={false}
+        newestOnTop={false} closeOnClick rtl={false}
+        pauseOnFocusLoss draggable pauseOnHover 
+      />
+    </GoogleOAuthProvider>
   )
 }
 

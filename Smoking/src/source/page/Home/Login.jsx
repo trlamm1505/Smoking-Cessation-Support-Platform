@@ -4,8 +4,74 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../Axios/AxiosCLients';
 import axios from 'axios';
 
+
+ // Google OAuth --ĐĂNG NHẬP BẰNG GOOGLE--
+//MINH TRIẾT ĐÃ TỰ THÊM PHẦN NÀY 
+import { GoogleLogin } from '@react-oauth/google';
+
+
+
+
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+
+  // Google OAuth --ĐĂNG NHẬP BẰNG GOOGLE--
+//MINH TRIẾT ĐÃ TỰ THÊM PHẦN NÀY 
+
+  const handleGoogleLogin = async (credentialResponse) => {
+  // Lấy Google ID token từ credentialResponse
+  const idToken = credentialResponse.credential;
+  if (!idToken) {
+    showNotification('Đăng nhập Google thất bại!', 'error');
+    return;
+  }
+  try {
+    const response = await axiosClient.post('/api/auth/google-login', { idToken });
+    const data = response.data;
+    if (data.success && data.user) {
+      // --- Lưu info user như login thường ---
+      const userId = data.user.userId || data.user.id;
+      if (!userId) {
+        showNotification('Không tìm thấy User ID.', 'error');
+        return;
+      }
+      localStorage.setItem('userRole', data.user.role);
+      localStorage.setItem('userId', userId);
+      localStorage.removeItem('coachId');
+
+      showNotification(data.message || 'Đăng nhập Google thành công!', 'success');
+      const userRole = data.user.role?.toLowerCase();
+
+      // Điều hướng như login thường
+      if (userRole === 'admin') {
+        navigate('/admin/dashboard', { replace: true }); return;
+      }
+      if (userRole === 'coach') {
+        try {
+          const coachRes = await axiosClient.get(`/api/coaches/by-user/${userId}`);
+          const coachId = coachRes.data.coachId || coachRes.data.id;
+          if (coachId) {
+            localStorage.setItem('coachId', coachId);
+          }
+        } catch {}
+        navigate('/coach', { replace: true }); return;
+      }
+      if (userRole === 'member') {
+        navigate('/users/home', { replace: true }); return;
+      }
+      if (userRole === 'guest') {
+        navigate('/guest/home', { replace: true }); return;
+      }
+      navigate('/guest/home', { replace: true });
+    } else {
+      showNotification(data.message || 'Đăng nhập Google thất bại!', 'error');
+    }
+  } catch (err) {
+    showNotification(err?.response?.data?.message || 'Lỗi kết nối server!', 'error');
+  }
+};
+
+
 
   // Đăng ký
   const [registerData, setRegisterData] = useState({
@@ -452,40 +518,56 @@ const Login = () => {
         )}
         {/* Đăng nhập */}
         {!isSignUp && (
-          <div className="form-container sign-in-container ">
-            <form className="form" onSubmit={handleLogin}>
-              <h2 className="text-7xl font-bold text-[#4fd1c5] mb-10">Đăng nhập </h2>
-              <div className="mt-15 flex flex-col items-center space-y-5">
-                <input
-                  type="email"
-                  placeholder="Email"
-                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                  value={loginData.email}
-                  onChange={e => setLoginData({ ...loginData, email: e.target.value })}
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Mật khẩu"
-                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                  value={loginData.password}
-                  onChange={e => setLoginData({ ...loginData, password: e.target.value })}
-                  required
-                />
-                <a
-                  href="#"
-                  className="text-xl text-black-500 underline block"
-                  onClick={e => { e.preventDefault(); setShowForgotPassword(true); }}
-                >
-                  Quên mật khẩu?
-                </a>
-                <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6 ">
-                  ĐĂNG NHẬP
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+  <div className="form-container sign-in-container ">
+    <form className="form" onSubmit={handleLogin}>
+      <h2 className="text-7xl font-bold text-[#4fd1c5] mb-10">Đăng nhập </h2>
+      <div className="mt-15 flex flex-col items-center space-y-5">
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+          value={loginData.email}
+          onChange={e => setLoginData({ ...loginData, email: e.target.value })}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Mật khẩu"
+          className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+          value={loginData.password}
+          onChange={e => setLoginData({ ...loginData, password: e.target.value })}
+          required
+        />
+        <a
+          href="#"
+          className="text-xl text-black-500 underline block"
+          onClick={e => { e.preventDefault(); setShowForgotPassword(true); }}
+        >
+          Quên mật khẩu?
+        </a>
+        <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6 ">
+          ĐĂNG NHẬP
+        </button>
+
+        {/* --- Google Login Button --- */}
+        <div style={{ margin: "32px 0 0 0", textAlign: "center" }}>
+          <div className="mb-2 text-gray-500 text-sm font-semibold">— hoặc đăng nhập bằng Google —</div>
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => showNotification('Đăng nhập Google thất bại!', 'error')}
+            width="350"
+            shape="pill"
+            text="signin_with"
+            locale="vi"
+          />
+        </div>
+        {/* --- End Google Login --- */}
+
+      </div>
+    </form>
+  </div>
+)}
+
         {/* Overlay */}
         <div className="overlay-container">
           <div className="overlay">
