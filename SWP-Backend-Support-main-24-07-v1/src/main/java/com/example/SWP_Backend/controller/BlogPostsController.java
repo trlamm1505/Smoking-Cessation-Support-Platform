@@ -13,7 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Controller cho API quản lý bài viết cộng đồng (BlogPosts) – nhận vào CreateRequest, trả về DTO.
+ * Controller cho API quản lý bài viết cộng đồng (BlogPosts).
+ * Nhận vào CreateRequest (dữ liệu tạo/sửa), trả về DTO (dữ liệu nhẹ cho FE).
  */
 @RestController
 @RequestMapping("/api/blogposts")
@@ -26,17 +27,20 @@ public class BlogPostsController {
     private CoachRepository coachRepository;
 
     /**
-     * Tạo mới bài viết:
-     * - Nhận vào BlogPostsCreateRequest (gọn, chỉ trường cần thiết)
-     * - Trả về BlogPostsDTO (dữ liệu gọn cho FE)
+     * API tạo mới bài viết cộng đồng.
+     * - Nhận BlogPostsCreateRequest từ FE, chỉ gồm trường cần thiết cho việc tạo post.
+     * - Xác định author (Coach) từ authorId trong request.
+     * - Tạo entity BlogPosts, map dữ liệu từ request.
+     * - Thiết lập ngày đăng, số lượt xem ban đầu = 0.
+     * - Gọi service để lưu post và trả về BlogPostsDTO cho FE.
      */
     @PostMapping
     public BlogPostsDTO createBlogPost(@RequestBody BlogPostsCreateRequest req) {
-        // Tìm User (author) theo authorId từ request
+        // Tìm tác giả (Coach) theo authorId, nếu không có thì báo lỗi.
         Coach author = coachRepository.findById(req.getAuthorId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy user với id: " + req.getAuthorId()));
 
-        // Tạo entity BlogPosts từ request
+        // Khởi tạo entity BlogPosts mới và set các trường từ request.
         BlogPosts post = new BlogPosts();
         post.setAuthor(author);
         post.setTitle(req.getTitle());
@@ -48,14 +52,15 @@ public class BlogPostsController {
         post.setFeaturedImageURL(req.getFeaturedImageURL());
         post.setStatus(req.getStatus());
         post.setPublishDate(LocalDateTime.now());
-        post.setViews(0);
+        post.setViews(0); // Mới tạo thì lượt xem luôn là 0
 
-        // Gọi service lưu và trả về DTO
+        // Gọi service xử lý lưu post và trả về DTO gọn cho FE.
         return blogPostsService.createBlogPost(post);
     }
 
     /**
-     * Lấy toàn bộ bài viết, trả về list DTO.
+     * API lấy danh sách tất cả bài viết.
+     * - Trả về List<BlogPostsDTO> cho frontend.
      */
     @GetMapping
     public List<BlogPostsDTO> getAllBlogPosts() {
@@ -63,7 +68,8 @@ public class BlogPostsController {
     }
 
     /**
-     * Lấy bài viết theo ID, trả về DTO.
+     * API lấy chi tiết một bài viết theo ID.
+     * - Trả về BlogPostsDTO, nếu không có thì throw lỗi.
      */
     @GetMapping("/{id}")
     public BlogPostsDTO getBlogPostById(@PathVariable Long id) {
@@ -72,21 +78,24 @@ public class BlogPostsController {
     }
 
     /**
-     * Cập nhật bài viết theo ID:
-     * - Nhận vào BlogPostsCreateRequest
-     * - Trả về BlogPostsDTO
+     * API cập nhật bài viết.
+     * - Nhận BlogPostsCreateRequest từ FE, tìm lại tác giả.
+     * - Tìm entity BlogPosts cần update, nếu không thấy thì throw lỗi.
+     * - Cập nhật các trường của post từ request.
+     * - Set lại ngày chỉnh sửa gần nhất (lastModifiedDate).
+     * - Gọi service cập nhật, trả về BlogPostsDTO sau khi đã update.
      */
     @PutMapping("/{id}")
     public BlogPostsDTO updateBlogPost(@PathVariable Long id, @RequestBody BlogPostsCreateRequest req) {
-        // Lấy User (author) từ id trong request
+        // Xác định tác giả từ authorId
         Coach author = coachRepository.findById(req.getAuthorId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy user với id: " + req.getAuthorId()));
 
-        // Lấy entity BlogPosts cũ từ service (service trả về Optional<BlogPosts>)
+        // Lấy entity post gốc, nếu không có thì báo lỗi.
         BlogPosts existingPost = blogPostsService.getEntityById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với id: " + id));
 
-        // Cập nhật các trường từ request
+        // Cập nhật lại các trường nội dung.
         existingPost.setAuthor(author);
         existingPost.setTitle(req.getTitle());
         existingPost.setSlug(req.getSlug());
@@ -98,12 +107,13 @@ public class BlogPostsController {
         existingPost.setStatus(req.getStatus());
         existingPost.setLastModifiedDate(LocalDateTime.now());
 
-        // Gọi service lưu lại và trả về DTO đã cập nhật
+        // Gọi service update và trả về DTO
         return blogPostsService.updateBlogPost(id, existingPost);
     }
 
     /**
-     * Xóa bài viết.
+     * API xóa bài viết theo id.
+     * - Chỉ cần id, không trả về gì.
      */
     @DeleteMapping("/{id}")
     public void deleteBlogPost(@PathVariable Long id) {
