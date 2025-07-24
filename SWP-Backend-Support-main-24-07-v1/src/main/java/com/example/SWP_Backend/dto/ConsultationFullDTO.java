@@ -3,6 +3,8 @@ package com.example.SWP_Backend.dto;
 import java.time.LocalDateTime;
 
 public class ConsultationFullDTO {
+    private Long userId;
+    private Long coachId;
     private Long consultationId;
     private String userFullName;
     private String coachName;
@@ -96,5 +98,21 @@ public class ConsultationFullDTO {
 
     public void setMeetingLink(String meetingLink) {
         this.meetingLink = meetingLink;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Long getCoachId() {
+        return coachId;
+    }
+
+    public void setCoachId(Long coachId) {
+        this.coachId = coachId;
     }
 }
