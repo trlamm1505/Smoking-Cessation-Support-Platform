@@ -10,17 +10,20 @@ import java.util.List;
 @RequestMapping("/badges")
 public class BadgeController {
 
+    // Inject BadgeService qua constructor
     private final BadgeService badgeService;
 
     public BadgeController(BadgeService badgeService) {
         this.badgeService = badgeService;
     }
 
+    // Lấy danh sách badge của user
     @GetMapping("/{userId}")
     public List<UserBadge> getBadges(@PathVariable Integer userId) {
         return badgeService.getUserBadges(userId);
     }
 
+    // Xét duyệt và trao badge mới cho user nếu đủ điều kiện, trả về danh sách badge đã nhận
     @PostMapping("/award/{userId}")
     public List<UserBadge> awardBadges(@PathVariable Integer userId) {
         return badgeService.awardBadgesIfEligible(userId);
