@@ -232,8 +232,6 @@ public class ConsultationService {
 
         return consultations.stream().map(c -> {
             ConsultationFullDTO dto = new ConsultationFullDTO();
-            dto.setUserId(c.getUserId());
-            dto.setCoachId(c.getCoachId());
             dto.setConsultationId(c.getConsultationId());
             dto.setUserFullName(userMap.get(c.getUserId()) != null ? userMap.get(c.getUserId()).getFullName() : null);
             dto.setCoachName(coachMap.get(c.getCoachId()) != null ? coachMap.get(c.getCoachId()).getFullName() : null);
