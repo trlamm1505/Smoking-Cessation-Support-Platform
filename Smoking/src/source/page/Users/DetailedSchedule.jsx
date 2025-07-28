@@ -434,7 +434,7 @@ const DetailedSchedule = () => {
     // viewingTasks: Nhiệm vụ của ngày đang xem trên lịch
     // phaseInfos: Tạo thông tin cho từng giai đoạn (goal, số ngày)
     // currentStageName, currentPhaseIndex: Xác định giai đoạn hiện tại để highlight trên Steps
-        {/*
+    {/*
             - Steps: Hiển thị các giai đoạn cai thuốc, mỗi bước có tên, mục tiêu và số ngày
             - List: Hiển thị nhiệm vụ của ngày đang xem
             - Calendar: Hiển thị lịch sử nhiệm vụ, màu sắc phân biệt hôm nay, đã qua, tương lai
@@ -451,33 +451,123 @@ const DetailedSchedule = () => {
     const [activityStatus, setActivityStatus] = useState({});
 
     useEffect(() => {
-        // Fetch kế hoạch cai thuốc để lấy years, cigarettesPerDay
-        const userId = Number(localStorage.getItem('userId')) || 1;
-        fetch(`http://localhost:8080/api/cessation-plans/user/${userId}`)
-            .then(res => res.json())
-            .then(data => {
-                let plan = Array.isArray(data) ? data[0] : data;
-                const years = plan.smokingFrequency || 1;
-                const cigarettesPerDay = plan.cigarettesPerDay || 10;
-                // Lấy số ngày đúng từ kế hoạch
-                const soNgayValue = plan.targetQuitDate && plan.startDate
-                    ? dayjs(plan.targetQuitDate).diff(dayjs(plan.startDate), 'day')
-                    : 30;
+        const fetchSchedule = async () => {
+            setLoading(true);
+            try {
+                console.log('=== START FETCHING SCHEDULE ===');
+                const userId = Number(localStorage.getItem('userId')) || 1;
+                console.log('User ID:', userId);
+
+                // 1. Fetch kế hoạch cai thuốc từ API cessation-plans
+                console.log('Step 1: Fetching cessation plan...');
+                const planResponse = await fetch(`http://localhost:8080/api/cessation-plans/user/${userId}`);
+                if (!planResponse.ok) {
+                    throw new Error(`Failed to fetch plan: ${planResponse.status}`);
+                }
+                const planData = await planResponse.json();
+                console.log('Plan data from API:', planData);
+
+                // Lấy plan đầu tiên từ array hoặc dùng trực tiếp nếu là object
+                let plan = Array.isArray(planData) ? planData[0] : planData;
+
+                if (!plan) {
+                    throw new Error('Không tìm thấy kế hoạch cai thuốc');
+                }
+
+                console.log('Selected plan:', plan);
+
+                // Lấy thông tin từ plan
+                const years = plan.smokingFrequency || 5;
+                const cigarettesPerDay = plan.cigarettesPerDay || 5;
+
+                // Tính số ngày từ startDate và targetQuitDate
+                let soNgayValue = 30; // default
+                if (plan.startDate && plan.targetQuitDate) {
+                    soNgayValue = dayjs(plan.targetQuitDate).diff(dayjs(plan.startDate), 'day');
+                }
+
+                console.log('Years:', years);
+                console.log('Cigarettes per day:', cigarettesPerDay);
+                console.log('So ngay:', soNgayValue);
+                console.log('Start date:', plan.startDate);
+                console.log('Target quit date:', plan.targetQuitDate);
+
                 setSoNgay(soNgayValue);
                 setPlanStartDate(plan.startDate ? dayjs(plan.startDate) : null);
-                // Gọi API sinh lịch trình
-                return fetch('http://localhost:8080/stages/generate', {
+
+                // 2. Gọi API stages/generate với dữ liệu từ plan
+                console.log('Step 2: Calling stages/generate API...');
+                const requestBody = { years, cigarettesPerDay, soNgay: soNgayValue };
+                console.log('Request body:', requestBody);
+
+                const scheduleResponse = await fetch('http://localhost:8080/stages/generate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ years, cigarettesPerDay, soNgay: soNgayValue })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'accept': '*/*'
+                    },
+                    body: JSON.stringify(requestBody)
                 });
-            })
-            .then(res => res.json())
-            .then(schedule => {
-                setTasks(Array.isArray(schedule) ? schedule : []);
+
+                console.log('Schedule response status:', scheduleResponse.status);
+                console.log('Schedule response headers:', scheduleResponse.headers);
+
+                if (!scheduleResponse.ok) {
+                    throw new Error(`Failed to generate schedule: ${scheduleResponse.status}`);
+                }
+
+                const scheduleData = await scheduleResponse.json();
+                console.log('Schedule data from API:', scheduleData);
+                console.log('Schedule data type:', typeof scheduleData);
+                console.log('Schedule data keys:', Object.keys(scheduleData));
+
+                // Lấy plan array từ response
+                const scheduleArray = scheduleData.plan || [];
+                console.log('Schedule array length:', scheduleArray.length);
+                console.log('Schedule array:', scheduleArray);
+
+                // Nếu plan rỗng, thử test với parameters cố định
+                if (scheduleArray.length === 0) {
+                    console.log('Plan is empty, testing with fixed parameters...');
+                    const testResponse = await fetch('http://localhost:8080/stages/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'accept': '*/*'
+                        },
+                        body: JSON.stringify({
+                            years: 5,
+                            cigarettesPerDay: 5,
+                            soNgay: 30
+                        })
+                    });
+
+                    const testData = await testResponse.json();
+                    console.log('Test API response:', testData);
+                    console.log('Test plan array length:', testData.plan?.length || 0);
+
+                    if (testData.plan && testData.plan.length > 0) {
+                        console.log('Test API works, using test data');
+                        setTasks(testData.plan);
+                    } else {
+                        console.log('Test API also returns empty plan');
+                        setTasks([]);
+                    }
+                } else {
+                    setTasks(scheduleArray);
+                }
+
+                console.log('Tasks set successfully');
+
+            } catch (error) {
+                console.error('Error fetching schedule:', error);
+                message.error('Lỗi khi tải lịch trình: ' + error.message);
+            } finally {
                 setLoading(false);
-            })
-            .catch(() => setLoading(false));
+            }
+        };
+
+        fetchSchedule();
     }, []);
 
     const handleTaskComplete = async (taskId, completed) => {
@@ -614,15 +704,31 @@ const DetailedSchedule = () => {
     // Tính nhiệm vụ của ngày viewingDate (nếu trong phạm vi kế hoạch)
     let viewingDayIndex = null;
     if (planStartDate && viewingDate) {
-
-        const diff = viewingDate.startOf('day').diff(planStartDate.startOf('day'), 'day') + 1;
-        if (diff > 0 && diff <= soNgay) {
-            viewingDayIndex = diff;
+        const diff = viewingDate.startOf('day').diff(planStartDate.startOf('day'), 'day');
+        if (diff >= 0 && diff < soNgay) {
+            viewingDayIndex = diff + 1;
         }
     }
     const viewingTasks = viewingDayIndex
         ? tasks.filter(item => item.day === viewingDayIndex)
         : [];
+
+    console.log('=== DEBUG TODAY TASKS ===');
+    console.log('Plan start date:', planStartDate);
+    console.log('Today:', dayjs());
+    console.log('So ngay:', soNgay);
+    console.log('Viewing day index:', viewingDayIndex);
+    console.log('All tasks:', tasks);
+    console.log('Viewing tasks:', viewingTasks);
+    console.log('Today tasks count:', viewingTasks.length);
+
+    // Debug chi tiết cho từng task
+    if (viewingTasks.length > 0) {
+        console.log('First viewing task:', viewingTasks[0]);
+        console.log('Task goal:', viewingTasks[0].goal);
+        console.log('Task activities:', viewingTasks[0].activities);
+        console.log('Task targetCigarettesPerDay:', viewingTasks[0].targetCigarettesPerDay);
+    }
 
     // Tạo mảng phaseInfos chứa goal và số ngày cho từng giai đoạn
     const phaseInfos = phases.map((phase) => {
@@ -684,55 +790,102 @@ const DetailedSchedule = () => {
 
             <AnimatedCard delay="1s">
                 <Card className="schedule-card">
-                    <List
-                        dataSource={viewingTasks}
-                        renderItem={task => (
-
-                            <List.Item>
-                                <div style={{ width: '100%' }}>
-                                    {task.goal && (
-                                        <div
-                                            style={{
-                                                background: '#fff',
-                                                borderRadius: 10,
-                                                boxShadow: '0 2px 8px rgba(95,184,179,0.07)',
-                                                border: '1px solid #E3F6F5',
-                                                padding: '18px 24px',
-                                                color: '#5FB8B3',
-                                                fontWeight: 600,
-                                                fontSize: 17,
-                                                marginBottom: 16
-                                            }}
-                                        >
-                                            {task.goal}
-                                        </div>
-                                    )}
-                                    {task.activities && Array.isArray(task.activities) && (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                            {task.activities.map((act, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    style={{
-                                                        background: '#fff',
-                                                        borderRadius: 10,
-                                                        boxShadow: '0 2px 8px rgba(95,184,179,0.07)',
-                                                        border: '1px solid #E3F6F5',
-                                                        padding: '18px 24px',
-                                                        color: '#2c7a75',
-                                                        fontWeight: 500,
-                                                        fontSize: 16,
-                                                    }}
-                                                >
-                                                    {typeof act === 'string' ? act : act.name}
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                    )}
-                                </div>
-                            </List.Item>
-                        )}
-                    />
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: 40 }}>
+                            <div style={{ fontSize: 16, color: '#666', marginBottom: 16 }}>Đang tải lịch trình...</div>
+                        </div>
+                    ) : viewingTasks.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: 40 }}>
+                            <div style={{ fontSize: 16, color: '#666', marginBottom: 16 }}>
+                                {planStartDate ? 'Không có nhiệm vụ cho hôm nay' : 'Chưa có lịch trình cai thuốc'}
+                            </div>
+                            <div style={{ fontSize: 14, color: '#999' }}>
+                                {planStartDate ? 'Hôm nay không có nhiệm vụ nào được lên lịch.' : 'Vui lòng tạo kế hoạch cai thuốc trước.'}
+                            </div>
+                        </div>
+                    ) : (
+                        <List
+                            dataSource={viewingTasks}
+                            renderItem={task => (
+                                <List.Item>
+                                    <div style={{ width: '100%' }}>
+                                        {task.goal && (
+                                            <div
+                                                style={{
+                                                    background: '#fff',
+                                                    borderRadius: 10,
+                                                    boxShadow: '0 2px 8px rgba(95,184,179,0.07)',
+                                                    border: '1px solid #E3F6F5',
+                                                    padding: '18px 24px',
+                                                    color: '#5FB8B3',
+                                                    fontWeight: 600,
+                                                    fontSize: 17,
+                                                    marginBottom: 16
+                                                }}
+                                            >
+                                                {task.targetCigarettesPerDay !== undefined && task.targetCigarettesPerDay !== null && (
+                                                    <div style={{
+                                                        fontSize: 18,
+                                                        color: '#666',
+                                                        fontWeight: 600,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 8
+                                                    }}>
+                                                        <span>🎯</span>
+                                                        <span>
+                                                            {task.targetCigarettesPerDay === 0
+                                                                ? 'Mục tiêu: Cai hoàn toàn'
+                                                                : `Mục tiêu: ${task.targetCigarettesPerDay} điếu/ngày`
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                        {task.activities && Array.isArray(task.activities) && (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                                {task.activities.map((act, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        style={{
+                                                            background: '#fff',
+                                                            borderRadius: 10,
+                                                            boxShadow: '0 2px 8px rgba(95,184,179,0.07)',
+                                                            border: '1px solid #E3F6F5',
+                                                            padding: '18px 24px',
+                                                            color: '#2c7a75',
+                                                            fontWeight: 500,
+                                                            fontSize: 16,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 12
+                                                        }}
+                                                    >
+                                                        <span style={{
+                                                            background: '#5FB8B3',
+                                                            color: 'white',
+                                                            borderRadius: '50%',
+                                                            width: 24,
+                                                            height: 24,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: 12,
+                                                            fontWeight: 'bold'
+                                                        }}>
+                                                            {idx + 1}
+                                                        </span>
+                                                        <span>{typeof act === 'string' ? act : act.name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </List.Item>
+                            )}
+                        />
+                    )}
                 </Card>
             </AnimatedCard>
 

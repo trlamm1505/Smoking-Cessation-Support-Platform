@@ -285,24 +285,66 @@ const Plan = () => {
             .then(data => {
                 if (Array.isArray(data) && data.length > 0) {
                     const plan = data[0];
-                    setPlanData({
+                    const planDataObj = {
                         planID: plan.planID,
-                        yearsSmoking: plan.smokingFrequency || '',
-                        cigarettesPerDay: plan.cigarettesPerDay,
-                        moneyPerDay: plan.costPerPack,
+                        yearsSmoking: plan.smokingFrequency ? Number(plan.smokingFrequency) : undefined,
+                        cigarettesPerDay: plan.cigarettesPerDay ? Number(plan.cigarettesPerDay) : undefined,
+                        moneyPerDay: plan.costPerPack ? Number(plan.costPerPack) : undefined,
                         startDate: plan.startDate ? dayjs(plan.startDate) : null,
                         endDate: plan.targetQuitDate ? dayjs(plan.targetQuitDate) : null,
                         endDays: plan.targetQuitDate && plan.startDate ? dayjs(plan.targetQuitDate).diff(dayjs(plan.startDate), 'day') : 10,
                         quitReasons: plan.reasonToQuit ? plan.reasonToQuit.split(',').map(s => s.trim()) : [],
                         additionalNotes: plan.notes || ''
-                    });
+                    };
+                    setPlanData(planDataObj);
                     setIsEditing(false);
                 }
             })
             .catch(() => { });
     }, []);
 
+    // Thêm useEffect để reset form khi chuyển sang chế độ chỉnh sửa
+    useEffect(() => {
+        if (isEditing) {
+            if (planData && Object.keys(planData).length > 0) {
+                // Reset form và set lại giá trị
+                form.resetFields();
+                setTimeout(() => {
+                    form.setFieldsValue({
+                        yearsSmoking: planData.yearsSmoking ? Number(planData.yearsSmoking) : undefined,
+                        cigarettesPerDay: planData.cigarettesPerDay ? Number(planData.cigarettesPerDay) : undefined,
+                        moneyPerDay: planData.moneyPerDay ? Number(planData.moneyPerDay) : undefined,
+                        startDate: planData.startDate,
+                        endDays: planData.endDate && planData.startDate
+                            ? planData.endDate.diff(planData.startDate, 'day')
+                            : 10,
+                        quitReasons: planData.quitReasons,
+                        additionalNotes: planData.additionalNotes
+                    });
+                    // Force validate form sau khi set giá trị
+                    setTimeout(() => {
+                        form.validateFields(['yearsSmoking', 'cigarettesPerDay', 'moneyPerDay']).catch(() => { });
+                    }, 200);
+                }, 100);
+            } else {
+                // Reset form về trạng thái trống
+                form.resetFields();
+            }
+        }
+    }, [isEditing, planData, form]);
+
     const onFinish = async (values) => {
+        console.log('Form values:', values);
+
+        // Validate form trước khi submit
+        try {
+            await form.validateFields();
+        } catch (errorInfo) {
+            console.log('Validation failed:', errorInfo);
+            message.error('Vui lòng kiểm tra lại thông tin!');
+            return;
+        }
+
         const userId = Number(localStorage.getItem('userId')) || 1;
         const startDate = values.startDate ? values.startDate.format('YYYY-MM-DD') : '';
         const endDays = values.endDays || 10;
@@ -320,6 +362,7 @@ const Plan = () => {
             isActive: true,
             active: true
         };
+        console.log('Plan payload:', planPayload);
         try {
             let res;
             if (planData && planData.planID) {
@@ -370,14 +413,6 @@ const Plan = () => {
                         name="smoking_cessation_plan"
                         onFinish={onFinish}
                         layout="vertical"
-                        initialValues={{
-                            yearsSmoking: undefined,
-                            cigarettesPerDay: undefined,
-                            moneyPerDay: undefined,
-                            goalType: 'temporary',
-                            goalDays: 2,
-                            startDate: undefined
-                        }}
                     >
                         {/* Lịch Sử Hút Thuốc */}
                         <div className="section-header">
@@ -712,12 +747,6 @@ const Plan = () => {
                             type="primary"
                             icon={<EditOutlined />}
                             onClick={() => {
-                                form.setFieldsValue({
-                                    ...planData,
-                                    endDays: planData.endDate && planData.startDate
-                                        ? planData.endDate.diff(planData.startDate, 'day')
-                                        : 10
-                                });
                                 setIsEditing(true);
                             }}
                             style={{
