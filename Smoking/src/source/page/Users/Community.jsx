@@ -432,7 +432,7 @@ const Community = () => {
         likes: post.likeCount || 0,
         comments: [],
         timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
-      showComments: false,
+        showComments: false,
         postType: post.status === 'PUBLISHED' ? 'general' : post.status,
         title: post.title,
         featuredImage: post.featuredImageURL,
@@ -479,13 +479,13 @@ const Community = () => {
     if (!likedPosts.has(postId)) {
       await userApi.likeCommunityPost(postId, userId);
       setLikedPosts(prev => new Set(prev).add(postId));
-        setPosts(posts.map(post => {
-          if (post.id === postId) {
-            return { ...post, likes: post.likes + 1 };
-          }
-          return post;
-        }));
-      }
+      setPosts(posts.map(post => {
+        if (post.id === postId) {
+          return { ...post, likes: post.likes + 1 };
+        }
+        return post;
+      }));
+    }
   };
 
   const handleUploadChange = async ({ fileList: newFileList }) => {
@@ -555,12 +555,12 @@ const Community = () => {
         title: post.title,
         featuredImage: post.featuredImageURL,
       })));
-    setIsPostModalVisible(false);
-    setPostContent('');
-    setSelectedAchievements([]);
-    setPostType('general');
-    setPostTitle('');
-    setUploadedImageFile([]);
+      setIsPostModalVisible(false);
+      setPostContent('');
+      setSelectedAchievements([]);
+      setPostType('general');
+      setPostTitle('');
+      setUploadedImageFile([]);
       setIsEditMode(false);
       setEditedPost(null);
     } catch (err) {
@@ -617,7 +617,7 @@ const Community = () => {
     <PageContainer>
       <TitleRow>
         <IconEffect>
-        <TeamOutlined />
+          <TeamOutlined />
         </IconEffect>
         <Title level={2} style={{ color: '#222', margin: 0 }}>Cộng Đồng Cai Thuốc</Title>
       </TitleRow>
@@ -635,38 +635,38 @@ const Community = () => {
             dataSource={posts}
             renderItem={post => (
               <AnimatedPostCard delay={`${post.id * 0.1}s`}>
-                  {post.featuredImage && (
+                {post.featuredImage && (
                   <div className="ant-card-cover" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '8px 0' }}>
-                    <img 
-                      alt="featured" 
-                      src={post.featuredImage} 
+                    <img
+                      alt="featured"
+                      src={post.featuredImage}
                       style={{ maxWidth: 640, maxHeight: 360, borderRadius: 12, objectFit: 'cover', margin: '0 auto', boxShadow: '0 2px 8px #0001' }}
                     />
-                    </div>
-                  )}
-                  <div className="ant-card-meta">
-                    <Space>
-                      <Space>
-                        {post.author}
-                        {post.authorRole === 'coach' && <Tag color="gold" bordered>Huấn luyện viên</Tag>}
-                        {post.postType && (
-                          <Tag color="#108ee9" bordered>
-                            {
-                              post.postType === 'general' ? 'Bài viết chung' :
-                              post.postType === 'success_story' ? 'Câu chuyện thành công' :
-                              post.postType === 'tip' ? 'Mẹo cai thuốc' :
-                              post.postType === 'question' ? 'Hỏi đáp' :
-                              post.postType === 'badge_share' ? 'Chia sẻ huy hiệu' :
-                              post.postType === 'motivation' ? 'Tạo động lực' :
-                              post.postType === 'article' ? 'Bài viết chuyên sâu' : ''
-                            }
-                          </Tag>
-                        )}
-                      </Space>
-                      <Text type="secondary">{post.timestamp}</Text>
-                    </Space>
                   </div>
-                  {post.title && <Title level={4} style={{ marginTop: '0', marginBottom: '12px' }}>{post.title}</Title>}
+                )}
+                <div className="ant-card-meta">
+                  <Space>
+                    <Space>
+                      {post.author}
+                      {post.authorRole === 'coach' && <Tag color="gold" bordered>Huấn luyện viên</Tag>}
+                      {post.postType && (
+                        <Tag color="#108ee9" bordered>
+                          {
+                            post.postType === 'general' ? 'Bài viết chung' :
+                              post.postType === 'success_story' ? 'Câu chuyện thành công' :
+                                post.postType === 'tip' ? 'Mẹo cai thuốc' :
+                                  post.postType === 'question' ? 'Hỏi đáp' :
+                                    post.postType === 'badge_share' ? 'Chia sẻ huy hiệu' :
+                                      post.postType === 'motivation' ? 'Tạo động lực' :
+                                        post.postType === 'article' ? 'Bài viết chuyên sâu' : ''
+                          }
+                        </Tag>
+                      )}
+                    </Space>
+                    <Text type="secondary">{post.timestamp}</Text>
+                  </Space>
+                </div>
+                {post.title && <Title level={4} style={{ marginTop: '0', marginBottom: '12px' }}>{post.title}</Title>}
                 <Paragraph>{post.content}</Paragraph>
 
                 {post.achievements.length > 0 && (
@@ -684,21 +684,21 @@ const Community = () => {
                 )}
 
                 <div className="post-stats">
-                    <Button
-                      type="text"
+                  <Button
+                    type="text"
                     icon={likedPosts.has(post.id) ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
-                      onClick={() => handleLike(post.id)}
-                      disabled={likedPosts.has(post.id)}
-                    >
+                    onClick={() => handleLike(post.id)}
+                    disabled={likedPosts.has(post.id)}
+                  >
                     {post.likes}
-                    </Button>
-                    <Button
-                      type="text"
+                  </Button>
+                  <Button
+                    type="text"
                     icon={<CommentOutlined />}
-                      onClick={() => toggleComments(post.id)}
-                    >
+                    onClick={() => toggleComments(post.id)}
+                  >
                     {commentsMap[post.id]?.length || 0}
-                    </Button>
+                  </Button>
                 </div>
 
                 {post.showComments && (
@@ -736,7 +736,7 @@ const Community = () => {
                           ] : []}
                         >
                           <List.Item.Meta
-                              avatar={<Avatar icon={<UserOutlined />} />}
+                            avatar={<Avatar icon={<UserOutlined />} />}
                             title={
                               <span>
                                 <CommentAuthor>{comment.userName || 'Người dùng'}</CommentAuthor>
@@ -759,48 +759,48 @@ const Community = () => {
                         </List.Item>
                       )}
                     />
-                      <Space style={{ width: '100%', marginTop: '12px' }}>
-                    <Input.TextArea
-                      placeholder="Viết bình luận..."
-                      autoSize={{ minRows: 1, maxRows: 3 }}
-                          value={currentComment}
-                          onChange={(e) => setCurrentComment(e.target.value)}
-                      onPressEnter={(e) => {
-                            if (currentComment.trim()) {
-                              handleComment(post.id, currentComment);
-                              setCurrentComment('');
-                            }
-                          }}
-                          style={{ flex: 1, borderColor: '#5FB8B3', padding: '10px 16px' }}
-                        />
-                        <Button
-                          type="primary"
-                          onClick={() => {
-                            if (currentComment.trim()) {
-                              handleComment(post.id, currentComment);
-                              setCurrentComment('');
-                        }
-                      }}
-                          style={{
-                            backgroundColor: '#5FB8B3',
-                            borderColor: '#5FB8B3',
-                            borderRadius: '8px',
-                            height: 'auto',
-                            padding: '10px 20px',
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          Gửi
-                        </Button>
-                      </Space>
+                    <Space style={{ width: '100%', marginTop: '12px' }}>
+                      <Input.TextArea
+                        placeholder="Viết bình luận..."
+                        autoSize={{ minRows: 1, maxRows: 3 }}
+                        value={currentComment}
+                        onChange={(e) => setCurrentComment(e.target.value)}
+                        onPressEnter={(e) => {
+                          if (currentComment.trim()) {
+                            handleComment(post.id, currentComment);
+                            setCurrentComment('');
+                          }
+                        }}
+                        style={{ flex: 1, borderColor: '#5FB8B3', padding: '10px 16px' }}
+                      />
+                      <Button
+                        type="primary"
+                        onClick={() => {
+                          if (currentComment.trim()) {
+                            handleComment(post.id, currentComment);
+                            setCurrentComment('');
+                          }
+                        }}
+                        style={{
+                          backgroundColor: '#5FB8B3',
+                          borderColor: '#5FB8B3',
+                          borderRadius: '8px',
+                          height: 'auto',
+                          padding: '10px 20px',
+                          fontSize: '16px',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        Gửi
+                      </Button>
+                    </Space>
                   </div>
                 )}
 
                 {post.authorId === userId && (
                   <div style={{ display: 'flex', gap: 16, marginBottom: 8, justifyContent: 'flex-end' }}>
-                    <Button 
-                      size="middle" 
+                    <Button
+                      size="middle"
                       style={{
                         background: 'linear-gradient(90deg, #5FB8B3 0%, #4A90E2 100%)',
                         color: 'white',
@@ -828,8 +828,8 @@ const Community = () => {
                     >
                       Sửa
                     </Button>
-                    <Button 
-                      size="middle" 
+                    <Button
+                      size="middle"
                       style={{
                         background: 'linear-gradient(90deg, #ff7875 0%, #ffb86c 100%)',
                         color: 'white',
@@ -846,36 +846,97 @@ const Community = () => {
                       icon={<DeleteOutlined />}
                       danger
                       onClick={async () => {
-                        Modal.confirm({
-                          title: 'Xác nhận xóa bài viết',
-                          content: 'Bạn có chắc muốn xóa bài viết này không?',
-                          okText: 'Xóa',
-                          okType: 'danger',
-                          cancelText: 'Hủy',
-                          centered: true,
-                          onOk: async () => {
-                            await userApi.deleteCommunityPost(post.id);
-                            message.success('Đã xóa bài viết!');
-                            // Làm mới danh sách
-                            const res = await userApi.getCommunityPosts();
-                            setPosts((res.data || []).map(post => ({
-                              id: post.postId,
-                              author: post.authorName,
-                              authorId: post.authorId,
-                              avatar: undefined,
-                              authorRole: undefined,
-                              content: post.content,
-                              achievements: (post.badges || '').split(',').map((name, idx) => name.trim() ? { id: idx, name: name.trim() } : null).filter(Boolean),
-                              likes: post.likeCount || 0,
-                              comments: [],
-                              timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
-                              showComments: false,
-                              postType: post.status === 'PUBLISHED' ? 'general' : post.status,
-                              title: post.title,
-                              featuredImage: post.featuredImageURL,
-                            })));
-                          },
-                        });
+                        console.log('=== CLICK NÚT XÓA ===');
+                        console.log('Post object:', post);
+                        console.log('Post ID:', post.id);
+
+                        // Thử xóa trực tiếp trước
+                        try {
+                          console.log('Đang gọi API xóa trực tiếp...');
+                          await userApi.deleteCommunityPost(post.id);
+                          console.log('Xóa thành công!');
+                          message.success('Đã xóa bài viết!');
+
+                          // Làm mới danh sách
+                          const res = await userApi.getCommunityPosts();
+                          const updatedPosts = (res.data || []).map(post => ({
+                            id: post.postId,
+                            author: post.authorName,
+                            authorId: post.authorId,
+                            avatar: undefined,
+                            authorRole: undefined,
+                            content: post.content,
+                            achievements: (post.badges || '').split(',').map((name, idx) => name.trim() ? { id: idx, name: name.trim() } : null).filter(Boolean),
+                            likes: post.likeCount || 0,
+                            comments: [],
+                            timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
+                            showComments: false,
+                            postType: post.status === 'PUBLISHED' ? 'general' : post.status,
+                            title: post.title,
+                            featuredImage: post.featuredImageURL,
+                          }));
+                          setPosts(updatedPosts);
+                          console.log('Đã cập nhật danh sách sau khi xóa');
+                        } catch (error) {
+                          console.error('Lỗi khi xóa:', error);
+                          message.error('Lỗi khi xóa bài viết: ' + (error.response?.data?.message || error.message));
+                        }
+
+                        // Modal.confirm({
+                        //   title: 'Xác nhận xóa bài viết',
+                        //   content: `Bạn có chắc muốn xóa bài viết "${post.title || 'này'}" không?`,
+                        //   okText: 'Xóa',
+                        //   okType: 'danger',
+                        //   cancelText: 'Hủy',
+                        //   centered: true,
+                        //   onOk: async () => {
+                        //     try {
+                        //       console.log('=== DEBUG XÓA BÀI VIẾT ===');
+                        //       console.log('Post object:', post);
+                        //       console.log('Post ID để xóa:', post.id);
+                        //       console.log('Post title:', post.title);
+                        //       console.log('Post author:', post.author);
+
+                        //       // Gọi API xóa với ID chính xác
+                        //       const deleteResult = await userApi.deleteCommunityPost(post.id);
+                        //       console.log('Kết quả xóa:', deleteResult);
+
+                        //       message.success('Đã xóa bài viết!');
+
+                        //       // Làm mới danh sách
+                        //       console.log('Đang làm mới danh sách bài viết...');
+                        //       const res = await userApi.getCommunityPosts();
+                        //       console.log('API response sau khi xóa:', res.data);
+
+                        //       const updatedPosts = (res.data || []).map(post => ({
+                        //         id: post.postId,
+                        //         author: post.authorName,
+                        //         authorId: post.authorId,
+                        //         avatar: undefined,
+                        //         authorRole: undefined,
+                        //         content: post.content,
+                        //         achievements: (post.badges || '').split(',').map((name, idx) => name.trim() ? { id: idx, name: name.trim() } : null).filter(Boolean),
+                        //         likes: post.likeCount || 0,
+                        //         comments: [],
+                        //         timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
+                        //         showComments: false,
+                        //         postType: post.status === 'PUBLISHED' ? 'general' : post.status,
+                        //         title: post.title,
+                        //         featuredImage: post.featuredImageURL,
+                        //       }));
+
+                        //       console.log('Danh sách bài viết sau khi cập nhật:', updatedPosts);
+                        //       setPosts(updatedPosts);
+                        //       console.log('Đã cập nhật danh sách bài viết sau khi xóa');
+                        //     } catch (error) {
+                        //       console.error('=== LỖI KHI XÓA BÀI VIẾT ===');
+                        //       console.error('Error object:', error);
+                        //       console.error('Error response:', error.response);
+                        //       console.error('Error message:', error.message);
+                        //       message.error('Lỗi khi xóa bài viết. Vui lòng thử lại!');
+                        //     }
+                        //   },
+                        // });
                       }}
                     >
                       Xóa
@@ -907,8 +968,8 @@ const Community = () => {
         }}
         footer={null}
       >
-        <Form layout="vertical" onFinish={handleCreatePost} style={{ width: '100%' }}>
-        <CustomModalContent>
+        <Form layout="vertical" style={{ width: '100%' }}>
+          <CustomModalContent>
             <Form.Item label="Chọn loại bài viết">
               <Select
                 style={{ width: '100%' }}
@@ -956,60 +1017,64 @@ const Community = () => {
 
             <Form.Item label="Nội dung">
               <TextArea
-            value={postContent}
-            onChange={(e) => setPostContent(e.target.value)}
+                value={postContent}
+                onChange={(e) => setPostContent(e.target.value)}
                 placeholder="Viết nội dung bài đăng của bạn..."
                 autoSize={{ minRows: 4, maxRows: 8 }}
-          />
+              />
             </Form.Item>
 
             {currentRole === 'user' && (
               <Form.Item label="Chọn huy hiệu (Tùy chọn)">
-          <div className="badge-list">
-            {achievements.map(achievement => (
+                <div className="badge-list">
+                  {achievements.map(achievement => (
                     <StyledBadgeButton
-                key={achievement.id}
+                      key={achievement.id}
                       $isSelected={selectedAchievements.includes(achievement)}
                       $badgeColor={achievement.color}
-                onClick={() => {
+                      onClick={() => {
                         if (selectedAchievements.includes(achievement)) {
-                    setSelectedAchievements(selectedAchievements.filter(a => a.id !== achievement.id));
-                  } else {
-                    setSelectedAchievements([...selectedAchievements, achievement]);
-                  }
-                }}
-              >
+                          setSelectedAchievements(selectedAchievements.filter(a => a.id !== achievement.id));
+                        } else {
+                          setSelectedAchievements([...selectedAchievements, achievement]);
+                        }
+                      }}
+                    >
                       {achievement.iconUrl && <img src={achievement.iconUrl} alt={achievement.name} style={{ width: 20, height: 20 }} />}
                       {achievement.name}
                       {selectedAchievements.includes(achievement) && <CheckOutlined style={{ marginLeft: 8 }} />}
                     </StyledBadgeButton>
-            ))}
-          </div>
+                  ))}
+                </div>
               </Form.Item>
             )}
 
-          <div className="modal-actions">
+            <div className="modal-actions">
               <button
+                type="button"
                 className="modal-btn cancel"
                 onClick={() => {
-              setIsPostModalVisible(false);
-              setPostContent('');
-              setSelectedAchievements([]);
+                  setIsPostModalVisible(false);
+                  setPostContent('');
+                  setSelectedAchievements([]);
                   setPostType('general');
                   setPostTitle('');
                   setUploadedImageFile([]);
+                  setIsEditMode(false);
+                  setEditedPost(null);
                 }}
               >
                 Hủy
               </button>
               <button
+                type="button"
                 className="modal-btn submit"
                 type="submit"
               >
                 Đăng bài
               </button>
-          </div>
-        </CustomModalContent>
+            </div>
+          </CustomModalContent>
         </Form>
       </Modal>
     </PageContainer>
