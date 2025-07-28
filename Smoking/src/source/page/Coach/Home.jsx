@@ -242,6 +242,8 @@ const LeaderboardCard = styled(StyledCard)`
       border-radius: 20px;
       transition: all 0.3s ease;
       white-space: nowrap;
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+      unicode-bidi: isolate;
       &:hover {
         background: rgba(95, 184, 179, 0.2);
         transform: translateY(-2px);
