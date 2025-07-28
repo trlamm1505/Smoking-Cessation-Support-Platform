@@ -1051,7 +1051,6 @@ const Community = () => {
 
             <div className="modal-actions">
               <button
-                type="button"
                 className="modal-btn cancel"
                 onClick={() => {
                   setIsPostModalVisible(false);
@@ -1067,9 +1066,8 @@ const Community = () => {
                 Hủy
               </button>
               <button
-                type="button"
                 className="modal-btn submit"
-                type="submit"
+                onClick={handleCreatePost}
               >
                 Đăng bài
               </button>
