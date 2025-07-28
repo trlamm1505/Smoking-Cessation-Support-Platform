@@ -4,9 +4,76 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../Axios/AxiosCLients';
 import axios from 'axios';
 
+<<<<<<< Updated upstream
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
 
+=======
+import { GoogleLogin } from '@react-oauth/google';
+
+
+
+
+const Login = () => {
+  const [isSignUp, setIsSignUp] = useState(false);
+
+
+  const handleGoogleLogin = async (credentialResponse) => {
+  // Lấy Google ID token từ credentialResponse
+  const idToken = credentialResponse.credential;
+  if (!idToken) {
+    showNotification('Đăng nhập Google thất bại!', 'error');
+    return;
+  }
+  try {
+    const response = await axiosClient.post('/api/auth/google-login', { idToken });
+    const data = response.data;
+    if (data.success && data.user) {
+      // --- Lưu info user như login thường ---
+      const userId = data.user.userId || data.user.id;
+      if (!userId) {
+        showNotification('Không tìm thấy User ID.', 'error');
+        return;
+      }
+      localStorage.setItem('userRole', data.user.role);
+      localStorage.setItem('userId', userId);
+      localStorage.removeItem('coachId');
+
+      showNotification(data.message || 'Đăng nhập Google thành công!', 'success');
+      const userRole = data.user.role?.toLowerCase();
+
+      // Điều hướng như login thường
+      if (userRole === 'admin') {
+        navigate('/admin/dashboard', { replace: true }); return;
+      }
+      if (userRole === 'coach') {
+        try {
+          const coachRes = await axiosClient.get(`/api/coaches/by-user/${userId}`);
+          const coachId = coachRes.data.coachId || coachRes.data.id;
+          if (coachId) {
+            localStorage.setItem('coachId', coachId);
+          }
+        } catch {}
+        navigate('/coach', { replace: true }); return;
+      }
+      if (userRole === 'member') {
+        navigate('/users/home', { replace: true }); return;
+      }
+      if (userRole === 'guest') {
+        navigate('/guest/home', { replace: true }); return;
+      }
+      navigate('/guest/home', { replace: true });
+    } else {
+      showNotification(data.message || 'Đăng nhập Google thất bại!', 'error');
+    }
+  } catch (err) {
+    showNotification(err?.response?.data?.message || 'Lỗi kết nối server!', 'error');
+  }
+};
+
+
+
+>>>>>>> Stashed changes
   // Đăng ký
   const [registerData, setRegisterData] = useState({
     name: '',
