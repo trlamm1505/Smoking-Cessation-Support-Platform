@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider, Spin } from 'antd';
@@ -590,48 +591,30 @@ const Premium = () => {
     };
 
 
-    const handlePayment = async () => {
-        setIsLoading(true);
-        const userId = Number(localStorage.getItem('userId'));
-        const packageId = selectedPlan?.packageID;
-        const paymentMethod = 'vnpay';
-
-        // Tính toán ngày bắt đầu, kết thúc, gia hạn
-        const today = new Date();
-        const startDate = today.toISOString().split('T')[0];
-        const endDateObj = new Date(today);
-        endDateObj.setDate(endDateObj.getDate() + (selectedPlan?.durationDays || 0));
-        const endDate = endDateObj.toISOString().split('T')[0];
-        const renewalDateObj = new Date(endDateObj);
-        renewalDateObj.setDate(renewalDateObj.getDate() + 1);
-        const renewalDate = renewalDateObj.toISOString().split('T')[0];
-
-        // Chỉ giữ lại logic mua mới (POST)
-        try {
-            const res = await fetch('http://localhost:8080/api/purchase/buy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, packageId, paymentMethod })
-            });
-            if (res.ok) {
-                localStorage.setItem('userRole', 'USER');
-                localStorage.setItem('userId', userId);
-                setTimeout(() => {
-                    setIsModalVisible(false);
-                    setCurrentStep(0);
-                    form.resetFields();
-                    setIsLoading(false);
-                    window.location.href = '/users/home';
-                }, 2000);
-            } else {
-                message.error('Đăng ký thất bại!');
-                setIsLoading(false);
-            }
-        } catch (err) {
-            message.error('Lỗi kết nối server!');
+   const handlePayment = async () => {
+    setIsLoading(true);
+    const userId = Number(localStorage.getItem('userId'));
+    const packageId = selectedPlan?.packageID;
+    try {
+        const res = await fetch(
+            `http://localhost:8080/api/payments/create-vnpay-payment?userId=${userId}&packageId=${packageId}`,
+            { method: "POST" }
+        );
+        if (!res.ok) throw new Error('Tạo thanh toán thất bại');
+        const data = await res.json();
+        if (data.url) {
+            setTimeout(() => setIsLoading(false), 500); // Tắt loader sau 0.5s cho mượt
+            window.location.href = data.url; // Redirect sang VNPay
+        } else {
             setIsLoading(false);
+            message.error('Không lấy được link thanh toán!');
         }
-    };
+    } catch (err) {
+        setIsLoading(false);
+        message.error('Lỗi kết nối server hoặc backend!');
+    }
+};
+
 
     const handleRenew = () => {
         if (getDaysRemaining(currentSubscription.endDate) > 0) {

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag, Spin } from 'antd';
+import { Card, Row, Col, Statistic, Progress, Timeline, Button, Typography, Space, Tag, Spin, message } from 'antd';
 import { ClockCircleOutlined, TrophyOutlined, DollarOutlined, HeartOutlined, CalendarOutlined, HomeOutlined } from '@ant-design/icons';
 import styled, { keyframes } from 'styled-components';
 import userApi from '../Axios/userAxios';
+import axios from 'axios';
 
 const { Title, Text } = Typography;
 
@@ -330,37 +331,64 @@ const LeaderboardCard = styled(StyledCard)`
 
 const Home = () => {
     const [userData, setUserData] = useState(null);
+    const [plan, setPlan] = useState(null);
+    const [stages, setStages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [leaderboard, setLeaderboard] = useState([]);
+    const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             setError(null);
             try {
-                // Nếu guest có userId (đăng nhập tạm thời), lấy từ localStorage, nếu không thì lấy API guest riêng
                 const userId = localStorage.getItem('userId');
-                let user = {};
-                if (userId) {
-                    const res = await userApi.get(userId);
-                    user = res.data;
-                } else {
-                    // Nếu có API guest riêng, gọi ở đây
-                    // const res = await guestApi.getGuestInfo();
-                    // user = res.data;
+                if (!userId || userId === 'undefined' || userId === 'null') {
+                    setError('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+                    setLoading(false);
+                    return;
                 }
+                // Gọi song song 3 API: userApi.get, habit-logs/stats/plan, cessation-plans
+                const [userRes, statsRes, planRes] = await Promise.all([
+                    userApi.get(userId),
+                    axios.get(`http://localhost:8080/habit-logs/stats/plan/${userId}`),
+                    // Dữ liệu trả về số ngày không hút thuốc và tiền tiết kiệm
+                    axios.get(`http://localhost:8080/api/cessation-plans/user/${userId}`)
+                    // Dữ liệu trả về ngày bắt đầu và ngày kết thúc để tính số ngày của kế hoạch và số ngày đã thực hi
+                ]);
+                const user = userRes.data;
+                const stats = Array.isArray(statsRes.data) && statsRes.data.length > 0 ? statsRes.data[0] : null;
+                const planData = Array.isArray(planRes.data) && planRes.data.length > 0 ? planRes.data[0] : null;
                 setUserData({
-                    name: user.fullName || user.name || user.username || 'Khách',
-                    daysWithoutSmoking: user.daysWithoutSmoking || 0,
+                    name: user.fullName || user.name || user.username || 'Người dùng',
+                    daysWithoutSmoking: stats ? stats.totalNoSmokeDays : (user.daysWithoutSmoking || 0),
+                    //dùng số ngày không hút thuốc từ đó.
+                    planDays: stats && stats.planDays ? stats.planDays : 30,
+                    // số ngày thực hiện kế hoạch
                     cigarettesAvoided: user.cigarettesAvoided || 0,
-                    moneySaved: user.moneySaved || 0,
+                    // số điếu thuốc đã tránh
+                    moneySaved: stats ? stats.totalMoneySaved : (user.moneySaved || 0),
+                    // số tiền tiết kiệm
                     healthImprovement: user.healthImprovement || 0,
+                    // số lợi ích sức khỏe
                     nextMilestone: user.nextMilestone || 30,
+                    // số ngày đến mốc tiếp theo
                     leaderboard: user.leaderboard || [],
+                    // bảng xếp hạng
                     recentActivities: user.recentActivities || [],
+                    // hoạt động gần đây
                 });
+                setPlan(planData);
+                // Lấy tham số cho stages/generate
+                const years = user.years || 5;
+                const cigarettesPerDay = user.cigarettesPerDay || user.cigarettes_per_day || 5;
+                const soNgay = planData ? getPlanDays(planData.startDate, planData.targetQuitDate) : 20;
+                // Gọi API stages/generate với đúng tham số
+                const stagesRes = await axios.post('http://localhost:8080/stages/generate', { years, cigarettesPerDay, soNgay });
+                setStages(stagesRes.data);
             } catch (err) {
-                setError('Lỗi khi tải dữ liệu.');
+                setError('Lỗi khi tải dữ liệu người dùng.');
             } finally {
                 setLoading(false);
             }
@@ -368,11 +396,97 @@ const Home = () => {
         fetchData();
     }, []);
 
+    // Fetch leaderboard
+    useEffect(() => {
+        const fetchLeaderboard = async () => {
+            setLoadingLeaderboard(true);
+            try {
+                const res = await axios.get('http://localhost:8080/achievements/user-summary');
+                // Sắp xếp theo achievementCount giảm dần
+                const sorted = [...res.data].sort((a, b) => b.achievementCount - a.achievementCount);
+                setLeaderboard(sorted);
+            } catch (err) {
+                setLeaderboard([]);
+            } finally {
+                setLoadingLeaderboard(false);
+            }
+        };
+        fetchLeaderboard();
+    }, []);
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('vi-VN');
+    }
+    function getDaysDone(startDate) {
+        if (!startDate) return 0;
+        const start = new Date(startDate);
+        const today = new Date();
+        const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+        return diff >= 0 ? diff + 1 : 0;
+    }
+    function getPlanDays(startDate, endDate) {
+        if (!startDate || !endDate) return 0;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return Math.floor((end - start) / (1000 * 60 * 60 * 24));
+    }
+    function getDaysDoneCapped(startDate, endDate) {
+        const done = getDaysDone(startDate);
+        const total = getPlanDays(startDate, endDate);
+        return done > total ? total : done;
+    }
+
+    // Xử lý dữ liệu stages thành các giai đoạn (dùng stageName, goal, đếm số ngày, số ngày đã hoàn thành)
+    const stageProgress = React.useMemo(() => {
+        if (!stages || stages.length === 0 || !plan) return [];
+        // Nhóm theo stageOrder
+        const grouped = {};
+        stages.forEach(item => {
+            const key = item.stageOrder || item.stage_name || item.stageName;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(item);
+        });
+        // Tính số ngày đã hoàn thành cho từng giai đoạn
+        let remain = getDaysDoneCapped(plan.startDate, plan.targetQuitDate);
+        return Object.keys(grouped).sort((a, b) => a - b).map(order => {
+            const arr = grouped[order];
+            const stageName = arr[0].stageName || arr[0].stage_name || `Giai đoạn ${order}`;
+            const goal = arr[0].goal;
+            const totalDays = arr.length;
+            const done = Math.max(0, Math.min(remain, totalDays));
+            remain -= done;
+            return {
+                stageName,
+                goal,
+                totalDays,
+                done
+            };
+        });
+    }, [stages, plan]);
+
+    // Thêm phases tĩnh giống DetailedSchedule.jsx
+    const phases = [
+        { title: 'Giai đoạn 1', description: 'Lập kế hoạch và chuẩn bị tâm lý' },
+        { title: 'Giai đoạn 2', description: 'Giảm số lượng điếu thuốc' },
+        { title: 'Giai đoạn 3', description: 'Ngừng hút thuốc' },
+        { title: 'Giai đoạn 4', description: 'Duy trì thói quen không hút thuốc' }
+    ];
+
+    // Tạo phaseInfos từ stages (giống DetailedSchedule.jsx)
+    const phaseInfos = phases.map((phase) => {
+        const tasksOfPhase = stages.filter(t => t.stageName === phase.title);
+        const goal = tasksOfPhase[0]?.goal || phase.description;
+        const days = tasksOfPhase.length;
+        return { ...phase, goal, days };
+    });
+
     if (loading) {
-        return <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh'}}><Spin size="large" /></div>;
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}><Spin size="large" /></div>;
     }
     if (error) {
-        return <div style={{textAlign: 'center', color: 'red', marginTop: 40}}>{error}</div>;
+        return <div style={{ textAlign: 'center', color: 'red', marginTop: 40 }}>{error}</div>;
     }
     if (!userData) return null;
 
@@ -380,11 +494,12 @@ const Home = () => {
         <PageContainer>
             <WelcomeTitle level={2}>
                 <HomeOutlined className="home-icon" />
-                Xin chào, {userData.name}
+                {`Xin chào, ${userData.name}`}
             </WelcomeTitle>
 
-            <Row gutter={[24, 24]}>
-                <Col xs={24} sm={12} lg={12}>
+            {/* Hàng 1: 2 thẻ thống kê kéo dài ngang khung hình */}
+            <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+                <Col xs={24} lg={12}>
                     <StatisticCard>
                         <ClockCircleOutlined className="icon" />
                         <Statistic
@@ -394,7 +509,7 @@ const Home = () => {
                         />
                     </StatisticCard>
                 </Col>
-                <Col xs={24} sm={12} lg={12}>
+                <Col xs={24} lg={12}>
                     <StatisticCard>
                         <DollarOutlined className="icon" />
                         <Statistic
@@ -405,82 +520,79 @@ const Home = () => {
                         />
                     </StatisticCard>
                 </Col>
+            </Row>
 
+            {/* Hàng 2: Tiến trình và Leaderboard */}
+            <Row gutter={[24, 24]}>
+                {/* Cột trái: Tiến trình cai thuốc */}
                 <Col xs={24} lg={16}>
-                    <Row gutter={[24, 24]}>
-                        <Col xs={24}>
-                            <ProgressCard title="Tiến Trình Cai Thuốc">
-                                <Progress
-                                    percent={Math.round((userData.daysWithoutSmoking / userData.nextMilestone) * 100)}
-                                    strokeColor={{
-                                        '0%': '#5FB8B3',
-                                        '100%': '#4ca29d'
-                                    }}
-                                    strokeWidth={12}
-                                    format={percent => (
-                                        <Space direction="vertical" align="center">
-                                            <Text strong style={{ fontSize: '28px', color: '#5FB8B3' }}>
-                                                {userData.daysWithoutSmoking}/{userData.nextMilestone}
-                                            </Text>
-                                            <Text type="secondary" style={{ fontSize: '16px' }}>ngày</Text>
-                                        </Space>
-                                    )}
-                                />
-                                <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: 20, fontSize: '15px' }}>
-                                    Còn {userData.nextMilestone - userData.daysWithoutSmoking} ngày nữa đến mốc {userData.nextMilestone} ngày!
-                                </Text>
-                            </ProgressCard>
-                        </Col>
-                        <Col xs={24}>
-                            <TimelineCard title="Hoạt Động Gần Đây">
-                                <Timeline>
-                                    {userData.recentActivities && userData.recentActivities.length > 0 ? userData.recentActivities.map((activity, index) => (
-                                        <Timeline.Item
-                                            key={index}
-                                            color={activity.type === 'success' ? '#5FB8B3' : '#1890ff'}
-                                        >
-                                            <Text strong>{activity.date}</Text>
-                                            <br />
-                                            {activity.content}
-                                        </Timeline.Item>
-                                    )) : <Timeline.Item color="#ccc">Chưa có hoạt động nào gần đây.</Timeline.Item>}
-                                </Timeline>
-                            </TimelineCard>
-                        </Col>
-                    </Row>
-                </Col>
+                    <ProgressCard title="Tiến Trình Cai Thuốc" style={{ height: 'auto' }}>
+                        <Progress
+                            percent={plan ? Math.round((getDaysDoneCapped(plan.startDate, plan.targetQuitDate) / getPlanDays(plan.startDate, plan.targetQuitDate)) * 100) : 0}
+                            strokeColor={{
+                                '0%': '#5FB8B3',
+                                '100%': '#4ca29d'
+                            }}
+                            strokeWidth={12}
+                            format={() => plan ? `${getDaysDoneCapped(plan.startDate, plan.targetQuitDate)}/${getPlanDays(plan.startDate, plan.targetQuitDate)}` : '0/0'}
+                        />
+                        <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: 20, fontSize: '15px' }}>
+                            {plan ? `Còn ${getPlanDays(plan.startDate, plan.targetQuitDate) - getDaysDoneCapped(plan.startDate, plan.targetQuitDate)} ngày nữa đến mốc ${getPlanDays(plan.startDate, plan.targetQuitDate)} ngày!` : 'Chưa có kế hoạch.'}
+                        </Text>
+                    </ProgressCard>
 
+                    {/* Tiến trình theo giai đoạn */}
+                    <ProgressCard title="Tiến Trình Theo Giai Đoạn" style={{ height: 'auto', marginTop: 24 }}>
+                        {stageProgress && stageProgress.length > 0 ? (
+                            stageProgress.map((stage, idx) => (
+                                <div key={idx} style={{ marginBottom: 20 }}>
+                                    <div style={{ fontWeight: 700, fontSize: 15 }}>{stage.stageName}</div>
+                                    <div style={{ fontWeight: 500, color: '#5FB8B3', marginBottom: 4 }}>{stage.goal}</div>
+                                    <Progress
+                                        percent={stage.totalDays > 0 ? Math.round((stage.done / stage.totalDays) * 100) : 0}
+                                        strokeColor={{
+                                            '0%': '#5FB8B3',
+                                            '100%': '#4ca29d'
+                                        }}
+                                        strokeWidth={10}
+                                        format={percent => `${percent}%`}
+                                    />
+                                </div>
+                            ))
+                        ) : (
+                            <Text type="secondary">Chưa có dữ liệu giai đoạn.</Text>
+                        )}
+                    </ProgressCard>
+                </Col>
+                {/* Cột phải: Leaderboard */}
                 <Col xs={24} lg={8}>
-                    <LeaderboardCard title={
+                    <LeaderboardCard>
                         <div className="leaderboard-header">
                             <TrophyOutlined className="trophy-icon" />
-                            <span>Bảng Xếp Hạng</span>
+                            <span style={{ fontWeight: 600, fontSize: 18 }}>Bảng Xếp Hạng</span>
                         </div>
-                    }>
-                        {userData.leaderboard && userData.leaderboard.length > 0 ? userData.leaderboard.map((user, index) => (
-                            <div key={index} className="leaderboard-item">
-                                <div className={`rank rank-${index < 3 ? index + 1 : 'other'}`}>
-                                    #{index + 1}
-                                </div>
-                                <div className="user-info">
-                                    <div className="user-name">{user.name}</div>
-                                    <div className="stats">
-                                        <div className="stat-item">
-                                            <ClockCircleOutlined /> {user.daysWithoutSmoking} ngày
-                                        </div>
-                                        <div className="stat-item">
-                                            <DollarOutlined /> {user.moneySaved.toLocaleString()}đ
-                                        </div>
-                                        <div className="stat-item">
-                                            <HeartOutlined /> {user.cigarettesAvoided} điếu
+                        {loadingLeaderboard ? (
+                            <Spin />
+                        ) : (
+                            leaderboard.length === 0 ? (
+                                <Text type="secondary">Chưa có dữ liệu xếp hạng.</Text>
+                            ) : (
+                                leaderboard.slice(0, 10).map((user, idx) => (
+                                    <div className="leaderboard-item" key={user.userId}>
+                                        <span className={`rank rank-${idx < 3 ? idx + 1 : 'other'}`}>{`#${idx + 1}`}</span>
+                                        <img src={user.avatarUrl || user.avatarURL || user.avatar || ''} alt="avatar" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', marginLeft: 12, border: '2px solid #5FB8B3' }} />
+                                        <div className="user-info">
+                                            <div className="user-name">{user.fullName}</div>
+                                            <div className="stats">
+                                                <div className="stat-item"><ClockCircleOutlined /> {user.noSmokeDays} ngày</div>
+                                                <div className="stat-item"><DollarOutlined /> {user.moneySaved?.toLocaleString()}đ</div>
+                                                <div className="stat-item"><TrophyOutlined /> {user.achievementCount} thành tích</div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        )) : <div style={{textAlign: 'center', color: '#aaa', margin: 16}}>Chưa có dữ liệu bảng xếp hạng.</div>}
-                        <Button type="primary" block>
-                            Xem Bảng Xếp Hạng Đầy Đủ
-                        </Button>
+                                ))
+                            )
+                        )}
                     </LeaderboardCard>
                 </Col>
             </Row>
