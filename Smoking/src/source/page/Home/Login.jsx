@@ -5,10 +5,9 @@ import axiosClient from '../Axios/AxiosCLients';
 import axios from 'axios';
 
 
-const Login = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
 
-=======
+
+
 import { GoogleLogin } from '@react-oauth/google';
 
 
@@ -604,4 +603,4 @@ const Login = () => {
   )
 };
 
-export default Login;
+export default Login 
