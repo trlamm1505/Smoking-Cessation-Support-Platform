@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../Axios/AxiosCLients';
 import axios from 'axios';
 
-<<<<<<< Updated upstream
+
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
 
@@ -16,6 +16,7 @@ import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+
 
 
   const handleGoogleLogin = async (credentialResponse) => {
@@ -73,7 +74,7 @@ const Login = () => {
 
 
 
->>>>>>> Stashed changes
+
   // Đăng ký
   const [registerData, setRegisterData] = useState({
     name: '',
@@ -519,40 +520,56 @@ const Login = () => {
         )}
         {/* Đăng nhập */}
         {!isSignUp && (
-          <div className="form-container sign-in-container ">
-            <form className="form" onSubmit={handleLogin}>
-              <h2 className="text-7xl font-bold text-[#4fd1c5] mb-10">Đăng nhập </h2>
-              <div className="mt-15 flex flex-col items-center space-y-5">
-                <input
-                  type="email"
-                  placeholder="Email"
-                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                  value={loginData.email}
-                  onChange={e => setLoginData({ ...loginData, email: e.target.value })}
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Mật khẩu"
-                  className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
-                  value={loginData.password}
-                  onChange={e => setLoginData({ ...loginData, password: e.target.value })}
-                  required
-                />
-                <a
-                  href="#"
-                  className="text-xl text-black-500 underline block"
-                  onClick={e => { e.preventDefault(); setShowForgotPassword(true); }}
-                >
-                  Quên mật khẩu?
-                </a>
-                <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6 ">
-                  ĐĂNG NHẬP
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+  <div className="form-container sign-in-container ">
+    <form className="form" onSubmit={handleLogin}>
+      <h2 className="text-7xl font-bold text-[#4fd1c5] mb-10">Đăng nhập </h2>
+      <div className="mt-15 flex flex-col items-center space-y-5">
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+          value={loginData.email}
+          onChange={e => setLoginData({ ...loginData, email: e.target.value })}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Mật khẩu"
+          className="w-[450px] h-[60px] px-4 py-2 rounded-md bg-gray-100 border border-gray-200 focus:outline-none"
+          value={loginData.password}
+          onChange={e => setLoginData({ ...loginData, password: e.target.value })}
+          required
+        />
+        <a
+          href="#"
+          className="text-xl text-black-500 underline block"
+          onClick={e => { e.preventDefault(); setShowForgotPassword(true); }}
+        >
+          Quên mật khẩu?
+        </a>
+        <button type="submit" className="bg-[#4fd1c5] text-white text-xl font-semibold rounded-full px-20 py-5 mt-6 ">
+          ĐĂNG NHẬP
+        </button>
+
+        {/* --- Google Login Button --- */}
+        <div style={{ margin: "32px 0 0 0", textAlign: "center" }}>
+          <div className="mb-2 text-gray-500 text-sm font-semibold">— hoặc đăng nhập bằng Google —</div>
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => showNotification('Đăng nhập Google thất bại!', 'error')}
+            width="350"
+            shape="pill"
+            text="signin_with"
+            locale="vi"
+          />
+        </div>
+        {/* --- End Google Login --- */}
+
+      </div>
+    </form>
+  </div>
+)}
+
         {/* Overlay */}
         <div className="overlay-container">
           <div className="overlay">

@@ -349,6 +349,7 @@ const AdminCommunity = () => {
           ...post,
           comments: [...post.comments, { id: post.comments.length + 1, author: 'Bạn', content: comment }]
         };
+
       }
       return post;
     }));
@@ -477,6 +478,7 @@ const AdminCommunity = () => {
       </MainCard>
     </PageBg>
   );
+
 };
 
 export default AdminCommunity; 

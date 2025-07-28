@@ -383,6 +383,12 @@ const AnimatedPostCard = styled(PostCard)`
 `;
 
 const Community = () => {
+  // Trang Community cho phép người dùng đăng bài, bình luận, like, xem thành tích
+  // Sử dụng nhiều styled-components để tạo giao diện đẹp, hiện đại
+  // State quản lý modal đăng bài, nội dung bài viết, thành tích, bình luận, danh sách coach
+  // Các hàm xử lý đăng bài, chỉnh sửa, xóa, like, bình luận đều được quản lý qua state
+  // AchievementBadge: Hiển thị các huy hiệu thành tích của người dùng
+  // PostCard: Hiển thị từng bài viết với thông tin, thành tích, bình luận
   const [isPostModalVisible, setIsPostModalVisible] = useState(false);
   const [postContent, setPostContent] = useState('');
   const [selectedAchievements, setSelectedAchievements] = useState([]);
@@ -426,7 +432,7 @@ const Community = () => {
         likes: post.likeCount || 0,
         comments: [],
         timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
-        showComments: false,
+      showComments: false,
         postType: post.status === 'PUBLISHED' ? 'general' : post.status,
         title: post.title,
         featuredImage: post.featuredImageURL,
@@ -471,13 +477,13 @@ const Community = () => {
     if (!likedPosts.has(postId)) {
       await userApi.likeCommunityPost(postId, userId);
       setLikedPosts(prev => new Set(prev).add(postId));
-      setPosts(posts.map(post => {
-        if (post.id === postId) {
-          return { ...post, likes: post.likes + 1 };
-        }
-        return post;
-      }));
-    }
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return { ...post, likes: post.likes + 1 };
+          }
+          return post;
+        }));
+      }
   };
 
   const handleUploadChange = async ({ fileList: newFileList }) => {
@@ -540,12 +546,12 @@ const Community = () => {
         title: post.title,
         featuredImage: post.featuredImageURL,
       })));
-      setIsPostModalVisible(false);
-      setPostContent('');
-      setSelectedAchievements([]);
-      setPostType('general');
-      setPostTitle('');
-      setUploadedImageFile([]);
+    setIsPostModalVisible(false);
+    setPostContent('');
+    setSelectedAchievements([]);
+    setPostType('general');
+    setPostTitle('');
+    setUploadedImageFile([]);
       setIsEditMode(false);
       setEditedPost(null);
     } catch (err) {
@@ -620,38 +626,38 @@ const Community = () => {
             dataSource={posts}
             renderItem={post => (
               <AnimatedPostCard delay={`${post.id * 0.1}s`}>
-                {post.featuredImage && (
+                  {post.featuredImage && (
                   <div className="ant-card-cover" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '8px 0' }}>
                     <img 
                       alt="featured" 
                       src={post.featuredImage} 
                       style={{ maxWidth: 640, maxHeight: 360, borderRadius: 12, objectFit: 'cover', margin: '0 auto', boxShadow: '0 2px 8px #0001' }}
                     />
-                  </div>
-                )}
-                <div className="ant-card-meta">
-                  <Space>
+                    </div>
+                  )}
+                  <div className="ant-card-meta">
                     <Space>
-                      {post.author}
-                      {post.authorRole === 'coach' && <Tag color="gold" bordered>Huấn luyện viên</Tag>}
-                      {post.postType && (
-                        <Tag color="#108ee9" bordered>
-                          {
-                            post.postType === 'general' ? 'Bài viết chung' :
-                            post.postType === 'success_story' ? 'Câu chuyện thành công' :
-                            post.postType === 'tip' ? 'Mẹo cai thuốc' :
-                            post.postType === 'question' ? 'Hỏi đáp' :
-                            post.postType === 'badge_share' ? 'Chia sẻ huy hiệu' :
-                            post.postType === 'motivation' ? 'Tạo động lực' :
-                            post.postType === 'article' ? 'Bài viết chuyên sâu' : ''
-                          }
-                        </Tag>
-                      )}
+                      <Space>
+                        {post.author}
+                        {post.authorRole === 'coach' && <Tag color="gold" bordered>Huấn luyện viên</Tag>}
+                        {post.postType && (
+                          <Tag color="#108ee9" bordered>
+                            {
+                              post.postType === 'general' ? 'Bài viết chung' :
+                              post.postType === 'success_story' ? 'Câu chuyện thành công' :
+                              post.postType === 'tip' ? 'Mẹo cai thuốc' :
+                              post.postType === 'question' ? 'Hỏi đáp' :
+                              post.postType === 'badge_share' ? 'Chia sẻ huy hiệu' :
+                              post.postType === 'motivation' ? 'Tạo động lực' :
+                              post.postType === 'article' ? 'Bài viết chuyên sâu' : ''
+                            }
+                          </Tag>
+                        )}
+                      </Space>
+                      <Text type="secondary">{post.timestamp}</Text>
                     </Space>
-                    <Text type="secondary">{post.timestamp}</Text>
-                  </Space>
-                </div>
-                {post.title && <Title level={4} style={{ marginTop: '0', marginBottom: '12px' }}>{post.title}</Title>}
+                  </div>
+                  {post.title && <Title level={4} style={{ marginTop: '0', marginBottom: '12px' }}>{post.title}</Title>}
                 <Paragraph>{post.content}</Paragraph>
 
                 {post.achievements.length > 0 && (
@@ -721,7 +727,7 @@ const Community = () => {
                           ] : []}
                         >
                           <List.Item.Meta
-                            avatar={<Avatar icon={<UserOutlined />} />}
+                              avatar={<Avatar icon={<UserOutlined />} />}
                             title={
                               <span>
                                 <CommentAuthor>{comment.userName || 'Người dùng'}</CommentAuthor>
@@ -744,41 +750,41 @@ const Community = () => {
                         </List.Item>
                       )}
                     />
-                    <Space style={{ width: '100%', marginTop: '12px' }}>
-                      <Input.TextArea
-                        placeholder="Viết bình luận..."
-                        autoSize={{ minRows: 1, maxRows: 3 }}
-                        value={currentComment}
-                        onChange={(e) => setCurrentComment(e.target.value)}
-                        onPressEnter={(e) => {
-                          if (currentComment.trim()) {
-                            handleComment(post.id, currentComment);
-                            setCurrentComment('');
-                          }
-                        }}
-                        style={{ flex: 1, borderColor: '#5FB8B3', padding: '10px 16px' }}
-                      />
-                      <Button
-                        type="primary"
-                        onClick={() => {
-                          if (currentComment.trim()) {
-                            handleComment(post.id, currentComment);
-                            setCurrentComment('');
-                          }
-                        }}
-                        style={{
-                          backgroundColor: '#5FB8B3',
-                          borderColor: '#5FB8B3',
-                          borderRadius: '8px',
-                          height: 'auto',
-                          padding: '10px 20px',
-                          fontSize: '16px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        Gửi
-                      </Button>
-                    </Space>
+                      <Space style={{ width: '100%', marginTop: '12px' }}>
+                    <Input.TextArea
+                      placeholder="Viết bình luận..."
+                      autoSize={{ minRows: 1, maxRows: 3 }}
+                          value={currentComment}
+                          onChange={(e) => setCurrentComment(e.target.value)}
+                      onPressEnter={(e) => {
+                            if (currentComment.trim()) {
+                              handleComment(post.id, currentComment);
+                              setCurrentComment('');
+                            }
+                          }}
+                          style={{ flex: 1, borderColor: '#5FB8B3', padding: '10px 16px' }}
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => {
+                            if (currentComment.trim()) {
+                              handleComment(post.id, currentComment);
+                              setCurrentComment('');
+                        }
+                      }}
+                          style={{
+                            backgroundColor: '#5FB8B3',
+                            borderColor: '#5FB8B3',
+                            borderRadius: '8px',
+                            height: 'auto',
+                            padding: '10px 20px',
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          Gửi
+                        </Button>
+                      </Space>
                   </div>
                 )}
 

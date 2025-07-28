@@ -34,6 +34,15 @@ import GuestHome from '../source/page/Guest/Home'
 import GuestBlog from '../source/page/Guest/Blog'
 import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
 
+
+
+
+ {/* TAO THÊM CÁI NÀY NÈ*/}
+import PaymentStatus from '../source/page/PaymentStatus';
+
+
+
+
 // Guest Components
 import GuestProfile from '../source/page/Guest/Profile'
 import GuestPremium from '../source/page/Guest/Premium'
@@ -43,6 +52,7 @@ import UserCoachManagement from '../source/page/Admin/UserCoachManagement'
 import PackageManagement from '../source/page/Admin/PackageManagement'
 import AgoraRoom from '../source/page/AgoraRoom'
 import AdminCommunity from '../source/page/Admin/AdminCommunity'
+import AdminCallManagement from '../source/page/Admin/AdminCallManagement'
 
 export default function AppRouter() {
   return (
@@ -110,12 +120,28 @@ export default function AppRouter() {
         <Route path='reports' element={<AdminReports />} />
         <Route path='user-coach' element={<UserCoachManagement />} />
         <Route path='community-manage' element={<AdminCommunity />} />
+        <Route path='calls' element={<AdminCallManagement />} />
       </Route>
 
       {/* Agora Room Route */}
       <Route path="agora-room/:consultationId" element={<AgoraRoom />} />
 
       {/* Error Route */}
+      
+
+
+
+
+
+      
+      {/* TAO THÊM CÁI NÀY NÈ*/}
+      <Route path="/payment-status" element={<PaymentStatus />} />
+
+
+
+
+
+
       <Route path='*' element={<Error />} />
     </Routes>
   )

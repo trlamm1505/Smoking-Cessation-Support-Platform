@@ -1,6 +1,12 @@
 import axiosClient from "./AxiosCLients";
 
 const coachApi = {
+  // File này định nghĩa các hàm gọi API liên quan đến huấn luyện viên (coach)
+  // Sử dụng axiosClient để gửi request đến backend
+  // Các hàm như getById, getAll, update, adminCreate, adminDelete dùng cho quản lý coach
+  // Các hàm blog post dùng cho quản lý bài viết của coach
+  // Các hàm thống kê dùng cho trang dashboard của coach/admin
+  // Các hàm package dùng cho quản lý gói dịch vụ
   // Lấy thông tin coach theo id
   getById: (id) => axiosClient.get(`/api/coaches/${id}`),
 

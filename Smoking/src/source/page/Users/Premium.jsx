@@ -1,3 +1,31 @@
+
+
+
+
+
+
+
+
+
+
+                                      /* PHẦN NÀY LÀ PHẦN CẦN CHỈNH SỬA*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider } from 'antd';
 import { CheckOutlined, CrownOutlined, DollarOutlined, SafetyCertificateOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
@@ -596,54 +624,43 @@ const Premium = () => {
 
 
     const handlePayment = async () => {
-        setIsLoading(true);
-        const userId = Number(localStorage.getItem('userId'));
-        const packageId = selectedPlan?.packageID;
-        const paymentMethod = 'vnpay';
-
-        // Tính toán ngày bắt đầu, kết thúc, gia hạn
-        const today = new Date();
-        const startDate = today.toISOString().split('T')[0];
-        const endDateObj = new Date(today);
-        endDateObj.setDate(endDateObj.getDate() + (selectedPlan?.durationDays || 0));
-        const endDate = endDateObj.toISOString().split('T')[0];
-        const renewalDateObj = new Date(endDateObj);
-        renewalDateObj.setDate(renewalDateObj.getDate() + 1);
-        const renewalDate = renewalDateObj.toISOString().split('T')[0];
-
-        // Luôn gọi POST /api/purchase/buy cho cả mua mới, thay đổi, gia hạn
-        try {
-            const res = await fetch('http://localhost:8080/api/purchase/buy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, packageId, paymentMethod })
-            });
-            if (res.ok) {
-                // Cập nhật lại thông tin gói mới nhất
-                fetch(`http://localhost:8080/api/payments/${userId}`)
-                    .then(res => res.json())
-                    .then(data => setCurrentPackage(data));
-                fetch(`http://localhost:8080/api/payments/current-package/${userId}`)
-                    .then(res => res.json())
-                    .then(data => setCurrentPackage(data));
-                fetch(`http://localhost:8080/api/payments?userId=${userId}`)
-                    .then(res => res.json())
-                    .then(data => setPaymentHistory(data));
-                setTimeout(() => {
-                    setIsModalVisible(false);
-                    setCurrentStep(0);
-                    form.resetFields();
-                    setIsLoading(false);
-                }, 2000);
+    setIsLoading(true);
+    const userId = Number(localStorage.getItem('userId'));
+    const packageId = selectedPlan?.packageID;
+    if (!userId || !packageId) {
+        message.error('Thiếu thông tin user hoặc gói!');
+        setIsLoading(false);
+        return;
+    }
+    try {
+        // Gọi BE lấy URL thanh toán VNPay
+        const res = await fetch(
+            `http://localhost:8080/api/payments/create-vnpay-payment?userId=${userId}&packageId=${packageId}`,
+            {
+                method: 'POST'
+            }
+        );
+        if (res.ok) {
+            const data = await res.json();
+            if (data.url) {
+                // Đóng modal, chuyển sang trang thanh toán VNPay
+                setIsLoading(false);
+                setIsModalVisible(false);
+                window.location.href = data.url; // Redirect user sang VNPay để thanh toán!
             } else {
-                message.error('Đăng ký thất bại!');
+                message.error('Không lấy được link thanh toán!');
                 setIsLoading(false);
             }
-        } catch (err) {
-            message.error('Lỗi kết nối server!');
+        } else {
+            message.error('Không lấy được link thanh toán!');
             setIsLoading(false);
         }
-    };
+    } catch (err) {
+        message.error('Lỗi kết nối server!');
+        setIsLoading(false);
+    }
+};
+
 
     const handleRenew = async () => {
         const userId = Number(localStorage.getItem('userId'));
