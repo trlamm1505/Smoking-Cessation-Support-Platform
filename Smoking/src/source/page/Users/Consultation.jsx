@@ -203,6 +203,12 @@ const StyledBookingModal = styled(BookingModal)`
 `;
 
 const Consultation = () => {
+    // Trang này cho phép người dùng đặt lịch tư vấn với huấn luyện viên
+    // Sử dụng styled-components để tạo giao diện đẹp
+    // State quản lý modal đặt lịch, danh sách coach, lịch sử đặt lịch, ngày chọn
+    // Các hàm xử lý đặt lịch, lấy danh sách coach, lấy lịch sử tư vấn đều dùng useEffect và gọi API
+    // workingSlots: Định nghĩa các khung giờ làm việc của coach
+    // generateTimeSlots: Tạo các khung giờ có thể đặt dựa trên workingSlots
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedCoach, setSelectedCoach] = useState(null);
     const [appointments, setAppointments] = useState([]);

@@ -104,6 +104,11 @@ const AnimatedToggleContainer = styled(ToggleContainer)`
 `;
 
 const UserReviews = () => {
+    // Trang này cho phép người dùng đánh giá huấn luyện viên và hệ thống
+    // Sử dụng styled-components để tạo giao diện đẹp, hiện đại
+    // State quản lý danh sách đánh giá, form đánh giá, modal chỉnh sửa, loại đánh giá đang xem
+    // Các hàm xử lý gửi, sửa, xóa đánh giá đều dùng useEffect và gọi API
+    // coachColumns, systemColumns: Định nghĩa các cột hiển thị cho bảng đánh giá
     const [coachReviews, setCoachReviews] = useState([]);
     const [systemReviews, setSystemReviews] = useState([]);
     const [coachesForReview, setCoachesForReview] = useState([]);

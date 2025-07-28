@@ -383,6 +383,12 @@ const AnimatedPostCard = styled(PostCard)`
 `;
 
 const Community = () => {
+  // Trang Community cho phép người dùng đăng bài, bình luận, like, xem thành tích
+  // Sử dụng nhiều styled-components để tạo giao diện đẹp, hiện đại
+  // State quản lý modal đăng bài, nội dung bài viết, thành tích, bình luận, danh sách coach
+  // Các hàm xử lý đăng bài, chỉnh sửa, xóa, like, bình luận đều được quản lý qua state
+  // AchievementBadge: Hiển thị các huy hiệu thành tích của người dùng
+  // PostCard: Hiển thị từng bài viết với thông tin, thành tích, bình luận
   const [isPostModalVisible, setIsPostModalVisible] = useState(false);
   const [postContent, setPostContent] = useState('');
   const [selectedAchievements, setSelectedAchievements] = useState([]);

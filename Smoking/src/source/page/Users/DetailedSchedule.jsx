@@ -425,6 +425,21 @@ function CustomStepBar({ phases, currentPhase }) {
 }
 
 const DetailedSchedule = () => {
+    // Trang này hiển thị lịch trình chi tiết cai thuốc cho người dùng
+    // Sử dụng các thành phần của Ant Design như Card, List, Calendar, Steps để trình bày dữ liệu
+    // Các nhiệm vụ được lấy từ API và lưu vào state tasks
+    // phases: Mảng các giai đoạn cai thuốc, mỗi giai đoạn có tên, mô tả và số ngày
+    // todayIndex: Xác định ngày hiện tại trong kế hoạch cai thuốc
+    // todayTask, todayTasks, otherTasks: Lọc nhiệm vụ theo ngày hiện tại hoặc khác ngày
+    // viewingTasks: Nhiệm vụ của ngày đang xem trên lịch
+    // phaseInfos: Tạo thông tin cho từng giai đoạn (goal, số ngày)
+    // currentStageName, currentPhaseIndex: Xác định giai đoạn hiện tại để highlight trên Steps
+        {/*
+            - Steps: Hiển thị các giai đoạn cai thuốc, mỗi bước có tên, mục tiêu và số ngày
+            - List: Hiển thị nhiệm vụ của ngày đang xem
+            - Calendar: Hiển thị lịch sử nhiệm vụ, màu sắc phân biệt hôm nay, đã qua, tương lai
+            - Khi chọn ngày trên Calendar sẽ hiện nhiệm vụ của ngày đó
+        */}
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [taskHistory, setTaskHistory] = useState({});
@@ -459,7 +474,7 @@ const DetailedSchedule = () => {
             })
             .then(res => res.json())
             .then(schedule => {
-                setTasks(schedule);
+                setTasks(Array.isArray(schedule) ? schedule : []);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
@@ -730,7 +745,7 @@ const DetailedSchedule = () => {
                     <Card className="calendar-card">
                         <Calendar
                             fullscreen={false}
-                            dateFullCellRender={date => {
+                            fullCellRender={date => {
                                 if (!planStartDate || !soNgay) return <div>{date.date()}</div>;
                                 const start = planStartDate.startOf('day');
                                 const end = start.add(soNgay - 1, 'day');
