@@ -340,7 +340,7 @@ const StyledBadgeButton = styled.button`
   background: ${(props) => props.$isSelected ? 'linear-gradient(90deg, #5FB8B3 0%, #4A90E2 100%)' : 'white'};
   box-shadow: 0 2px 12px rgba(95,184,179,0.10);
   transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
-  font-family: inherit;
+  font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
   margin: 6px 8px;
   &:hover {
     background: linear-gradient(90deg, #e6f7f6 0%, #b2f0ec 100%);
@@ -463,6 +463,8 @@ const Community = () => {
           name: a.achievement.name,
           description: a.achievement.description,
           iconUrl: a.achievement.iconUrl,
+          color: a.achievement.color || '#5FB8B3',
+          icon: a.achievement.icon || null,
           type: a.achievement.type,
         })));
       });
@@ -537,7 +539,14 @@ const Community = () => {
         avatar: undefined,
         authorRole: undefined,
         content: post.content,
-        achievements: (post.badges || '').split(',').map((name, idx) => name.trim() ? { id: idx, name: name.trim() } : null).filter(Boolean),
+        achievements: (post.badges || '').split(',').map(id => {
+          const ach = achievements.find(a => String(a.id) === id.trim());
+          return ach ? {
+            ...ach,
+            color: ach.color || '#5FB8B3',
+            icon: ach.icon || null
+          } : null;
+        }).filter(Boolean),
         likes: post.likeCount || 0,
         comments: [],
         timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
@@ -995,7 +1004,7 @@ const Community = () => {
               </button>
               <button
                 className="modal-btn submit"
-                onClick={handleCreatePost}
+                type="submit"
               >
                 Đăng bài
               </button>

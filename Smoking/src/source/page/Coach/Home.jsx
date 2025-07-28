@@ -164,6 +164,7 @@ const LeaderboardCard = styled(StyledCard)`
         }
     }
 
+
     .leaderboard-item {
         display: flex;
         align-items: center;
@@ -258,6 +259,7 @@ const LeaderboardCard = styled(StyledCard)`
                 font-size: 14px;
             }
         }
+
     }
 `;
 
