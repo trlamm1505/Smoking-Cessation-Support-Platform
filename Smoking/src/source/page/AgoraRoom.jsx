@@ -217,6 +217,11 @@ const getTitle = () => {
 };
 
 const AgoraRoom = () => {
+  // Trang này dùng để thực hiện cuộc gọi video trực tuyến giữa coach và khách hàng
+  // Sử dụng AgoraRTC để kết nối phòng gọi, quản lý mic/cam, hiển thị video
+  // State quản lý trạng thái mic, cam, trạng thái kết nối, thời lượng cuộc gọi, feedback sau cuộc gọi
+  // Khi kết thúc cuộc gọi, khách hàng có thể gửi đánh giá về chất lượng tư vấn
+  // Các hàm handleToggleMic, handleToggleCam, handleEndCall, handleSubmitFeedback xử lý logic tương tác
   const { consultationId } = useParams();
   const uid = localStorage.getItem('userId'); // KHÔNG lấy từ query string!
   const [tokenData, setTokenData] = useState(null);

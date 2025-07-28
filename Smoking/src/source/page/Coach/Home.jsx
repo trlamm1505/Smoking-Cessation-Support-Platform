@@ -164,6 +164,7 @@ const LeaderboardCard = styled(StyledCard)`
         }
     }
 
+
     .leaderboard-item {
         display: flex;
         align-items: center;
@@ -258,10 +259,17 @@ const LeaderboardCard = styled(StyledCard)`
                 font-size: 14px;
             }
         }
+
     }
 `;
 
 const CoachHome = () => {
+  // Trang dashboard dành cho huấn luyện viên (coach)
+  // Hiển thị thông tin coach, thống kê tổng quan, bảng xếp hạng khách hàng
+  // Sử dụng các thành phần Ant Design như Card, Statistic, Row, Col, Spin để trình bày dữ liệu
+  // State quản lý dữ liệu coach, thống kê, leaderboard, trạng thái loading
+  // useEffect gọi API lấy dữ liệu khi trang được tải
+  // LeaderboardCard: Hiển thị top khách hàng dựa trên số ngày không hút thuốc, tiền tiết kiệm, thành tích
   const [coachData, setCoachData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [leaderboard, setLeaderboard] = useState([]);

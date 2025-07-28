@@ -1,15 +1,3 @@
-// src/pages/PaymentStatus.jsx
-
-
-
-
-
-/* TAO THÊM CÁI NÀY NÈ*/
-
-
-
-
-
 
 
 

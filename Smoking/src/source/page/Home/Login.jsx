@@ -5,8 +5,9 @@ import axiosClient from '../Axios/AxiosCLients';
 import axios from 'axios';
 
 
- // Google OAuth --ĐĂNG NHẬP BẰNG GOOGLE--
-//MINH TRIẾT ĐÃ TỰ THÊM PHẦN NÀY 
+
+
+
 import { GoogleLogin } from '@react-oauth/google';
 
 
@@ -15,8 +16,7 @@ import { GoogleLogin } from '@react-oauth/google';
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
 
-  // Google OAuth --ĐĂNG NHẬP BẰNG GOOGLE--
-//MINH TRIẾT ĐÃ TỰ THÊM PHẦN NÀY 
+
 
   const handleGoogleLogin = async (credentialResponse) => {
   // Lấy Google ID token từ credentialResponse
@@ -70,6 +70,7 @@ const Login = () => {
     showNotification(err?.response?.data?.message || 'Lỗi kết nối server!', 'error');
   }
 };
+
 
 
 
@@ -602,4 +603,4 @@ const Login = () => {
   )
 };
 
-export default Login;
+export default Login 
