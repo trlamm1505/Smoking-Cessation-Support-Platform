@@ -376,7 +376,7 @@ const Home = () => {
                 const soNgay = planData ? getPlanDays(planData.startDate, planData.targetQuitDate) : 20;
                 // Gọi API stages/generate với đúng tham số
                 const stagesRes = await axios.post('http://localhost:8080/stages/generate', { years, cigarettesPerDay, soNgay });
-                setStages(stagesRes.data);
+                setStages(Array.isArray(stagesRes.data) ? stagesRes.data : []);
             } catch (err) {
                 setError('Lỗi khi tải dữ liệu người dùng.');
             } finally {
