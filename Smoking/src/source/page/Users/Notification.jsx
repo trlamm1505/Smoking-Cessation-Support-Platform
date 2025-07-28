@@ -158,7 +158,7 @@ const Notification = ({ visible, onClose, userId, onUpdateUnreadCount }) => {
       });
   }, [visible, realUserId]);
 
-  // Bỏ filter theo section, chỉ hiển thị tất cả thông báo
+  //  Xử lý đánh dấu đã đọc
   const allNotifications = notifications;
 
   const handleMarkRead = (notification) => {

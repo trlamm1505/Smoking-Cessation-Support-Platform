@@ -1,32 +1,4 @@
 
-
-
-
-
-/* VÀ TAO ĐÃ SỬA CÁI NÀY NÈ
-
-YÊU CẦU TÍCH HỢP CÁI PHẦN GIA HẠN   -- - - --  NÂNG CẤP GÓI THÀNH VIÊN 
-
-NÓI CÁCH KHÁC THÌ CŨNG CHỈ LÀ MUA GÓI MỚI THÔI
-
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import React, { useState, useEffect } from 'react';
 
 import { Card, Row, Col, Button, Modal, Form, Input, Radio, Steps, message, Tag, Descriptions, Alert, Typography, Divider, Spin } from 'antd';
