@@ -376,7 +376,12 @@ const Home = () => {
                 const soNgay = planData ? getPlanDays(planData.startDate, planData.targetQuitDate) : 20;
                 // Gọi API stages/generate với đúng tham số
                 const stagesRes = await axios.post('http://localhost:8080/stages/generate', { years, cigarettesPerDay, soNgay });
-                setStages(Array.isArray(stagesRes.data) ? stagesRes.data : []);
+                console.log('Stages response:', stagesRes.data);
+
+                // Lấy plan array từ response - API trả về {mucDoKeHoach: "Trung bình", plan: [...]}
+                const stagesArray = stagesRes.data.plan || [];
+                console.log('Stages array length:', stagesArray.length);
+                setStages(stagesArray);
             } catch (err) {
                 setError('Lỗi khi tải dữ liệu người dùng.');
             } finally {
@@ -430,7 +435,15 @@ const Home = () => {
 
     // Xử lý dữ liệu stages thành các giai đoạn (dùng stageName, goal, đếm số ngày, số ngày đã hoàn thành)
     const stageProgress = React.useMemo(() => {
-        if (!stages || stages.length === 0 || !plan) return [];
+        console.log('=== DEBUG STAGE PROGRESS ===');
+        console.log('Stages:', stages);
+        console.log('Plan:', plan);
+
+        if (!stages || stages.length === 0 || !plan) {
+            console.log('Missing data for stage progress');
+            return [];
+        }
+
         // Nhóm theo stageOrder
         const grouped = {};
         stages.forEach(item => {
@@ -438,15 +451,23 @@ const Home = () => {
             if (!grouped[key]) grouped[key] = [];
             grouped[key].push(item);
         });
+
+        console.log('Grouped stages:', grouped);
+
         // Tính số ngày đã hoàn thành cho từng giai đoạn
         let remain = getDaysDoneCapped(plan.startDate, plan.targetQuitDate);
-        return Object.keys(grouped).sort((a, b) => a - b).map(order => {
+        console.log('Remaining days:', remain);
+
+        const result = Object.keys(grouped).sort((a, b) => a - b).map(order => {
             const arr = grouped[order];
             const stageName = arr[0].stageName || arr[0].stage_name || `Giai đoạn ${order}`;
             const goal = arr[0].goal;
             const totalDays = arr.length;
             const done = Math.max(0, Math.min(remain, totalDays));
             remain -= done;
+
+            console.log(`Stage ${order}:`, { stageName, goal, totalDays, done });
+
             return {
                 stageName,
                 goal,
@@ -454,6 +475,9 @@ const Home = () => {
                 done
             };
         });
+
+        console.log('Stage progress result:', result);
+        return result;
     }, [stages, plan]);
 
     // Thêm phases tĩnh giống DetailedSchedule.jsx
