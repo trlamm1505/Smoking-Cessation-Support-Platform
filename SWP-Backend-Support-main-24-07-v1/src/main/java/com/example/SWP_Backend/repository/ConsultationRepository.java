@@ -12,6 +12,7 @@ import java.util.List;
 public interface ConsultationRepository extends JpaRepository<Consultation, Long> {
     List<Consultation> findByUserId(Long userId);
     List<Consultation> findByCoachId(Long coachId);
+
     @Query("""
         SELECT new com.example.SWP_Backend.dto.MemberStatisticsDTO(
             c.userId,
@@ -44,8 +45,10 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     @Query("SELECT MIN(c.scheduledTime) FROM Consultation c WHERE c.coachId = :coachId")
     LocalDateTime findFirstConsultationDate(@Param("coachId") Long coachId);
 
-    @Query("SELECT YEAR(c.scheduledTime) as year, MONTH(c.scheduledTime) as month, COUNT(c) as total " +
+    // Sửa lại câu query này cho đúng JPQL
+    @Query("SELECT YEAR(c.scheduledTime), MONTH(c.scheduledTime), COUNT(c) " +
             "FROM Consultation c WHERE c.coachId = :coachId " +
-            "GROUP BY YEAR(c.scheduledTime), MONTH(c.scheduledTime) ORDER BY year, month")
+            "GROUP BY YEAR(c.scheduledTime), MONTH(c.scheduledTime) " +
+            "ORDER BY YEAR(c.scheduledTime), MONTH(c.scheduledTime)")
     List<Object[]> countConsultationsByMonth(@Param("coachId") Long coachId);
 }
