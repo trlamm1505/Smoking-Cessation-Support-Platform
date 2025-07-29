@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Input, Button, Tag, Space, Modal, message, Typography, Card, Row, Col, Progress as AntProgress, List, Spin } from 'antd';
+import { Table, Input, Button, Tag, Space, Modal, message, Typography, Card, Row, Col, List, Spin } from 'antd';
 import styled from 'styled-components';
-import { SearchOutlined, UserOutlined, PhoneOutlined, MailOutlined, CalendarOutlined, CheckCircleOutlined, HeartOutlined, TrophyOutlined } from '@ant-design/icons';
+import { SearchOutlined, UserOutlined, PhoneOutlined, MailOutlined, CalendarOutlined, CheckCircleOutlined, HeartOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import coachApi from '../Axios/coachApi';
 
@@ -125,9 +125,7 @@ const Members = () => {
           name: consultation.fullName,
           phone: consultation.phoneNumber,
           email: consultation.email,
-          status: consultation.status === 'approved' ? 'approved' : consultation.status === 'pending' ? 'pending' : 'cancelled',
           lastConsultation: dayjs(consultation.scheduledTime).format('YYYY-MM-DD'),
-          progress: consultation.status === 'approved' ? 75 : consultation.status === 'pending' ? 30 : consultation.status === 'cancelled' ? 0 : 100,
           meetingLink: consultation.meetingLink,
           details: {
             startDate: dayjs(consultation.scheduledTime).format('YYYY-MM-DD'),
@@ -137,10 +135,6 @@ const Members = () => {
             journal: [
               { date: dayjs(consultation.scheduledTime).format('YYYY-MM-DD'), entry: `Buổi tư vấn với ${consultation.fullName} - ${consultation.notes || 'Không có ghi chú'}` },
             ],
-            achievements: [
-              'Đặt lịch tư vấn thành công',
-              consultation.status === 'approved' ? 'Buổi tư vấn đã được xác nhận' : 'Đang chờ xác nhận',
-            ]
           }
         }));
 
@@ -189,29 +183,6 @@ const Members = () => {
           <Text>{text}</Text>
         </Space>
       ),
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => {
-        const statusConfig = {
-          active: { color: 'success', text: 'Đang tư vấn' },
-          completed: { color: 'default', text: 'Hoàn thành' },
-          paused: { color: 'warning', text: 'Tạm dừng' },
-          approved: { color: 'success', text: 'Đã xác nhận' },
-          pending: { color: 'warning', text: 'Chờ xác nhận' },
-          cancelled: { color: 'error', text: 'Đã hủy' },
-        };
-        const config = statusConfig[status] || { color: 'default', text: status };
-        return <StatusTag color={config.color}>{config.text}</StatusTag>;
-      },
-    },
-    {
-      title: 'Tiến độ',
-      dataIndex: 'progress',
-      key: 'progress',
-      render: (progress) => <AntProgress percent={progress} size="small" showInfo={false} />,
     },
     {
       title: 'Lần tư vấn cuối',
@@ -320,25 +291,6 @@ const Members = () => {
               <Col span={12}><Text strong>Số điếu/ngày (ban đầu):</Text> {selectedMember.details.cigarettesPerDay}</Col>
               <Col span={12}><Text strong>Lý do cai thuốc:</Text> {selectedMember.details.quitReason}</Col>
             </Row>
-
-            <Title level={4} style={{ marginTop: 20 }}>Thống kê và Tiến độ</Title>
-            <MemberStatsGrid gutter={[16, 16]}>
-              <Col xs={24} sm={12}>
-                <StyledCard size="small" title="Tiến độ cai thuốc">
-                  <AntProgress percent={selectedMember.progress} showInfo={true} strokeColor={{ from: '#108ee9', to: '#87d068' }} />
-                  <Text>{selectedMember.progress}% hoàn thành</Text>
-                </StyledCard>
-              </Col>
-              <Col xs={24} sm={12}>
-                <StyledCard size="small" title="Thành tích">
-                  <List
-                    size="small"
-                    dataSource={selectedMember.details.achievements}
-                    renderItem={(item, index) => <List.Item key={index}><TrophyOutlined style={{ color: '#faad14' }} /> {item}</List.Item>}
-                  />
-                </StyledCard>
-              </Col>
-            </MemberStatsGrid>
 
             <Title level={4} style={{ marginTop: 20 }}>Nhật ký hàng ngày</Title>
             {selectedMember.details.journal && selectedMember.details.journal.length > 0 ? (
