@@ -139,12 +139,13 @@ const BlogManagement = () => {
                 <Space>
                     <Button icon={<EditOutlined />} onClick={() => showModal('edit')} />
                     <Button icon={<DeleteOutlined />} danger />
-                    {record.status === 'Pending' && (
+                    {/* Chỉ hiển thị nút duyệt/từ chối khi trạng thái là Pending */}
+                    {record.status === 'Pending' ? (
                         <>
                             <Button icon={<CheckCircleOutlined />} onClick={() => handleApprove(record.id)} style={{ color: '#52c41a' }} />
                             <Button icon={<CloseCircleOutlined />} onClick={() => handleReject(record.id)} style={{ color: '#ff4d4f' }} />
                         </>
-                    )}
+                    ) : null}
                 </Space>
             ),
         },

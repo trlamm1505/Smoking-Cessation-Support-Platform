@@ -1,3 +1,4 @@
+// Import các hook và component cần thiết từ React và Ant Design
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Typography, Avatar, Button, Modal, Form, DatePicker, Select, Input, message, Table, Tag } from 'antd';
 import { MessageOutlined, UserOutlined } from '@ant-design/icons';
@@ -70,28 +71,15 @@ const BookingModal = styled(Modal)`
 `;
 
 // Define coach working slots to generate selectable times
+// workingSlots: Định nghĩa các khung giờ làm việc của coach
 const workingSlots = [
-    { start: '07:00', end: '09:00' },
-    { start: '09:30', end: '11:30' },
-    { start: '12:30', end: '14:30' },
-    { start: '15:00', end: '17:00' },
+    { start: '07:00', end: '09:00' }, // Sáng sớm
+    { start: '09:30', end: '11:30' }, // Buổi sáng
+    { start: '12:30', end: '14:30' }, // Buổi trưa
+    { start: '15:00', end: '17:00' }, // Buổi chiều
 ];
 
-const generateTimeSlots = () => {
-    const slots = [];
-    workingSlots.forEach(slot => {
-        let currentTime = dayjs(`2000-01-01T${slot.start}`);
-        const endTime = dayjs(`2000-01-01T${slot.end}`);
 
-        while (currentTime.isBefore(endTime)) {
-            slots.push(currentTime.format('HH:mm'));
-            currentTime = currentTime.add(30, 'minute');
-        }
-    });
-    return slots;
-};
-
-const timeSlots = generateTimeSlots();
 
 const CustomTable = styled(Table)`
   .ant-table-thead > tr > th {
@@ -202,50 +190,62 @@ const StyledBookingModal = styled(BookingModal)`
   }
 `;
 
+// Component chính: Consultation
+// Trang này cho phép người dùng đặt lịch tư vấn với huấn luyện viên
+// Quản lý trạng thái modal, danh sách coach, lịch sử đặt lịch, ngày chọn, v.v.
 const Consultation = () => {
-    // Trang này cho phép người dùng đặt lịch tư vấn với huấn luyện viên
-    // Sử dụng styled-components để tạo giao diện đẹp
-    // State quản lý modal đặt lịch, danh sách coach, lịch sử đặt lịch, ngày chọn
-    // Các hàm xử lý đặt lịch, lấy danh sách coach, lấy lịch sử tư vấn đều dùng useEffect và gọi API
-    // workingSlots: Định nghĩa các khung giờ làm việc của coach
-    // generateTimeSlots: Tạo các khung giờ có thể đặt dựa trên workingSlots
+    // Quản lý trạng thái hiển thị modal đặt lịch
     const [isModalVisible, setIsModalVisible] = useState(false);
+    // Lưu coach được chọn để đặt lịch
     const [selectedCoach, setSelectedCoach] = useState(null);
+    // Lưu lịch sử các buổi tư vấn của user
     const [appointments, setAppointments] = useState([]);
+    // Form Ant Design để nhập thông tin đặt lịch
     const [form] = Form.useForm();
+    // Danh sách các coach lấy từ API
     const [coaches, setCoaches] = useState([]);
+    // Danh sách các lịch đã đặt của coach (dùng để kiểm tra trùng lịch)
     const [coachAppointments, setCoachAppointments] = useState([]);
+    // Ngày được chọn để đặt lịch
     const [selectedDate, setSelectedDate] = useState(null);
+    // Lấy userId từ localStorage
     const userId = localStorage.getItem('userId');
+    // Dùng để chuyển trang khi tham gia phòng tư vấn
     const navigate = useNavigate();
 
+    // Khi bấm nút "Đặt Lịch Tư Vấn" trên coach, mở modal và lưu coach được chọn
     const handleBooking = (coach) => {
         setSelectedCoach(coach);
         setIsModalVisible(true);
     };
 
+    // Hàm gửi yêu cầu đặt lịch lên API
     const bookConsultation = async (data) => {
         return axiosClient.post('/api/consultations/request', data);
     };
 
+    // Hàm lấy lịch sử các buổi tư vấn của user từ API
     const fetchUserConsultations = async (userId) => {
         return axiosClient.get(`/api/consultations/user/${userId}`);
     };
 
+    // Khi component mount, lấy lịch sử tư vấn của user và cập nhật liên tục mỗi 3 giây
     useEffect(() => {
         if (!userId) return;
-        // Gọi ngay khi mount
+        // Lấy lịch sử ngay khi vào trang
         fetchUserConsultations(userId).then(res => setAppointments(res.data));
 
-        // Polling mỗi 3 giây
+        // Polling: Cứ 3 giây lại gọi API để cập nhật trạng thái lịch
         const interval = setInterval(() => {
             fetchUserConsultations(userId).then(res => setAppointments(res.data));
         }, 3000);
 
+        // Clear interval khi unmount
         return () => clearInterval(interval);
     }, [userId]);
 
     // Fetch danh sách coach từ API khi load trang
+    // Khi load trang, lấy danh sách coach từ API
     useEffect(() => {
         axiosClient.get('/api/coaches/all')
             .then(res => setCoaches(res.data))
@@ -253,6 +253,7 @@ const Consultation = () => {
     }, []);
 
     // Fetch all appointments for selected coach and selected date
+    // Khi mở modal đặt lịch và đã chọn coach + ngày, lấy danh sách lịch đã đặt của coach để kiểm tra trùng lịch
     useEffect(() => {
         if (isModalVisible && selectedCoach && selectedDate) {
             axiosClient.get(`/api/consultations/coach/${selectedCoach.coachId}`)
@@ -262,6 +263,7 @@ const Consultation = () => {
     }, [isModalVisible, selectedCoach, selectedDate]);
 
     // Helper to get booked time slots for selected date
+    // Hàm lấy các khung giờ đã được đặt trong ngày (để disable khi chọn giờ)
     const getBookedSlots = (date) => {
         if (!date) return [];
         const dateStr = date.format('YYYY-MM-DD');
@@ -270,29 +272,18 @@ const Consultation = () => {
             .map(app => dayjs(app.scheduledTime).format('HH:mm'));
     };
 
-    // Helper để lấy endTime lớn nhất trong ngày
-    const getMaxEndTime = (date) => {
-        if (!date) return null;
-        const dateStr = date.format('YYYY-MM-DD');
-        let maxEndTime = null;
-        (coachAppointments || []).forEach(app => {
-            if (dayjs(app.scheduledTime).format('YYYY-MM-DD') === dateStr && app.endTime) {
-                const end = dayjs(app.endTime);
-                if (!maxEndTime || end.isAfter(maxEndTime)) {
-                    maxEndTime = end;
-                }
-            }
-        });
-        return maxEndTime;
-    };
 
+    // Xử lý khi người dùng bấm "Xác Nhận Đặt Lịch" trong modal
     const handleModalOk = () => {
         form.validateFields().then(values => {
+            // Lấy thông tin coach, ngày, giờ từ form
             const coachId = selectedCoach.coachId;
             const dateStr = values.date.format('YYYY-MM-DD');
             const timeStr = values.time;
+            // Ghép ngày và giờ thành scheduledTime chuẩn ISO
             const scheduledTime = dayjs(`${dateStr}T${timeStr}`).format('YYYY-MM-DDTHH:mm');
 
+            // Gửi yêu cầu đặt lịch lên API
             bookConsultation({
                 userId,
                 coachId,
@@ -300,12 +291,14 @@ const Consultation = () => {
                 notes: values.notes || ''
             })
                 .then(() => {
+                    // Nếu thành công, đóng modal, reset form, cập nhật lại lịch sử
                     message.success('Đặt lịch tư vấn thành công!');
                     setIsModalVisible(false);
                     form.resetFields();
                     fetchUserConsultations(userId).then(res => setAppointments(res.data));
                 })
                 .catch((err) => {
+                    // Nếu lỗi, hiển thị thông báo lỗi chi tiết
                     let errorMsg = 'Đặt lịch thất bại!';
                     if (err?.response?.data?.message) {
                         errorMsg = err.response.data.message;
@@ -317,6 +310,7 @@ const Consultation = () => {
         });
     };
 
+    // Xử lý khi người dùng bấm "Hủy" trong modal đặt lịch
     const handleModalCancel = () => {
         setIsModalVisible(false);
         form.resetFields();
@@ -482,18 +476,27 @@ const Consultation = () => {
                         >
                             <Select placeholder="Chọn giờ tư vấn" disabled={!selectedDate}>
                                 {(() => {
+                                    // Lấy ngày người dùng chọn
                                     const date = selectedDate;
+                                    // Lấy danh sách các khung giờ đã có người đặt trong ngày đó
                                     const booked = getBookedSlots(date);
+                                    // Các khung giờ cố định để đặt lịch tư vấn
                                     const fixedSlots = ['07:00', '09:30', '12:30', '15:00'];
+                                    // Lấy thời gian hiện tại
                                     const now = dayjs();
+                                    // Kiểm tra xem ngày chọn có phải là hôm nay không
                                     const isToday = date && date.isSame(now, 'day');
+                                    // Duyệt qua từng khung giờ cố định để tạo Option cho Select
                                     return fixedSlots.map(slot => {
+                                        // Kiểm tra slot này đã có người đặt chưa
                                         const isBooked = booked.includes(slot);
-                                        // Nếu là hôm nay và giờ hiện tại đã qua slot thì disable
+                                        // Nếu là hôm nay và giờ hiện tại đã qua slot thì không cho đặt nữa (disable)
                                         const slotTime = date ? dayjs(date.format('YYYY-MM-DD') + 'T' + slot) : null;
                                         const isPast = isToday && slotTime && now.isAfter(slotTime);
+                                        // Tạo Option cho Select, nếu slot đã có người đặt hoặc đã qua giờ thì disable
                                         return (
                                             <Option value={slot} key={slot} disabled={isBooked || isPast}>
+                                                {/* Hiển thị slot, nếu đã có người đặt hoặc đã qua giờ thì ghi chú lý do */}
                                                 {slot} {isBooked ? '(Đã có người đặt)' : isPast ? '(Đã qua giờ)' : ''}
                                             </Option>
                                         );

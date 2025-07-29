@@ -194,74 +194,98 @@ const styles = {
 };
 
 // Helpers
+// Hàm lấy vai trò của người dùng từ localStorage
 const getRole = () => {
-  const role = localStorage.getItem('userRole');
-  if (role === 'coach') return 'coach';
-  if (role === 'member') return 'member';
-  return 'user';
+  const role = localStorage.getItem('userRole'); // Lấy userRole
+  if (role === 'coach') return 'coach'; // Nếu là coach
+  if (role === 'member') return 'member'; // Nếu là member
+  return 'user'; // Mặc định là user
 };
 
+// Hàm lấy tên hiển thị của người ở phía bên kia cuộc gọi
 const getDisplayName = () => {
   const role = getRole();
   if (role === 'coach') {
+    // Nếu là coach thì hiển thị tên khách hàng
     return localStorage.getItem('userName') || 'Khách hàng';
   } else {
+    // Nếu là member thì hiển thị tên huấn luyện viên
     return localStorage.getItem('coachName') || 'Huấn luyện viên';
   }
 };
 
+// Hàm lấy tiêu đề cho phòng gọi dựa vào vai trò
 const getTitle = () => {
   const role = getRole();
   if (role === 'coach') return 'Cuộc tư vấn trực tiếp với Khách hàng';
   return 'Cuộc tư vấn trực tiếp với Huấn luyện viên';
 };
 
+// Component chính quản lý phòng gọi Agora
 const AgoraRoom = () => {
-  // Trang này dùng để thực hiện cuộc gọi video trực tuyến giữa coach và khách hàng
-  // Sử dụng AgoraRTC để kết nối phòng gọi, quản lý mic/cam, hiển thị video
-  // State quản lý trạng thái mic, cam, trạng thái kết nối, thời lượng cuộc gọi, feedback sau cuộc gọi
-  // Khi kết thúc cuộc gọi, khách hàng có thể gửi đánh giá về chất lượng tư vấn
-  // Các hàm handleToggleMic, handleToggleCam, handleEndCall, handleSubmitFeedback xử lý logic tương tác
+  // Lấy consultationId từ URL
   const { consultationId } = useParams();
 
-  const uid = localStorage.getItem('userId'); // LẤY uid TỪ LOCALSTORAGE, KHÔNG lấy từ query string!
+  // Lấy uid từ localStorage (id của người dùng hiện tại)
+  const uid = localStorage.getItem('userId');
 
+  // State lưu thông tin token phòng gọi (từ backend trả về)
   const [tokenData, setTokenData] = useState(null);
+  // State loading khi đang lấy token hoặc join phòng
   const [loading, setLoading] = useState(true);
+  // State hiệu ứng hover cho nút kết thúc
   const [btnHover, setBtnHover] = useState(false);
+  // State trạng thái mic (bật/tắt)
   const [micOn, setMicOn] = useState(true);
+  // State trạng thái camera (bật/tắt)
   const [camOn, setCamOn] = useState(true);
+  // State kiểm tra đã có người ở phía bên kia join chưa
   const [remoteJoined, setRemoteJoined] = useState(false);
+  // State tên hiển thị của người ở phía bên kia
   const [remoteName, setRemoteName] = useState(getDisplayName());
+  // State hiển thị modal đánh giá sau khi kết thúc cuộc gọi
   const [showModal, setShowModal] = useState(false);
+  // State lưu thời lượng cuộc gọi (tính bằng giây)
   const [callDuration, setCallDuration] = useState(0);
+  // State lưu nội dung feedback
   const [feedback, setFeedback] = useState('');
+  // State lưu số sao đánh giá
   const [feedbackRating, setFeedbackRating] = useState(5);
+  // State trạng thái đang gửi feedback
   const [submitting, setSubmitting] = useState(false);
+  // Ref lưu thời điểm bắt đầu cuộc gọi
   const callStartTime = useRef(null);
+  // Ref cho video của người ở phía bên kia
   const remoteVideoRef = useRef(null);
+  // Ref cho video của mình (PiP)
   const pipVideoRef = useRef(null);
+  // Ref cho client Agora
   const clientRef = useRef(null);
+  // Ref cho các track audio/video của mình
   const localTracks = useRef({});
 
+  // Hook điều hướng trang
   const navigate = useNavigate();
 
+  // Lấy vai trò hiện tại
   const role = getRole();
 
+  // useEffect: Khi component mount, gọi API lấy token phòng gọi
   useEffect(() => {
     if (!uid) {
+      // Nếu không có userId thì báo lỗi và quay lại trang trước
       console.error('Không xác định userId! Vui lòng đăng nhập lại.');
-
       navigate(-1);
       return;
     }
+    // Gọi API lấy token phòng gọi cho cuộc tư vấn này
     axiosClient.get(`/api/consultations/${consultationId}/agora-token?uid=${uid}`)
       .then(res => {
-        setTokenData(res.data);
-        setLoading(false);
-        callStartTime.current = Date.now();
+        setTokenData(res.data); // Lưu token vào state
+        setLoading(false); // Tắt loading
+        callStartTime.current = Date.now(); // Lưu thời điểm bắt đầu gọi
 
-        // LOG
+        // Log thông tin token để debug
         console.log('[Agora FE] Nhận token:', {
           channelName: res.data.channelName,
           token: res.data.token,
@@ -270,55 +294,61 @@ const AgoraRoom = () => {
 
       })
       .catch(() => {
+        // Nếu lỗi thì báo và quay lại trang trước
         console.error('Không lấy được token phòng!');
         navigate(-1);
       });
   }, [consultationId, uid, navigate]);
 
-  // Join phòng Agora
+  // useEffect: Khi đã có token phòng gọi, tiến hành join phòng Agora
   useEffect(() => {
-    if (!tokenData) return;
+    if (!tokenData) return; // Nếu chưa có token thì không làm gì
     const join = async () => {
+      // Tạo client Agora
       clientRef.current = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
       try {
-
-        // LOG
+        // Log thông tin join phòng để debug
         console.log('[Agora FE] Join phòng:', {
           appId, channelName: tokenData.channelName, token: tokenData.token, uid: Number(uid)
         });
 
+        // Tham gia phòng với appId, channelName, token, uid
         await clientRef.current.join(appId, tokenData.channelName, tokenData.token, Number(uid));
+        // Tạo track audio và video từ thiết bị
         localTracks.current.audio = await AgoraRTC.createMicrophoneAudioTrack();
         localTracks.current.video = await AgoraRTC.createCameraVideoTrack();
+        // Publish track lên phòng
         await clientRef.current.publish([localTracks.current.audio, localTracks.current.video]);
+        // Hiển thị video của mình ở PiP
         localTracks.current.video.play(pipVideoRef.current);
 
+        // Khi có người ở phía bên kia publish media
         clientRef.current.on('user-published', async (user, mediaType) => {
-          await clientRef.current.subscribe(user, mediaType);
-          setRemoteJoined(true);
+          await clientRef.current.subscribe(user, mediaType); // Subscribe media
+          setRemoteJoined(true); // Đánh dấu đã có người join
           if (mediaType === 'video') {
-            user.videoTrack.play(remoteVideoRef.current);
+            user.videoTrack.play(remoteVideoRef.current); // Hiển thị video của người kia
           }
           if (mediaType === 'audio') {
-            user.audioTrack.play();
+            user.audioTrack.play(); // Phát audio của người kia
           }
         });
 
+        // Khi người kia tắt media hoặc rời phòng
         clientRef.current.on('user-unpublished', (user, mediaType) => {
-
           setRemoteJoined(false);
         });
         clientRef.current.on('user-left', () => {
           setRemoteJoined(false);
         });
       } catch (err) {
-
+        // Nếu lỗi join phòng (ví dụ trùng UID)
         console.error('Không thể tham gia phòng! Có thể bạn đang bị trùng UID.', err);
-
       }
     };
     join();
 
+    // Cleanup: đóng track và rời phòng khi unmount
     return () => {
       if (localTracks.current.audio) localTracks.current.audio.close();
       if (localTracks.current.video) localTracks.current.video.close();
@@ -327,25 +357,29 @@ const AgoraRoom = () => {
   }, [tokenData, uid]);
 
 
-  // Toggle mic/cam
-
+  // Hàm bật/tắt micro
   const handleToggleMic = () => {
     if (localTracks.current.audio) {
       if (micOn) {
+        // Nếu đang bật thì tắt
         localTracks.current.audio.setEnabled(false);
         setMicOn(false);
       } else {
+        // Nếu đang tắt thì bật
         localTracks.current.audio.setEnabled(true);
         setMicOn(true);
       }
     }
   };
+  // Hàm bật/tắt camera
   const handleToggleCam = () => {
     if (localTracks.current.video) {
       if (camOn) {
+        // Nếu đang bật thì tắt
         localTracks.current.video.setEnabled(false);
         setCamOn(false);
       } else {
+        // Nếu đang tắt thì bật
         localTracks.current.video.setEnabled(true);
         setCamOn(true);
       }
@@ -353,19 +387,21 @@ const AgoraRoom = () => {
   };
 
 
-  // Kết thúc cuộc gọi
-
+  // Hàm kết thúc cuộc gọi
   const handleEndCall = () => {
-    const end = Date.now();
-    const duration = Math.floor((end - (callStartTime.current || end)) / 1000);
-    setCallDuration(duration);
+    const end = Date.now(); // Lấy thời điểm kết thúc
+    const duration = Math.floor((end - (callStartTime.current || end)) / 1000); // Tính thời lượng cuộc gọi (giây)
+    setCallDuration(duration); // Lưu vào state
 
+    // Đóng các track audio/video và rời phòng
     if (localTracks.current.audio) localTracks.current.audio.close();
     if (localTracks.current.video) localTracks.current.video.close();
     if (clientRef.current) clientRef.current.leave();
+    // Nếu là member thì hiện modal đánh giá
     if (role === 'member') {
       setShowModal(true);
     } else {
+      // Nếu là coach hoặc user thì chuyển về trang lịch tư vấn
       if (role === 'coach') {
         navigate('/coach/consultation');
       } else {
@@ -374,27 +410,32 @@ const AgoraRoom = () => {
     }
   };
 
+  // Hàm gửi đánh giá sau khi kết thúc cuộc gọi
   const handleSubmitFeedback = async () => {
-    setSubmitting(true);
+    setSubmitting(true); // Đánh dấu đang gửi
     try {
+      // Gọi API gửi feedback cho cuộc tư vấn
       await axiosClient.post(`/api/consultations/${consultationId}/finish`, {
         feedback,
         feedbackRating,
       });
-      setShowModal(false);
+      setShowModal(false); // Đóng modal
+      // Sau khi gửi xong, chuyển về trang lịch tư vấn
       if (role === 'coach') {
         navigate('/coach/consultation');
       } else {
         navigate('/users/consultation');
       }
     } catch (error) {
+      // Nếu lỗi thì log ra
       console.error('Lỗi gửi feedback:', error);
     } finally {
-      setSubmitting(false);
+      setSubmitting(false); // Kết thúc trạng thái gửi
     }
   };
 
 
+  // Hàm format thời lượng cuộc gọi sang dạng "x phút y giây"
   const formatDuration = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
