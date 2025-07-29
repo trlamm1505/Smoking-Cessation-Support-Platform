@@ -12,7 +12,7 @@ const { Title, Text } = Typography;
 const Container = styled.div`
   padding: 24px;
   background: white;
-  border-radius: 16px;
+  border-radius: 16px; 
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 `;
 
