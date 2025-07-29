@@ -50,8 +50,10 @@ public class UserService {
     private static final Long ADMIN_USER_ID = 3L;
 
     /**
-     * Cập nhật role nếu user member bị hết hạn,
-     * Tuyệt đối KHÔNG động vào admin/coach (để nguyên role này)
+     * [ROLE EXPIRE LOGIC]
+     * Kiểm tra nếu user là member mà hết hạn thanh toán thì chuyển về guest, cập nhật trạng thái payment thành expired.
+     * Không bao giờ can thiệp quyền admin/coach (chỉ đổi guest/member).
+     * - Gọi ở nhiều nơi khi xác thực hoặc khi kiểm tra quyền.
      */
     public void updateUserRoleIfExpired(User user) {
         String role = user.getRole();
@@ -69,7 +71,7 @@ public class UserService {
             if (latestPayment != null) {
                 LocalDate renewalDate = latestPayment.getRenewalDate(); // ngày hết hạn + 1
 
-                // Nếu ngày hiện tại đã sau renewalDate
+                // Nếu ngày hiện tại đã sau renewalDate thì account bị hạ quyền
                 if (renewalDate != null && now.isAfter(renewalDate)) {
                     // 1. Chuyển role user về guest, reset trường gói
                     user.setRole("guest");
@@ -87,17 +89,24 @@ public class UserService {
     }
 
     // ======== ĐĂNG KÝ TÀI KHOẢN VỚI OTP ========
+    /**
+     * Đăng ký tài khoản mới bằng OTP:
+     *  - Nếu email/username đã tồn tại thì báo lỗi.
+     *  - Lưu thông tin user tạm vào Token (trạng thái chưa xác minh, enabled=false).
+     *  - Sinh mã OTP gửi về email, lưu vào DB, hết hạn sau 10 phút.
+     */
     public void registerUserWithOtp(User user) {
         if (isUsernameExists(user.getUsername()) || isEmailExists(user.getEmail())) {
             throw new IllegalArgumentException("Username or Email already exists!");
         }
-        user.setEnabled(false);
+        user.setEnabled(false); // Chưa xác minh thì chưa được login
         user.setRegistrationDate(LocalDateTime.now());
         // Mặc định role guest nếu chưa set
         if (user.getRole() == null || user.getRole().isEmpty()) {
             user.setRole("guest");
         }
 
+        // Chuyển user sang JSON lưu trong token tạm
         String userJson;
         try {
             userJson = objectMapper.writeValueAsString(user);
@@ -106,6 +115,7 @@ public class UserService {
         }
 
         String otp = generateOtp();
+        // Nếu có OTP cũ thì xóa để tránh trùng
         tokenRepository.findByEmailAndType(user.getEmail(), "REGISTER_OTP")
                 .ifPresent(tokenRepository::delete);
 
@@ -117,9 +127,17 @@ public class UserService {
         vt.setType("REGISTER_OTP");
         tokenRepository.save(vt);
 
+        // Gửi email OTP (dùng chung hàm với reset password)
         emailService.sendOtpResetPassword(user.getEmail(), otp);
     }
 
+    /**
+     * Xác minh mã OTP để hoàn tất đăng ký tài khoản.
+     * Nếu OTP đúng và chưa hết hạn:
+     *   - Lưu user thật vào DB, bật enabled.
+     *   - Gửi thông báo chào mừng cho user mới và thông báo cho admin có user mới.
+     * Nếu sai OTP/hết hạn: xóa token, trả false.
+     */
     public boolean verifyOtpAndRegister(String email, String otp) {
         Optional<Token> vtOpt = tokenRepository.findByEmailAndType(email, "REGISTER_OTP");
         if (vtOpt.isEmpty()) return false;
@@ -136,11 +154,11 @@ public class UserService {
                 tokenRepository.delete(vt);
                 return false;
             }
-            user.setEnabled(true);
+            user.setEnabled(true); // Sau khi xác minh OTP thì mới cho login
             User savedUser = userRepository.save(user);
             tokenRepository.delete(vt);
 
-            // ==== GỬI THÔNG BÁO: ĐĂNG KÝ THÀNH CÔNG (NotificationService, NotificationRequestDTO) ====
+            // ==== GỬI THÔNG BÁO: ĐĂNG KÝ THÀNH CÔNG ====
             NotificationRequestDTO notiUser = new NotificationRequestDTO();
             notiUser.setRecipientId(savedUser.getUserId());
             notiUser.setTitle("Chào mừng bạn đến với hệ thống!");
@@ -166,12 +184,20 @@ public class UserService {
     }
 
     // ======== OTP ĐỔI MẬT KHẨU ========
+
+    /**
+     * Sinh ngẫu nhiên OTP 4 số cho xác thực
+     */
     private String generateOtp() {
         Random random = new Random();
         int otp = 1000 + random.nextInt(9000);
         return String.valueOf(otp);
     }
 
+    /**
+     * Gửi OTP đổi mật khẩu về email:
+     * - Xóa OTP cũ nếu có, tạo token mới, lưu newPassword vào userInfo
+     */
     public boolean sendPasswordResetOtp(String email, String newPassword) {
         User user = userRepository.findByEmail(email);
         if (user == null) return false;
@@ -192,6 +218,11 @@ public class UserService {
         return true;
     }
 
+    /**
+     * Xác minh OTP đổi mật khẩu:
+     * - Đúng OTP và chưa hết hạn thì cập nhật passwordHash của user.
+     * - Xóa token OTP sau khi dùng.
+     */
     public boolean verifyOtpAndResetPassword(String email, String otp) {
         Optional<Token> vtOpt = tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP");
         if (vtOpt.isEmpty()) return false;
@@ -208,7 +239,7 @@ public class UserService {
             return false;
         }
 
-        user.setPasswordHash(vt.getUserInfo());
+        user.setPasswordHash(vt.getUserInfo()); // newPassword đã lưu tạm ở userInfo
         userRepository.save(user);
 
         tokenRepository.delete(vt);
@@ -217,10 +248,19 @@ public class UserService {
 
     // ============= CRUD USER CƠ BẢN =============
 
+    /**
+     * Lấy tất cả user trong hệ thống
+     */
     public List<User> getAllUsers() { return userRepository.findAll(); }
 
+    /**
+     * Lấy user theo id (hoặc null nếu không tồn tại)
+     */
     public User getUserById(Long id) { return userRepository.findById(id).orElse(null); }
 
+    /**
+     * Tạo mới một user (dùng cho admin)
+     */
     public User createNewUser(User user) {
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
             user.setUsername(user.getEmail());
@@ -231,6 +271,10 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    /**
+     * Cập nhật thông tin user dựa trên id (nếu tồn tại)
+     * - Đồng bộ luôn profile Coach nếu role là coach.
+     */
     public User updateUserById(Long id, User updatedUser) {
         return userRepository.findById(id)
                 .map(user -> {
@@ -283,6 +327,9 @@ public class UserService {
                 .orElse(null);
     }
 
+    /**
+     * Xóa cứng user theo id (admin dùng)
+     */
     public boolean deleteUserById(Long id) {
         return userRepository.findById(id)
                 .map(user -> {
@@ -292,26 +339,44 @@ public class UserService {
                 .orElse(false);
     }
 
+    /**
+     * Tìm user theo username
+     */
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
+    /**
+     * Tìm user theo email
+     */
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
+    /**
+     * Lấy danh sách user theo role
+     */
     public List<User> getUsersByRole(String role) {
         return userRepository.findByRole(role);
     }
 
+    /**
+     * Kiểm tra username đã tồn tại chưa
+     */
     public boolean isUsernameExists(String username) {
         return userRepository.existsByUsername(username);
     }
 
+    /**
+     * Kiểm tra email đã tồn tại chưa
+     */
     public boolean isEmailExists(String email) {
         return userRepository.existsByEmail(email);
     }
 
+    /**
+     * Cập nhật ngày đăng nhập gần nhất (lastLoginDate)
+     */
     public void updateLastLoginDate(Long userId) {
         userRepository.findById(userId)
                 .ifPresent(user -> {
@@ -320,6 +385,9 @@ public class UserService {
                 });
     }
 
+    /**
+     * Đổi mật khẩu trực tiếp theo userId (dùng cho reset mật khẩu admin)
+     */
     public boolean updatePassword(Long userId, String newPasswordHash) {
         return userRepository.findById(userId)
                 .map(user -> {
@@ -330,6 +398,9 @@ public class UserService {
                 .orElse(false);
     }
 
+    /**
+     * Kiểm tra định dạng email đúng chuẩn
+     */
     public boolean isValidEmail(String email) {
         return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     }
@@ -392,7 +463,10 @@ public class UserService {
         return true;
     }
 
-    // Đổi mật khẩu với xác nhận cũ
+    /**
+     * Đổi mật khẩu với xác nhận cũ
+     * (Trả về false nếu mật khẩu hiện tại nhập sai)
+     */
     public boolean updatePassword(Long userId, String currentPassword, String newPassword) {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isEmpty()) return false;
@@ -453,17 +527,23 @@ public class UserService {
         return true;
     }
 
-    // Lấy tất cả user còn hoạt động
+    /**
+     * Lấy tất cả user còn hoạt động (enabled=true)
+     */
     public List<User> getAllActiveUsers() {
         return userRepository.findAllByEnabledTrue();
     }
 
-    // Lấy user hoạt động theo id
+    /**
+     * Lấy user hoạt động theo id (enabled=true)
+     */
     public User getActiveUserById(Long id) {
         return userRepository.findByUserIdAndEnabledTrue(id);
     }
 
-    // Xóa mềm user (set enabled = false)
+    /**
+     * Xóa mềm user (set enabled=false, giữ lại dữ liệu)
+     */
     public boolean softDeleteUserById(Long id) {
         return userRepository.findById(id)
                 .map(user -> {
@@ -488,7 +568,7 @@ public class UserService {
 
 
     //===================================
-    // Lấy tất cả user đã xóa
+    // Lấy tất cả user đã xóa (enabled=false)
     public List<User> getAllDeletedUsers() {
         return userRepository.findAllByEnabledFalse();
     }
