@@ -34,6 +34,15 @@ import GuestHome from '../source/page/Guest/Home'
 import GuestBlog from '../source/page/Guest/Blog'
 import RequirePremiumNotice from '../source/page/Guest/RequirePremiumNotice'
 
+
+
+
+ {/* TAO THÊM CÁI NÀY NÈ*/}
+import PaymentStatus from '../source/page/PaymentStatus';
+
+
+
+
 // Guest Components
 import GuestProfile from '../source/page/Guest/Profile'
 import GuestPremium from '../source/page/Guest/Premium'
@@ -118,6 +127,21 @@ export default function AppRouter() {
       <Route path="agora-room/:consultationId" element={<AgoraRoom />} />
 
       {/* Error Route */}
+      
+
+
+
+
+
+      
+      {/* TAO THÊM CÁI NÀY NÈ*/}
+      <Route path="/payment-status" element={<PaymentStatus />} />
+
+
+
+
+
+
       <Route path='*' element={<Error />} />
     </Routes>
   )

@@ -8,7 +8,7 @@ const userApi = {
     put: (id, data) => axiosClient.put(`/api/user/${id}`, data),
 
     // Xóa user theo id - xóa cứng khỏi database
-    delete: (id) => axiosClient.delete(`/api/user/soft/${id}?hardDelete=true`),
+    delete: (id) => axiosClient.delete(`/api/user/${id}?hardDelete=true`),
 
     // Cập nhật profile (POST)
     updateProfile: (data) => axiosClient.post('/update-profile', data),
@@ -17,7 +17,7 @@ const userApi = {
     changePassword: (data) => axiosClient.post('/change-password', data),
 
     // Lấy danh sách user
-    getAll: () => axiosClient.get('/api/user/active'),
+    getAll: () => axiosClient.get('/api/user'),
 
     // Tạo user mới
     create: (data) => axiosClient.post('/api/user', data),

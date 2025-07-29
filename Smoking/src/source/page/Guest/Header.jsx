@@ -3,6 +3,8 @@ import { Badge } from 'antd';
 import { BellOutlined, UserOutlined } from '@ant-design/icons';
 import { Link } from 'react-router';
 import styled from 'styled-components';
+import Notification from './../Users/Notification';
+import axiosClient from '../Axios/AxiosCLients';
 
 const HeaderContainer = styled.header`
   background: white;
@@ -59,6 +61,28 @@ const NavIcons = styled.div`
 `;
 
 const Header = () => {
+  const [notiOpen, setNotiOpen] = React.useState(false);
+  const [unreadCount, setUnreadCount] = React.useState(0);
+  const userId = localStorage.getItem('userId');
+
+  React.useEffect(() => {
+    if (!userId) return;
+    axiosClient.get(`/api/notifications/unread-count/${userId}`)
+      .then(res => setUnreadCount(res.data.unreadCount));
+
+    const interval = setInterval(() => {
+      axiosClient.get(`/api/notifications/unread-count/${userId}`)
+        .then(res => setUnreadCount(res.data.unreadCount));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [userId]);
+
+  const updateUnreadCount = () => {
+    axiosClient.get(`/api/notifications/unread-count/${userId}`)
+      .then(res => setUnreadCount(res.data.unreadCount));
+  };
+
   return (
     <HeaderContainer>
       <Logo to="/guest/home">
@@ -67,15 +91,33 @@ const Header = () => {
       </Logo>
 
       <NavIcons>
-        <Link to="/guest/premium-notice">
-          <Badge count={2} style={{ backgroundColor: '#5FB8B3' }}>
-            <BellOutlined />
+        <button
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            position: 'relative',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+          onClick={() => setNotiOpen((open) => !open)}
+          aria-label="Thông báo"
+        >
+          <Badge count={Number(unreadCount)} showZero style={{ backgroundColor: '#5FB8B3' }}>
+            <BellOutlined style={{ color: notiOpen ? '#5FB8B3' : '#666' }} />
           </Badge>
-        </Link>
+        </button>
         <Link to="/guest/profile">
           <UserOutlined />
         </Link>
       </NavIcons>
+      <Notification
+        visible={notiOpen}
+        onClose={() => setNotiOpen(false)}
+        userId={userId}
+        onUpdateUnreadCount={updateUnreadCount}
+      />
     </HeaderContainer>
   );
 };
