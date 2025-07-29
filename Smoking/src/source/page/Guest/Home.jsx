@@ -440,7 +440,7 @@ const Home = () => {
 
     // Xử lý dữ liệu stages thành các giai đoạn (dùng stageName, goal, đếm số ngày, số ngày đã hoàn thành)
     const stageProgress = React.useMemo(() => {
-        if (!stages || stages.length === 0 || !plan) return [];
+        if (!Array.isArray(stages) || stages.length === 0 || !plan) return [];
         // Nhóm theo stageOrder
         const grouped = {};
         stages.forEach(item => {
@@ -476,7 +476,7 @@ const Home = () => {
 
     // Tạo phaseInfos từ stages (giống DetailedSchedule.jsx)
     const phaseInfos = phases.map((phase) => {
-        const tasksOfPhase = stages.filter(t => t.stageName === phase.title);
+        const tasksOfPhase = Array.isArray(stages) ? stages.filter(t => t.stageName === phase.title) : [];
         const goal = tasksOfPhase[0]?.goal || phase.description;
         const days = tasksOfPhase.length;
         return { ...phase, goal, days };

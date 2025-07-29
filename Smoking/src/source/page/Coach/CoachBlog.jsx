@@ -391,7 +391,6 @@ const CoachBlog = () => {
             excerpt: article.excerpt,
             category: article.category,
             tags: article.tags,
-            status: article.status,
             featuredImageURL: article.featuredImageURL,
         });
         setIsEditModalVisible(true);
@@ -423,74 +422,74 @@ const CoachBlog = () => {
     const renderArticleCard = (article) => {
         // Kiểm tra xem bài viết có phải của coach hiện tại không
         const isMyArticle = article.authorId === currentCoachId;
-        
+
         return (
-        <Col xs={24} md={8} style={{ marginBottom: 24 }} key={article.postId || article.id}>
-            <ArticleCard
-                cover={<img alt={article.title} src={article.featuredImageURL || 'https://source.unsplash.com/random/800x400/?blog'} />}
-                actions={isMyArticle ? [
-                    <Button
-                        size="small"
-                        icon={<EditOutlined />}
-                        style={{
-                            background: '#e6f7ff',
-                            color: '#1890ff',
-                            border: 'none',
-                            borderRadius: 16,
-                            fontWeight: 600,
-                            padding: '0 18px',
-                            boxShadow: '0 2px 8px #1890ff22',
-                        }}
-                        onClick={() => handleOpenEditModal(article)}
-                        key="edit"
-                    >
-                        Sửa
-                    </Button>,
-                    <Button
-                        size="small"
-                        icon={<DeleteOutlined />}
-                        style={{
-                            background: '#fff1f0',
-                            color: '#ff4d4f',
-                            border: 'none',
-                            borderRadius: 16,
-                            fontWeight: 600,
-                            padding: '0 18px',
-                            boxShadow: '0 2px 8px #ff4d4f22',
-                        }}
-                        onClick={() => handleDeleteArticle(article.postId || article.id)}
-                        key="delete"
-                    >
-                        Xoá
-                    </Button>,
-                ] : []}
-            >
-                <CategoryLabel color={categories.find(cat => cat.key === article.category)?.color}>
-                    {categories.find(cat => cat.key === article.category)?.label || article.category}
-                </CategoryLabel>
+            <Col xs={24} md={8} style={{ marginBottom: 24 }} key={article.postId || article.id}>
+                <ArticleCard
+                    cover={<img alt={article.title} src={article.featuredImageURL || 'https://source.unsplash.com/random/800x400/?blog'} />}
+                    actions={isMyArticle ? [
+                        <Button
+                            size="small"
+                            icon={<EditOutlined />}
+                            style={{
+                                background: '#e6f7ff',
+                                color: '#1890ff',
+                                border: 'none',
+                                borderRadius: 16,
+                                fontWeight: 600,
+                                padding: '0 18px',
+                                boxShadow: '0 2px 8px #1890ff22',
+                            }}
+                            onClick={() => handleOpenEditModal(article)}
+                            key="edit"
+                        >
+                            Sửa
+                        </Button>,
+                        <Button
+                            size="small"
+                            icon={<DeleteOutlined />}
+                            style={{
+                                background: '#fff1f0',
+                                color: '#ff4d4f',
+                                border: 'none',
+                                borderRadius: 16,
+                                fontWeight: 600,
+                                padding: '0 18px',
+                                boxShadow: '0 2px 8px #ff4d4f22',
+                            }}
+                            onClick={() => handleDeleteArticle(article.postId || article.id)}
+                            key="delete"
+                        >
+                            Xoá
+                        </Button>,
+                    ] : []}
+                >
+                    <CategoryLabel color={categories.find(cat => cat.key === article.category)?.color}>
+                        {categories.find(cat => cat.key === article.category)?.label || article.category}
+                    </CategoryLabel>
 
-                <ArticleTitle>{article.title}</ArticleTitle>
+                    <ArticleTitle>{article.title}</ArticleTitle>
 
-                <AuthorInfo>
-                    <div className="author-details">
-                        <div className="author-name">{article.authorName || 'Coach'}</div>
-                        <div className="author-title">Coach</div>
-                    </div>
-                </AuthorInfo>
+                    <AuthorInfo>
+                        <div className="author-details">
+                            <div className="author-name">{article.authorName || 'Coach'}</div>
+                            <div className="author-title">Coach</div>
+                        </div>
+                    </AuthorInfo>
 
-                <ArticleMeta>
-                    <Space>
-                        <CalendarOutlined /> {article.publishDate ? new Date(article.publishDate).toLocaleDateString('vi-VN') : ''}
-                    </Space>
+                    <ArticleMeta>
+                        <Space>
+                            <CalendarOutlined /> {article.publishDate ? new Date(article.publishDate).toLocaleDateString('vi-VN') : ''}
+                        </Space>
 
-                    <Text>{article.readTime || ''}</Text>
-                </ArticleMeta>
+                        <Text>{article.readTime || ''}</Text>
+                    </ArticleMeta>
 
-                <ReadMoreButton onClick={() => handleReadMore(article)}>
-                    Đọc Thêm
-                </ReadMoreButton>
-            </ArticleCard>
-        </Col>
+                    <ReadMoreButton onClick={() => handleReadMore(article)}>
+                        Đọc Thêm
+                    </ReadMoreButton>
+                </ArticleCard>
+            </Col>
         );
     };
 
@@ -595,12 +594,6 @@ const CoachBlog = () => {
                         <Form.Item name="tags" label="Tags">
                             <Input placeholder="Nhập tags, cách nhau bởi dấu phẩy" />
                         </Form.Item>
-                        <Form.Item name="status" label="Trạng thái" initialValue="draft">
-                            <Select>
-                                <Option value="draft">Nháp</Option>
-                                <Option value="published">Công khai</Option>
-                            </Select>
-                        </Form.Item>
                         <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết (URL)" rules={[{ required: true, message: 'Vui lòng nhập URL ảnh đại diện!' }, { type: 'url', message: 'URL không hợp lệ!' }]}>
                             <Input placeholder="Nhập URL ảnh đại diện" />
                         </Form.Item>
@@ -644,12 +637,6 @@ const CoachBlog = () => {
                         </Form.Item>
                         <Form.Item name="tags" label="Tags">
                             <Input placeholder="Nhập tags, cách nhau bởi dấu phẩy" />
-                        </Form.Item>
-                        <Form.Item name="status" label="Trạng thái" initialValue="draft">
-                            <Select>
-                                <Option value="draft">Nháp</Option>
-                                <Option value="published">Công khai</Option>
-                            </Select>
                         </Form.Item>
                         <Form.Item name="featuredImageURL" label="Ảnh đại diện bài viết (URL)" rules={[{ required: true, message: 'Vui lòng nhập URL ảnh đại diện!' }, { type: 'url', message: 'URL không hợp lệ!' }]}>
                             <Input placeholder="Nhập URL ảnh đại diện" />

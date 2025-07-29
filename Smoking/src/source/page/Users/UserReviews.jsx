@@ -133,14 +133,44 @@ const UserReviews = () => {
 
     // Lấy danh sách coach thực tế
     useEffect(() => {
-        coachApi.getAll().then(res => {
-            // Giả sử mỗi coach có id: coachId hoặc id, tên: fullName hoặc name
-            setCoachesForReview((res.data || []).map(c => ({
-                id: c.coachId || c.id,
-                name: c.fullName || c.name || c.username || 'Coach',
-            })));
-        });
-    }, []);
+        const fetchConsultations = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/consultations/all');
+                const consultations = await response.json();
+
+                // Lọc consultations của user hiện tại
+                const userConsultations = consultations.filter(consultation => consultation.userId === userId);
+
+                // Lấy danh sách unique coaches đã tư vấn
+                const uniqueCoaches = [];
+                const coachMap = new Map();
+
+                userConsultations.forEach(consultation => {
+                    if (!coachMap.has(consultation.coachId)) {
+                        coachMap.set(consultation.coachId, {
+                            id: consultation.coachId,
+                            name: consultation.coachName || 'Coach',
+                            consultationId: consultation.consultationId
+                        });
+                        uniqueCoaches.push({
+                            id: consultation.coachId,
+                            name: consultation.coachName || 'Coach',
+                            consultationId: consultation.consultationId
+                        });
+                    }
+                });
+
+                setCoachesForReview(uniqueCoaches);
+            } catch (error) {
+                console.error('Error fetching consultations:', error);
+                message.error('Lỗi khi tải danh sách coach đã tư vấn');
+            }
+        };
+
+        if (userId) {
+            fetchConsultations();
+        }
+    }, [userId]);
 
     // Fetch feedbacks for system
     useEffect(() => {
@@ -345,12 +375,18 @@ const UserReviews = () => {
 
             {activeReviewType === 'coach' && (
                 <>
-                    <Button type="primary" style={{ marginBottom: 16 }} onClick={showModal} icon={<PlusOutlined />}>Gửi feedback mới</Button>
-            <AnimatedCard
+                    {coachesForReview.length > 0 ? (
+                        <Button type="primary" style={{ marginBottom: 16 }} onClick={showModal} icon={<PlusOutlined />}>Gửi feedback mới</Button>
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                            Bạn chưa có lịch tư vấn nào với huấn luyện viên. Vui lòng đặt lịch tư vấn trước khi gửi feedback.
+                        </div>
+                    )}
+                    <AnimatedCard
                         title={<span><UserOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử feedback Huấn luyện viên</span>}
                         style={{ borderRadius: 12 }}
-                delay="0.5s"
-            >
+                        delay="0.5s"
+                    >
                         <Table
                             columns={coachColumns}
                             dataSource={coachReviews
@@ -381,9 +417,11 @@ const UserReviews = () => {
                                 label="Chọn Huấn luyện viên"
                                 rules={[{ required: true, message: 'Vui lòng chọn huấn luyện viên!' }]}
                             >
-                                <Select placeholder="-- Chọn huấn luyện viên --">
+                                <Select placeholder="-- Chọn huấn luyện viên đã tư vấn --">
                                     {coachesForReview.map(coach => (
-                                        <Option key={coach.id} value={coach.id}>{coach.name}</Option>
+                                        <Option key={coach.id} value={coach.id}>
+                                            {coach.name}
+                                        </Option>
                                     ))}
                                 </Select>
                             </Form.Item>
@@ -418,30 +456,30 @@ const UserReviews = () => {
                             </Form.Item>
                         </Form>
                     </Modal>
-                        </>
-                    )}
+                </>
+            )}
 
             {activeReviewType === 'system' && (
                 <>
                     <Button type="primary" style={{ marginBottom: 16 }} onClick={showSystemModal} icon={<PlusOutlined />}>Gửi feedback hệ thống</Button>
-            <AnimatedCard
+                    <AnimatedCard
                         title={<span><AppstoreOutlined style={{ color: '#5FB8B3', marginRight: 8 }} />Lịch sử feedback hệ thống</span>}
-                style={{ borderRadius: 12 }}
-                delay="0.5s"
-            >
-                <Table
+                        style={{ borderRadius: 12 }}
+                        delay="0.5s"
+                    >
+                        <Table
                             columns={systemColumns}
                             dataSource={systemReviews
                                 .filter(fb => fb.targetType === 'system' && fb.userId === userId)
                                 .slice()
                                 .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                             }
-                    rowKey="id"
+                            rowKey="id"
                             loading={loading}
                             locale={{ emptyText: 'Chưa có feedback nào' }}
-                    pagination={{ pageSize: 5 }}
-                />
-            </AnimatedCard>
+                            pagination={{ pageSize: 5 }}
+                        />
+                    </AnimatedCard>
                     <Modal
                         title={editingSystemReview ? 'Sửa feedback hệ thống' : 'Gửi feedback hệ thống'}
                         open={isSystemModalVisible}
