@@ -357,14 +357,6 @@ const StyledBadgeButton = styled.button`
   }
 `;
 
-const getBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
-
 const slideUp = keyframes`
   from {
     opacity: 0;
@@ -390,11 +382,8 @@ const Community = () => {
   // AchievementBadge: Hiển thị các huy hiệu thành tích của người dùng
   // PostCard: Hiển thị từng bài viết với thông tin, thành tích, bình luận
   const [isPostModalVisible, setIsPostModalVisible] = useState(false);
-  const [postContent, setPostContent] = useState('');
   const [selectedAchievements, setSelectedAchievements] = useState([]);
-  const [postType, setPostType] = useState('general');
   const [postTitle, setPostTitle] = useState('');
-  const [uploadedImageFile, setUploadedImageFile] = useState([]);
   const [currentRole, setCurrentRole] = useState('user');
   const [currentComment, setCurrentComment] = useState('');
   const [likedPosts, setLikedPosts] = useState(new Set());
@@ -488,27 +477,9 @@ const Community = () => {
     }
   };
 
-  const handleUploadChange = async ({ fileList: newFileList }) => {
-    if (newFileList.length > 1) {
-      message.warning('Chỉ có thể tải lên 1 ảnh');
-      return;
-    }
-    setUploadedImageFile(newFileList);
-    if (newFileList.length > 0) {
-      const file = newFileList[0];
-      if (!file.url && !file.preview) {
-        try {
-          file.preview = await getBase64(file.originFileObj);
-        } catch (error) {
-          message.error('Lỗi khi xử lý ảnh');
-        }
-      }
-    }
-  };
-
   const handleCreatePost = async () => {
-    if (!postContent.trim() && selectedAchievements.length === 0 && (!['success_story', 'article', 'motivation', 'tip', 'question', 'general'].includes(postType) || (!postTitle.trim() && uploadedImageFile.length === 0))) {
-      message.error('Vui lòng chọn ít nhất 1 huy hiệu, nhập nội dung, hoặc nhập tiêu đề/ảnh cho bài viết!');
+    if (!postTitle.trim() && selectedAchievements.length === 0) {
+      message.error('Vui lòng chọn ít nhất 1 huy hiệu và nhập tiêu đề cho bài viết!');
       return;
     }
 
@@ -516,9 +487,8 @@ const Community = () => {
     const data = {
       authorId: userId,
       title: postTitle,
-      content: postContent,
+      content: '', // Removed postContent
       badges: selectedAchievements.map(a => a.name).join(','),
-      featuredImageURL: uploadedImageFile.length > 0 ? uploadedImageFile[0].url : undefined,
       status: 'PUBLISHED',
     };
 
@@ -553,14 +523,10 @@ const Community = () => {
         showComments: false,
         postType: post.status === 'PUBLISHED' ? 'general' : post.status,
         title: post.title,
-        featuredImage: post.featuredImageURL,
       })));
       setIsPostModalVisible(false);
-      setPostContent('');
-      setSelectedAchievements([]);
-      setPostType('general');
       setPostTitle('');
-      setUploadedImageFile([]);
+      setSelectedAchievements([]);
       setIsEditMode(false);
       setEditedPost(null);
     } catch (err) {
@@ -635,15 +601,6 @@ const Community = () => {
             dataSource={posts}
             renderItem={post => (
               <AnimatedPostCard delay={`${post.id * 0.1}s`}>
-                {post.featuredImage && (
-                  <div className="ant-card-cover" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '8px 0' }}>
-                    <img
-                      alt="featured"
-                      src={post.featuredImage}
-                      style={{ maxWidth: 640, maxHeight: 360, borderRadius: 12, objectFit: 'cover', margin: '0 auto', boxShadow: '0 2px 8px #0001' }}
-                    />
-                  </div>
-                )}
                 <div className="ant-card-meta">
                   <Space>
                     <Space>
@@ -667,7 +624,6 @@ const Community = () => {
                   </Space>
                 </div>
                 {post.title && <Title level={4} style={{ marginTop: '0', marginBottom: '12px' }}>{post.title}</Title>}
-                <Paragraph>{post.content}</Paragraph>
 
                 {post.achievements.length > 0 && (
                   <div className="achievement-badges">
@@ -820,10 +776,9 @@ const Community = () => {
                         setEditedPost(post);
                         setIsPostModalVisible(true);
                         setPostTitle(post.title || '');
-                        setPostContent(post.content || '');
-                        setUploadedImageFile(post.featuredImage ? [{ uid: '-1', url: post.featuredImage }] : []);
+                        // setPostContent(post.content || ''); // Removed postContent
                         setSelectedAchievements(post.achievements || []);
-                        setPostType(post.postType || 'general');
+                        // setPostType(post.postType || 'general'); // Removed postType
                       }}
                     >
                       Sửa
@@ -873,7 +828,6 @@ const Community = () => {
                             showComments: false,
                             postType: post.status === 'PUBLISHED' ? 'general' : post.status,
                             title: post.title,
-                            featuredImage: post.featuredImageURL,
                           }));
                           setPosts(updatedPosts);
                           console.log('Đã cập nhật danh sách sau khi xóa');
@@ -958,11 +912,8 @@ const Community = () => {
         open={isPostModalVisible}
         onCancel={() => {
           setIsPostModalVisible(false);
-          setPostContent('');
-          setSelectedAchievements([]);
-          setPostType('general');
           setPostTitle('');
-          setUploadedImageFile([]);
+          setSelectedAchievements([]);
           setIsEditMode(false);
           setEditedPost(null);
         }}
@@ -970,57 +921,11 @@ const Community = () => {
       >
         <Form layout="vertical" style={{ width: '100%' }}>
           <CustomModalContent>
-            <Form.Item label="Chọn loại bài viết">
-              <Select
-                style={{ width: '100%' }}
-                value={postType}
-                onChange={(value) => {
-                  setPostType(value);
-                  if (!['success_story', 'article', 'motivation', 'tip', 'question'].includes(value)) {
-                    setPostTitle('');
-                    setUploadedImageFile([]);
-                  }
-                }}
-                options={[
-                  { value: 'general', label: 'Bài viết chung' },
-                  { value: 'success_story', label: 'Câu chuyện thành công' },
-                  { value: 'tip', label: 'Mẹo cai thuốc' },
-                  { value: 'question', label: 'Hỏi đáp' },
-                  { value: 'badge_share', label: 'Chia sẻ huy hiệu' },
-                  { value: 'motivation', label: 'Tạo động lực' },
-                  { value: 'article', label: 'Bài viết chuyên sâu' }
-                ]}
-              />
-            </Form.Item>
-
-            {(currentRole === 'coach' || ['success_story', 'article', 'motivation', 'tip', 'question', 'general'].includes(postType)) && (
-              <>
-                <Form.Item label="Tiêu đề bài viết">
-                  <Input
-                    value={postTitle}
-                    onChange={(e) => setPostTitle(e.target.value)}
-                    placeholder="Nhập tiêu đề bài viết..."
-                  />
-                </Form.Item>
-                <Form.Item label="Link ảnh nổi bật (URL)">
-                  <Input
-                    value={uploadedImageFile.length > 0 ? uploadedImageFile[0].url || uploadedImageFile[0].thumbUrl || '' : ''}
-                    onChange={e => {
-                      const url = e.target.value;
-                      setUploadedImageFile(url ? [{ uid: '-1', url }] : []);
-                    }}
-                    placeholder="Nhập URL ảnh nổi bật cho bài viết"
-                  />
-                </Form.Item>
-              </>
-            )}
-
-            <Form.Item label="Nội dung">
-              <TextArea
-                value={postContent}
-                onChange={(e) => setPostContent(e.target.value)}
-                placeholder="Viết nội dung bài đăng của bạn..."
-                autoSize={{ minRows: 4, maxRows: 8 }}
+            <Form.Item label="Tiêu đề bài viết">
+              <Input
+                value={postTitle}
+                onChange={(e) => setPostTitle(e.target.value)}
+                placeholder="Nhập tiêu đề bài viết..."
               />
             </Form.Item>
 
@@ -1054,11 +959,8 @@ const Community = () => {
                 className="modal-btn cancel"
                 onClick={() => {
                   setIsPostModalVisible(false);
-                  setPostContent('');
-                  setSelectedAchievements([]);
-                  setPostType('general');
                   setPostTitle('');
-                  setUploadedImageFile([]);
+                  setSelectedAchievements([]);
                   setIsEditMode(false);
                   setEditedPost(null);
                 }}
