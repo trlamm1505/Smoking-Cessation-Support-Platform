@@ -396,9 +396,25 @@ const Community = () => {
   const [editingCommentContent, setEditingCommentContent] = useState('');
   const [coachIds, setCoachIds] = useState([]);
   const [notifiedRejectedPosts, setNotifiedRejectedPosts] = useState(new Set());
+  const [achievementsProcessed, setAchievementsProcessed] = useState(false);
 
   // Get userId from localStorage
   const userId = Number(localStorage.getItem('userId'));
+
+  // Helper function to map achievements from badge names
+  const mapAchievementsFromBadges = (badgesString) => {
+    if (!badgesString) return [];
+    return badgesString.split(',').map((name, idx) => {
+      const trimmedName = name.trim();
+      if (!trimmedName) return null;
+      const ach = achievements.find(a => a.name === trimmedName);
+      return ach ? {
+        ...ach,
+        color: ach.color || '#5FB8B3',
+        icon: ach.icon || null
+      } : { id: idx, name: trimmedName, color: '#5FB8B3' };
+    }).filter(Boolean);
+  };
 
   useEffect(() => {
     async function fetchAllComments(posts) {
@@ -417,7 +433,8 @@ const Community = () => {
         avatar: undefined,
         authorRole: undefined,
         content: post.content,
-        achievements: (post.badges || '').split(',').map((name, idx) => name.trim() ? { id: idx, name: name.trim() } : null).filter(Boolean),
+        badges: post.badges || '',
+        achievements: (post.badges || '').split(',').map((name, idx) => name.trim() ? { id: idx, name: name.trim(), color: '#5FB8B3' } : null).filter(Boolean),
         likes: post.likeCount || 0,
         comments: [],
         timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
@@ -428,6 +445,7 @@ const Community = () => {
         status: post.status,
       }));
       setPosts(mappedPosts);
+      setAchievementsProcessed(false); // Reset to allow reprocessing when new posts are loaded
       // Đồng bộ likedByCurrentUser vào state likedPosts
       const likedSet = new Set();
       (res.data || []).forEach(post => {
@@ -444,7 +462,10 @@ const Community = () => {
         }
       });
     });
-    // Fetch user achievements
+  }, [userId]);
+
+  // Load achievements separately
+  useEffect(() => {
     if (userId) {
       userApi.getUserAchievements(userId).then(res => {
         setAchievements((res.data || []).map(a => ({
@@ -458,11 +479,27 @@ const Community = () => {
         })));
       });
     }
-    // Lấy danh sách coach
+  }, [userId]);
+
+  // Load coach list
+  useEffect(() => {
     userApi.getByRole && userApi.getByRole('coach').then(res => {
       setCoachIds((res.data || []).map(coach => coach.userId));
     });
-  }, [userId]);
+  }, []);
+
+  // Refresh posts when achievements are loaded to ensure proper mapping
+  useEffect(() => {
+    if (achievements.length > 0 && posts.length > 0 && !achievementsProcessed) {
+      const updatedPosts = posts.map(post => ({
+        ...post,
+        achievements: mapAchievementsFromBadges(post.badges || '')
+      }));
+
+      setPosts(updatedPosts);
+      setAchievementsProcessed(true);
+    }
+  }, [achievements, posts.length, achievementsProcessed]);
 
   const handleLike = async (postId) => {
     if (!likedPosts.has(postId)) {
@@ -509,14 +546,8 @@ const Community = () => {
         avatar: undefined,
         authorRole: undefined,
         content: post.content,
-        achievements: (post.badges || '').split(',').map(id => {
-          const ach = achievements.find(a => String(a.id) === id.trim());
-          return ach ? {
-            ...ach,
-            color: ach.color || '#5FB8B3',
-            icon: ach.icon || null
-          } : null;
-        }).filter(Boolean),
+        badges: post.badges || '',
+        achievements: mapAchievementsFromBadges(post.badges),
         likes: post.likeCount || 0,
         comments: [],
         timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
@@ -524,6 +555,7 @@ const Community = () => {
         postType: post.status === 'PUBLISHED' ? 'general' : post.status,
         title: post.title,
       })));
+      setAchievementsProcessed(false); // Reset to allow reprocessing
       setIsPostModalVisible(false);
       setPostTitle('');
       setSelectedAchievements([]);
@@ -821,7 +853,8 @@ const Community = () => {
                             avatar: undefined,
                             authorRole: undefined,
                             content: post.content,
-                            achievements: (post.badges || '').split(',').map((name, idx) => name.trim() ? { id: idx, name: name.trim() } : null).filter(Boolean),
+                            badges: post.badges || '',
+                            achievements: mapAchievementsFromBadges(post.badges),
                             likes: post.likeCount || 0,
                             comments: [],
                             timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
@@ -830,6 +863,7 @@ const Community = () => {
                             title: post.title,
                           }));
                           setPosts(updatedPosts);
+                          setAchievementsProcessed(false); // Reset to allow reprocessing
                           console.log('Đã cập nhật danh sách sau khi xóa');
                         } catch (error) {
                           console.error('Lỗi khi xóa:', error);
@@ -869,7 +903,7 @@ const Community = () => {
                         //         avatar: undefined,
                         //         authorRole: undefined,
                         //         content: post.content,
-                        //         achievements: (post.badges || '').split(',').map((name, idx) => name.trim() ? { id: idx, name: name.trim() } : null).filter(Boolean),
+                        //         achievements: mapAchievementsFromBadges(post.badges),
                         //         likes: post.likeCount || 0,
                         //         comments: [],
                         //         timestamp: post.publishDate ? new Date(post.publishDate).toLocaleString('vi-VN') : '',
